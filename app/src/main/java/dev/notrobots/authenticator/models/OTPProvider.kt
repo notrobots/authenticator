@@ -2,7 +2,7 @@ package dev.notrobots.authenticator.models
 
 import dev.turingcomplete.kotlinonetimepassword.*
 
-class OTPProvider {
+object OTPProvider {
     fun generate(account: Account): String {
         return when (account.type) {
             OTPType.TOTP -> {

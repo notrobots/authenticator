@@ -7,20 +7,19 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
-import dev.notrobots.authenticator.KnownIssuers
 import dev.notrobots.authenticator.R
-import dev.notrobots.authenticator.extensions.copyToClipboard
+import dev.notrobots.authenticator.data.KnownIssuers
 import dev.notrobots.authenticator.extensions.find
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.OTPProvider
 import kotlinx.android.synthetic.main.item_account.view.*
+import javax.inject.Inject
 
 class AccountListAdapter(
     context: Context,
     lifecycleOwner: LifecycleOwner,
     private val data: LiveData<List<Account>>
 ) : ArrayAdapter<Account>(context, 0) {
-    private val provider = OTPProvider()
 
     init {
         data.observe(lifecycleOwner) {
@@ -40,13 +39,7 @@ class AccountListAdapter(
             }
 
             view.text_account_label.text = text
-            view.text_account_pin.text = provider.generate(account)
-            view.setOnClickListener {
-                val pin = provider.generate(account)
-
-                view.text_account_pin.text = pin
-                context.copyToClipboard(pin)
-            }
+            view.text_account_pin.text = OTPProvider.generate(account)
         }
 
         return view

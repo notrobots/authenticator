@@ -1,54 +1,81 @@
 package dev.notrobots.authenticator.ui
 
+import dev.notrobots.authenticator.google.TotpClock
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.authenticator.App
 import dev.notrobots.authenticator.R
+import dev.notrobots.authenticator.google.TotpCountdownTask
+import dev.notrobots.authenticator.google.TotpCounter
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.OTPAlgorithm
 import dev.notrobots.authenticator.models.OTPType
-import dev.notrobots.authenticator.time.TimerTask
 import dev.notrobots.authenticator.ui.home.AccountListAdapter
-import dev.notrobots.authenticator.util.parseEnum
 import dev.notrobots.authenticator.ui.home.AccountListViewModel
-import kotlinx.android.synthetic.main.activity_main.*
 import dev.notrobots.authenticator.util.*
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.launch
-import java.util.*
+import java.util.concurrent.TimeUnit
+import dev.notrobots.authenticator.extensions.*
+import dev.notrobots.authenticator.models.OTPProvider
+import kotlinx.android.synthetic.main.item_account.view.*
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity(), TimerTask.Listener {
+class MainActivity : AppCompatActivity() {
     private val viewModel by viewModels<AccountListViewModel>()
     private val adapter by lazy {
         AccountListAdapter(this, this, viewModel.accounts)
     }
-    private val timerHandler = Handler(Looper.getMainLooper())
-    private val timerTask = TimerTask()
+    private var totpCountdownTask: TotpCountdownTask? = null
+
+    /** Counter used for generating TOTP verification codes.  */
+    private val totpCounter: TotpCounter = TotpCounter(30)
+
+    /** Clock used for generating TOTP verification codes.  */
+    private val totpClock: TotpClock by lazy {
+        TotpClock(this)
+    }
 
     override fun onStart() {
         super.onStart()
 
-        timerTask.start()
-        timerTask.setListener(this)
+        if (totpCountdownTask != null) {
+            totpCountdownTask!!.stop()
+            totpCountdownTask = null
+        }
 
-        //TODO: Start countdown
-    }
+        totpCountdownTask = TotpCountdownTask(
+            totpCounter,
+            totpClock,
+            100
+        )
+        totpCountdownTask!!.setListener(object : TotpCountdownTask.Listener {
+            override fun onTotpCountdown(millisRemaining: Long) {
+                if (isFinishing) {
+                    // No need to reach to this even because the Activity is finishing anyway
+                    return
+                }
+                setTotpCountdownPhaseFromTimeTillNextValue(millisRemaining)
+            }
 
-    override fun onTick(timeLeft: Long) {
-        Log.d(App.TAG, "Time left: $timeLeft")
-    }
+            override fun onTotpCounterValueChanged() {
+                if (isFinishing) {
+                    // No need to reach to this even because the Activity is finishing anyway
+                    return
+                }
 
-    override fun onFinish() {
-        adapter.notifyDataSetChanged()
+                adapter.notifyDataSetChanged()
+            }
+        })
+        totpCountdownTask!!.startAndNotifyListener()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,6 +87,24 @@ class MainActivity : AppCompatActivity(), TimerTask.Listener {
         }
 
         list_accounts.adapter = adapter
+        list_accounts.setOnItemClickListener { _, _, position, _ ->
+            Log.d(App.TAG, "Clicked!")
+
+            val account = viewModel.getAccount(position)!!
+            val pin = OTPProvider.generate(account)
+
+            copyToClipboard(pin)
+        }
+        list_accounts.setOnItemLongClickListener { _, _, position, _ ->
+            val account = viewModel.getAccount(position)!!
+
+            lifecycleScope.launch {
+                viewModel.accountDao.delete(account)
+            }
+
+            true
+        }
+
         /**
          * Test values
          *
@@ -92,6 +137,34 @@ class MainActivity : AppCompatActivity(), TimerTask.Listener {
         return true
     }
 
+    private fun setTotpCountdownPhaseFromTimeTillNextValue(millisRemaining: Long) {
+        setTotpCountdownPhase(millisRemaining.toDouble() / TimeUnit.SECONDS.toMillis(totpCounter.timeStep))
+    }
+
+    private fun setTotpCountdownPhase(phase: Double) {
+        updateCountdownIndicators()
+
+        for (child in list_accounts.children) {
+            child.pb_phase.setPhase(phase)
+        }
+    }
+
+    private fun updateCountdownIndicators() {
+//        var i = 0
+//        val len: Int = userList.getChildCount()
+//        while (i < len) {
+//            val listEntry: View = userList.getChildAt(i)
+//            val indicator: CountdownIndicator = listEntry.findViewById(R.id.countdown_icon)
+//            if (indicator != null) {
+//                indicator.setPhase(totpCountdownPhase)
+//            }
+//            i++
+//        }
+
+
+//        Log.d(App.TAG, "Phase: ${phase}")
+    }
+
     private fun addAccount(input: String) {
         val uri = Uri.parse(input)
 
@@ -112,7 +185,8 @@ class MainActivity : AppCompatActivity(), TimerTask.Listener {
 
             // Optional fields
             val issuer = uri.getQueryParameter(OTP_ISSUER)
-            val algorithm = parseEnum(uri.getQueryParameter(OTP_ALGORITHM), true) ?: DEFAULT_OTP_ALGORITHM
+            val algorithm =
+                parseEnum(uri.getQueryParameter(OTP_ALGORITHM), true) ?: DEFAULT_OTP_ALGORITHM
             val digits = uri.getQueryParameter(OTP_DIGITS)?.toIntOrNull() ?: DEFAULT_OTP_DIGITS
             val counter = uri.getQueryParameter(OTP_COUNTER)?.toIntOrNull() ?: DEFAULT_OTP_COUNTER
             val period = uri.getQueryParameter(OTP_PERIOD)?.toIntOrNull() ?: DEFAULT_OTP_PERIOD

@@ -1,4 +1,6 @@
-package dev.notrobots.authenticator
+package dev.notrobots.authenticator.data
+
+import dev.notrobots.authenticator.R
 
 val KnownIssuers = mapOf(
     Regex(
