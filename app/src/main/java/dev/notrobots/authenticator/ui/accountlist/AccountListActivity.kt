@@ -66,6 +66,7 @@ class AccountListActivity : AppCompatActivity() {
                 try {
                     addAccount(url)
                 } catch (e: Exception) {
+                    //FIXME: This dialog sucks ass
                     val dialog = ErrorDialog()
 
                     dialog.setErrorMessage(e.message)

@@ -1,13 +1,17 @@
 package dev.notrobots.authenticator.ui.barcode
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
 import androidx.activity.viewModels
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.barcode.Barcode
 import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
@@ -15,12 +19,19 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import dev.notrobots.authenticator.App
 import dev.notrobots.authenticator.activities.ThemedActivity
+import dev.notrobots.authenticator.extensions.makeToast
+import dev.notrobots.authenticator.util.loge
 import kotlinx.android.synthetic.main.activity_barcode_scanner.*
 import java.util.concurrent.Executors
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * Activity that handles the QR code scanning
+ *
+ * Code adapted from: [https://github.com/khaled-qasem/MLBarcodeScanner]
+ */
 class BarcodeScannerActivity : ThemedActivity(), ImageAnalysis.Analyzer {
     private var lensFacing = CameraSelector.LENS_FACING_BACK
     private var cameraSelector: CameraSelector? = null
@@ -45,10 +56,23 @@ class BarcodeScannerActivity : ThemedActivity(), ImageAnalysis.Analyzer {
         super.onCreate(savedInstanceState)
         setFullscreen()
         setContentView(dev.notrobots.authenticator.R.layout.activity_barcode_scanner)
-
-        //TODO: Ask permissions
-
         setupCamera()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == PERMISSION_CAMERA_REQUEST) {
+            val camera = permissions.indexOf(Manifest.permission.CAMERA)
+
+            if (grantResults[camera] == PackageManager.PERMISSION_GRANTED) {
+                bindPreview()
+                bindImageAnalysis()
+            } else {
+                makeToast("Camera permission is required to scan a QR code")
+                finish()
+            }
+        }
     }
 
     @androidx.camera.core.ExperimentalGetImage
@@ -68,16 +92,11 @@ class BarcodeScannerActivity : ThemedActivity(), ImageAnalysis.Analyzer {
                 }
             }
             task.addOnFailureListener {
-                Log.e(App.TAG, it.message.toString())
+                loge(it)
             }
             task.addOnCompleteListener {
-                // When the image is from CameraX analysis use case, must call image.close() on received
-                // images when finished using them. Otherwise, new images may not be received or the camera
-                // may stall.
                 image.close()
             }
-        } else {
-            TODO("Task is null")
         }
     }
 
@@ -86,13 +105,15 @@ class BarcodeScannerActivity : ThemedActivity(), ImageAnalysis.Analyzer {
             .requireLensFacing(lensFacing)
             .build()
 
-        viewModel.processCameraProvider.observe(this) {
+        viewModel.cameraProvider.observe(this) {
             cameraProvider = it
 
-            //TODO: Ask permissions
-
-            bindPreview()
-            bindImageAnalysis()
+            if (isCameraPermissionGranted()) {
+                bindPreview()
+                bindImageAnalysis()
+            } else {
+                requestCameraPermission()
+            }
         }
     }
 
@@ -113,7 +134,7 @@ class BarcodeScannerActivity : ThemedActivity(), ImageAnalysis.Analyzer {
         try {
             cameraProvider!!.bindToLifecycle(this, cameraSelector!!, previewUseCase)
         } catch (e: Exception) {
-            Log.e(App.TAG, e.message.toString())
+            loge(e)
         }
     }
 
@@ -142,16 +163,33 @@ class BarcodeScannerActivity : ThemedActivity(), ImageAnalysis.Analyzer {
         try {
             cameraProvider!!.bindToLifecycle(this, cameraSelector!!, imageAnalysis)
         } catch (e: Exception) {
-            Log.e(App.TAG, e.message.toString())
+            loge(e)
         }
     }
 
     private fun aspectRatio(width: Int, height: Int): Int {
         val previewRatio = max(width, height).toDouble() / min(width, height)
+
         if (abs(previewRatio - RATIO_4_3_VALUE) <= abs(previewRatio - RATIO_16_9_VALUE)) {
             return AspectRatio.RATIO_4_3
         }
+
         return AspectRatio.RATIO_16_9
+    }
+
+    private fun isCameraPermissionGranted(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            baseContext,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestCameraPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.CAMERA),
+            PERMISSION_CAMERA_REQUEST
+        )
     }
 
     companion object {

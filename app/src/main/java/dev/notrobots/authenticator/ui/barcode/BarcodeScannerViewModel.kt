@@ -15,18 +15,18 @@ import javax.inject.Inject
 class BarcodeScannerViewModel @Inject constructor(
     application: Application
 ) : AndroidViewModel(application) {
-    private var cameraProviderLiveData: MutableLiveData<ProcessCameraProvider>? = null
+    private var _cameraProvider: MutableLiveData<ProcessCameraProvider>? = null
 
-    val processCameraProvider: LiveData<ProcessCameraProvider>
+    val cameraProvider: LiveData<ProcessCameraProvider>
         get() {
-            if (cameraProviderLiveData == null) {
-                cameraProviderLiveData = MutableLiveData()
+            if (_cameraProvider == null) {
+                _cameraProvider = MutableLiveData()
 
                 val cameraProviderFuture = ProcessCameraProvider.getInstance(getApplication())
                 cameraProviderFuture.addListener(
                     {
                         try {
-                            cameraProviderLiveData!!.setValue(cameraProviderFuture.get())
+                            _cameraProvider!!.setValue(cameraProviderFuture.get())
                         } catch (e: Exception) {
                             Log.e(App.TAG, "Unhandled exception", e)
                         }
@@ -34,6 +34,7 @@ class BarcodeScannerViewModel @Inject constructor(
                     ContextCompat.getMainExecutor(getApplication())
                 )
             }
-            return cameraProviderLiveData!!
+
+            return _cameraProvider!!
         }
 }
