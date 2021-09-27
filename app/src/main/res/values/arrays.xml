@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="account_type">
+        <item>Time based (TOTP)</item>
+        <item>Counter based (HOTP)</item>
+    </string-array>
+    <string-array name="account_type_values">
+        <item>TOTP</item>
+        <item>HOTP</item>
+    </string-array>
+</resources>

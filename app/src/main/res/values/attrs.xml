@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="BetterSpinner">
+        <!-- Spinner entries, will be used as values if no values are provided -->
+        <attr name="spinnerEntries" format="reference"/>
+        <!-- Spinner values -->
+        <attr name="spinnerValues" format="reference"/>
+        <!-- Spinner label -->
+        <attr name="spinnerLabel" format="string"/>
+    </declare-styleable>
+</resources>

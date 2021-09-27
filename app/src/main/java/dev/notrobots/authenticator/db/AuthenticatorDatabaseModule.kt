@@ -15,7 +15,7 @@ import javax.inject.Singleton
 @Module
 class AuthenticatorDatabaseModule {
     @Provides
-    fun provideNotificationDao(database: AuthenticatorDatabase): AccountDao {
+    fun provideAccountDao(database: AuthenticatorDatabase): AccountDao {
         return database.accountDao()
     }
 

@@ -1,4 +1,4 @@
-package dev.notrobots.authenticator.ui.home
+package dev.notrobots.authenticator.ui.accountlist
 
 import android.content.Context
 import android.view.View
@@ -13,7 +13,6 @@ import dev.notrobots.authenticator.extensions.find
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.OTPProvider
 import kotlinx.android.synthetic.main.item_account.view.*
-import javax.inject.Inject
 
 class AccountListAdapter(
     context: Context,
