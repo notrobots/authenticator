@@ -10,6 +10,9 @@ interface AccountDao {
     @Query("SELECT * FROM Account WHERE id = :id")
     suspend fun getAccount(id: Long): Account
 
+    @Query("SELECT * FROM Account WHERE name = :name AND issuer = :issuer")
+    suspend fun getAccount(name: String, issuer: String): Account
+
     @Query("SELECT * FROM Account")
     fun getAll(): LiveData<List<Account>>
 
@@ -23,8 +26,8 @@ interface AccountDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(vararg accounts: Account)
 
-    @Update
-    suspend fun update(account: Account)
+    @Update(onConflict = OnConflictStrategy.ABORT)
+    suspend fun update(account: Account): Int
 
     @Delete
     suspend fun delete(account: Account)

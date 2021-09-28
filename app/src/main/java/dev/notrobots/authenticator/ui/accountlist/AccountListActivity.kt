@@ -80,20 +80,10 @@ class AccountListActivity : AppCompatActivity() {
             val account = it.data!!.getSerializableExtra(AccountActivity.EXTRA_ACCOUNT) as Account
 
             if (it.resultCode == AccountActivity.RESULT_INSERT) {
-                try {
-                    addAccount(account)
-                } catch (e: Exception) {
-                    val dialog = ErrorDialog()
-
-                    dialog.setErrorMessage(e.message)
-                    dialog.show(supportFragmentManager, null)
-                }
+                addAccount(account)
             } else if (it.resultCode == AccountActivity.RESULT_UPDATE) {
-                lifecycleScope.launch {
-                    viewModel.accountDao.update(account)
-
-                    logd("Updating account with displayName: ${account.displayName}")
-                }
+                updateAccount(account)
+                logd("Updating account with displayName: ${account.displayName}")
             }
         }
     }
@@ -301,21 +291,37 @@ class AccountListActivity : AppCompatActivity() {
                 val dialog = ReplaceAccountDialog()
 
                 dialog.onConfirm = {
-                    launch {
-                        viewModel.accountDao.update(account)
-                        logd("Replacing existing account: $account")
-                    }
+                    updateAccount(account)
+                    logd("Replacing existing account: $account")
                 }
                 dialog.show(supportFragmentManager, null)
             }
             // No account with the same name and issuer was found in the database,
             // insert the given account
             else {
-                launch {
-                    viewModel.accountDao.insert(account)
-                    logd("Adding new account: $account")
-                }
+                viewModel.accountDao.insert(account)
+                logd("Adding new account: $account")
             }
+        }
+    }
+
+    /**
+     * Updates the given account in the database.
+     *
+     * If the account ID is null it looks up for a record with the same name and issuer and
+     * updates that record
+     */
+    private fun updateAccount(account: Account) {
+        lifecycleScope.launch {
+            if (account.id == null) {
+                val original = viewModel.accountDao.getAccount(account.name, account.issuer)
+
+                account.id = original.id
+            }
+
+            val i = viewModel.accountDao.update(account)
+
+            logd("Something: $i")
         }
     }
 }

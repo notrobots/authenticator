@@ -6,7 +6,6 @@ import android.widget.*
 import com.google.android.material.textfield.TextInputLayout
 import dev.notrobots.authenticator.R
 import kotlinx.android.synthetic.main.view_betterspinner.view.*
-import kotlinx.android.synthetic.main.view_betterspinner.view.*
 
 class BetterSpinner(
     context: Context,
@@ -81,7 +80,7 @@ class BetterSpinner(
      */
     val selectedItem: Item
         get() = Item(selectedEntry!!, selectedValue)
-    var onItemClickListener: (value: Any?) -> Unit = {}
+    var onItemClickListener: (entry: String, value: Any?) -> Unit = { _, _ -> }
 
     init {
         inflate(context, R.layout.view_betterspinner, this)
@@ -92,7 +91,7 @@ class BetterSpinner(
         textView!!.setAdapter(adapter)
         textView!!.setOnItemClickListener { _, _, position, _ ->
             setSelection(position)
-            onItemClickListener(values[position])
+            onItemClickListener(entries[position], values[position])
         }
 
         with(context.obtainStyledAttributes(attrs, R.styleable.BetterSpinner, defStyleAttr, 0)) {

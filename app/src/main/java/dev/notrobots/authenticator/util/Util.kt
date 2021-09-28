@@ -2,10 +2,10 @@ package dev.notrobots.authenticator.util
 
 import org.apache.commons.codec.binary.Base32
 
-inline fun <reified E : Enum<E>> parseEnum(value: String?, ignoreCase: Boolean = false): E? {
+inline fun <reified E : Enum<E>> parseEnum(value: CharSequence?, ignoreCase: Boolean = false): E? {
     val values = E::class.java.enumConstants
 
-    return values.find { it.name.equals(value, ignoreCase) }
+    return values.find { it.name.equals(value.toString(), ignoreCase) }
 }
 
 fun now(): Long = System.currentTimeMillis()

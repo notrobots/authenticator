@@ -37,17 +37,25 @@ data class Account(
      * Primary key
      */
     @PrimaryKey(autoGenerate = true)
-    var id: Long = 0
+    var id: Long? = null
 
     /**
      * Whether or not the secret is a base32 string
      */
 //    var isBase32: Boolean = true
 
+    val path
+        get() = if (label.isNotEmpty()) "$label:$name" else name
     val displayName
         get() = if (label.isNotEmpty()) "$label ($name)" else name
-    val backup  //TODO: Encode the string since it may have spaces
-        get() = "otpauth://$type/$label:$name?secret=$secret&issuer=$issuer"
+    val backup
+        get() = Uri.Builder()
+            .scheme(OTP_SCHEME)
+            .authority(type.toString().toLowerCase())
+            .path(path)
+            .appendQueryParameter(OTP_SECRET, secret)
+            .appendQueryParameter(OTP_ISSUER, issuer)
+            .build()
 
     constructor() : this("", "", "", "", OTPType.TOTP)
 
@@ -84,22 +92,24 @@ data class Account(
                 //
                 val type = parseEnum<OTPType>(uri.authority?.toUpperCase()) ?: typeError()
                 val path = parsePath(uri)
-                val label = path.groupValues[1]
                 val name = path.groupValues[2]
+                val secret = uri[OTP_SECRET] ?: error("Missing parameter 'secret'")
 
                 if (name.isBlank()) {
                     error("Name cannot be empty")
                 }
 
-                if (label.isOnlySpaces()) {
-                    error("Label cannot be blank")
-                }
-
-                val secret = parseSecret(uri)
+                validateSecret(secret)
 
                 //
                 // Optional fields
                 //
+                val label = path.groupValues[1]
+
+                if (label.isOnlySpaces()) {
+                    error("Label cannot be blank")
+                }
+
                 val issuer = uri[OTP_ISSUER] ?: ""
 
                 if (issuer.isOnlySpaces()) {
@@ -122,25 +132,10 @@ data class Account(
         }
 
         /**
-         * Parses the path and returns a [MatchResult]
+         * Validates the given [Account] fields and throws an exception if any of them doesn't
+         * follow the requirements
          */
-        private fun parsePath(uri: Uri): MatchResult {
-            val pathError = { error("Path malformed, must be /label:name or /name") }
-            val path = uri.path.let {
-                val s = it?.removePrefix("/")
-
-                if (s.isNullOrBlank()) pathError() else s
-            }
-
-            return Regex("^(?:(.+):)?(.+)$").find(path) ?: pathError()
-        }
-
-        /**
-         * Parses and checks the validity of the secret from the given [Uri]
-         */
-        private fun parseSecret(uri: Uri): String {
-            val secret = uri[OTP_SECRET] ?: error("Missing parameter 'secret'")
-
+        fun validateSecret(secret: String) {
             if (secret.isBlank()) {
                 error("Secret cannot be empty")
             }
@@ -157,8 +152,20 @@ data class Account(
             if (!OTPProvider.checkSecret(secret)) {
                 error("Invalid secret key")
             }
+        }
 
-            return secret
+        /**
+         * Parses the path and returns a [MatchResult]
+         */
+        private fun parsePath(uri: Uri): MatchResult {
+            val pathError = { error("Path malformed, must be /label:name or /name") }
+            val path = uri.path.let {
+                val s = it?.removePrefix("/")
+
+                if (s.isNullOrBlank()) pathError() else s
+            }
+
+            return Regex("^(?:(.+):)?(.+)$").find(path) ?: pathError()
         }
     }
 }

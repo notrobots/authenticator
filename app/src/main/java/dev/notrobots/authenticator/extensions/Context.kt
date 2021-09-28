@@ -3,6 +3,7 @@ package dev.notrobots.authenticator.extensions
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.util.TypedValue
 import android.widget.Toast
 
 fun Context.makeToast(content: Any?): Toast {
@@ -16,4 +17,11 @@ fun Context.copyToClipboard(content: Any?) {
     val clip = ClipData.newPlainText(null, content.toString())
 
     clipboardManager.setPrimaryClip(clip)
+}
+
+fun Context.resolveColorAttribute(id: Int): Int {
+    return TypedValue().run {
+        theme.resolveAttribute(id, this, true)
+        data
+    }
 }

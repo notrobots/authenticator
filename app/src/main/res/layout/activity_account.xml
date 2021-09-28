@@ -1,26 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp">
-
-    <dev.notrobots.authenticator.views.BetterSpinner
-        android:id="@+id/spinner_account_type"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Type"
-        app:spinnerEntries="@array/account_type"
-        app:spinnerValues="@array/account_type_values" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/layout_account_name"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="Name">
+        android:hint="Name"
+        app:errorEnabled="true">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/text_account_name"
@@ -34,11 +27,12 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:hint="Secret"
         app:endIconDrawable="@drawable/ic_add"
         app:endIconMode="password_toggle"
-        app:endIconTint="@color/black">
+        app:endIconTint="@color/black"
+        app:errorEnabled="true"
+        android:layout_marginTop="8dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/text_account_secret"
@@ -52,11 +46,12 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:hint="Label"
         app:endIconDrawable="@drawable/ic_add"
         app:endIconMode="custom"
-        app:endIconTint="?attr/colorAccent">
+        app:endIconTint="?attr/colorAccent"
+        app:errorEnabled="true"
+        android:layout_marginTop="8dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/text_account_label"
@@ -71,8 +66,9 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="Issuer">
+        android:hint="Issuer"
+        app:errorEnabled="true"
+        android:layout_marginTop="8dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/text_account_issuer"
@@ -81,12 +77,39 @@
             android:inputType="text"/>
     </com.google.android.material.textfield.TextInputLayout>
 
-    <Button
-        android:id="@+id/btn_account_confirm"
-        android:layout_width="wrap_content"
+    <FrameLayout
+        android:id="@+id/frame_account_extra"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:layout_marginTop="16dp"
-        android:text="Add" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <dev.notrobots.authenticator.views.BetterSpinner
+            android:id="@+id/spinner_account_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="Type"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:spinnerEntries="@array/account_type"
+            app:spinnerValues="@array/account_type_values" />
+
+        <Button
+            android:id="@+id/btn_account_confirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/spinner_account_type"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>
