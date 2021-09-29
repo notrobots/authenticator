@@ -1,23 +1,20 @@
 package dev.notrobots.authenticator.ui.accountlist
 
 import android.app.Activity
-import android.app.Dialog
 import android.content.Intent
 import dev.notrobots.authenticator.google.TotpClock
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts.*
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ActionMode
 import androidx.core.view.children
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
-import dev.notrobots.authenticator.App
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.dialogs.AccountURLDialog
 import dev.notrobots.authenticator.dialogs.ErrorDialog
@@ -25,8 +22,6 @@ import dev.notrobots.authenticator.dialogs.ReplaceAccountDialog
 import dev.notrobots.authenticator.google.TotpCountdownTask
 import dev.notrobots.authenticator.google.TotpCounter
 import dev.notrobots.authenticator.models.Account
-import dev.notrobots.authenticator.models.OTPAlgorithm
-import dev.notrobots.authenticator.models.OTPType
 import dev.notrobots.authenticator.util.*
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
@@ -34,20 +29,16 @@ import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.models.OTPProvider
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
-import dev.turingcomplete.kotlinonetimepassword.GoogleAuthenticator
+import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
+import dev.turingcomplete.kotlinonetimepassword.RandomSecretGenerator
 import kotlinx.android.synthetic.main.activity_account_list.*
-import kotlinx.android.synthetic.main.dialog_account_url.*
-import kotlinx.android.synthetic.main.dialog_account_url.view.*
 import kotlinx.android.synthetic.main.item_account.view.*
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onCompletion
 
 @AndroidEntryPoint
-class AccountListActivity : AppCompatActivity() {
+class AccountListActivity : AppCompatActivity(), ActionMode.Callback {
     private val viewModel by viewModels<AccountListViewModel>()
     private val adapter by lazy {
-        AccountListAdapter(this, this, viewModel.accounts)
+        AccountListAdapter()
     }
     private var totpCountdownTask: TotpCountdownTask? = null
 
@@ -87,6 +78,7 @@ class AccountListActivity : AppCompatActivity() {
             }
         }
     }
+    private var actionMode: ActionMode? = null
 
     override fun onStart() {
         super.onStart()
@@ -126,29 +118,25 @@ class AccountListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_account_list)
 
-        viewModel.accounts.observe(this) {
-            Log.d(App.TAG, "Updated!")
-        }
-
         list_accounts.adapter = adapter
-        list_accounts.setOnItemClickListener { _, _, _, id ->
-            lifecycleScope.launch {
-                val account = viewModel.accountDao.getAccount(id)
-                //FIXME: Either get the secret from the DB directly or from the adapter
-                val pin = OTPProvider.generate(account)
+        list_accounts.layoutManager = LinearLayoutManager(this)
 
-                copyToClipboard(pin)
+        adapter.onItemClickListener = { account, position, _ ->
+            if (actionMode != null) {
+                account.toggleSelected()
+
+                if (!account.isSelected && adapter.selectedAccounts.isEmpty()) {
+                    actionMode?.finish()
+                }
+
+                adapter.notifyItemChanged(position)
+            } else {
+                copyToClipboard(OTPProvider.generate(account))
+                makeToast("Copied!")
             }
         }
-        list_accounts.setOnItemLongClickListener { _, _, _, id ->
-            lifecycleScope.launch {
-                val account = viewModel.accountDao.getAccount(id)
-                val intent = Intent(this@AccountListActivity, AccountActivity::class.java)
-
-                intent.putExtra(AccountActivity.EXTRA_ACCOUNT, account)
-
-                editAccount.launch(intent)
-            }
+        adapter.onItemLongClickListener = { _, _, _ ->
+            startSupportActionMode(this)
 
             true
         }
@@ -167,35 +155,6 @@ class AccountListActivity : AppCompatActivity() {
             }
             dialog.show(supportFragmentManager, null)
             btn_add_account.close(true)
-//
-//            val view = layoutInflater.inflate(R.layout.dialog_account_url).apply {
-//                layout_account_url.setClearErrorOnType()
-//            }
-//            val dialog = AlertDialog.Builder(this)
-//                .setTitle("Add URL")
-//                .setView(view)
-//                .setCancelable(true)
-//                .setPositiveButton("Ok", null)
-//                .setNeutralButton("Cancel", null)
-//                .create()
-//
-//            dialog.setOnShowListener {
-//                dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
-//                    val text = view.text_account_url.text
-//
-//                    if (text.isNullOrBlank()) {
-//                        view.layout_account_url.error = "Field is empty"
-//                    } else {
-//                        try {
-//                            addAccount(text.toUri())
-//                            dialog.dismiss()
-//                        } catch (e: Exception) {
-//                            view.layout_account_url.error = e.message
-//                        }
-//                    }
-//                }
-//            }
-//            dialog.show()
         }
         btn_add_account_custom.setOnClickListener {
             val intent = Intent(this, AccountActivity::class.java)
@@ -203,6 +162,20 @@ class AccountListActivity : AppCompatActivity() {
             editAccount.launch(intent)
             btn_add_account.close(true)
         }
+
+        viewModel.accounts.observe(this) {
+            adapter.setData(it)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        actionMode?.finish()
+    }
+
+    override fun onBackPressed() {
+//        super.onBackPressed()
+        actionMode?.finish()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -220,9 +193,55 @@ class AccountListActivity : AppCompatActivity() {
             R.id.menu_refresh -> {
                 adapter.notifyDataSetChanged()
             }
+            R.id.menu_add_test -> {
+                val secret = {
+                    RandomSecretGenerator()
+                        .createRandomSecret(HmacAlgorithm.SHA1)
+                        .toString()
+                }
+                var count = 0
+                val tests = Array(30) {
+                    Account("Test: ${count++}", secret())
+                }
+
+                lifecycleScope.launch {
+                    viewModel.accountDao.insert(*tests)
+                }
+            }
         }
 
         return true
+    }
+
+    override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
+        actionMode = mode
+        menuInflater.inflate(R.menu.menu_account_list_context, menu)
+
+        return true
+    }
+
+    override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?): Boolean {
+        return true
+    }
+
+    override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            R.id.menu_account_remove -> {
+                lifecycleScope.launch {
+                    //TODO Show dialog
+
+                    viewModel.accountDao.delete(adapter.selectedAccounts)
+                }
+                actionMode?.finish()
+            }
+        }
+
+        return true
+    }
+
+    override fun onDestroyActionMode(mode: ActionMode?) {
+        actionMode = null
+        adapter.clearSelected()
     }
 
     private fun setTotpCountdownPhaseFromTimeTillNextValue(millisRemaining: Long) {
@@ -288,9 +307,9 @@ class AccountListActivity : AppCompatActivity() {
             // If the count is greater than 0, that means there's one other account
             // with the same name and issuer, ask the user if they want to overwrite it
             if (count > 0) {
-                val dialog = ReplaceAccountDialog()
+                val dialog = ReplaceAccountDialog() //TODO Let the user keep both accounts
 
-                dialog.onConfirm = {
+                dialog.onReplaceListener = {
                     updateAccount(account)
                     logd("Replacing existing account: $account")
                 }

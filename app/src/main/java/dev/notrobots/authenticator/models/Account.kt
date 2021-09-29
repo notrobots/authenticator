@@ -2,6 +2,7 @@ package dev.notrobots.authenticator.models
 
 import android.net.Uri
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import dev.notrobots.authenticator.extensions.get
 import dev.notrobots.authenticator.extensions.isOnlySpaces
@@ -17,21 +18,9 @@ data class Account(
      */
     var name: String,
     /**
-     * Account issuer, should be the company's website
-     */
-    var issuer: String,
-    /**
-     * Additional naming for the account, should be the company's name
-     */
-    var label: String,
-    /**
      * Account secret, should be a base32 string
      */
     var secret: String,
-    /**
-     * OTP type
-     */
-    var type: OTPType
 ) : Serializable {
     /**
      * Primary key
@@ -40,9 +29,30 @@ data class Account(
     var id: Long? = null
 
     /**
+     * Account issuer, should be the company's website
+     */
+    var issuer: String = ""
+
+    /**
+     * Additional naming for the account, should be the company's name
+     */
+    var label: String = ""
+
+    /**
+     * OTP type
+     */
+    var type: OTPType = OTPType.TOTP
+
+    /**
      * Whether or not the secret is a base32 string
      */
 //    var isBase32: Boolean = true
+
+    /**
+     * Whether or not this item is selected
+     */
+    @Ignore
+    var isSelected: Boolean = false
 
     val path
         get() = if (label.isNotEmpty()) "$label:$name" else name
@@ -57,7 +67,11 @@ data class Account(
             .appendQueryParameter(OTP_ISSUER, issuer)
             .build()
 
-    constructor() : this("", "", "", "", OTPType.TOTP)
+    constructor() : this("", "")
+
+    fun toggleSelected() {
+        isSelected = !isSelected
+    }
 
     companion object {
         private const val OTP_SCHEME = "otpauth"
@@ -125,7 +139,11 @@ data class Account(
 //                val period = uri[OTP_PERIOD]?.toIntOrNull() ?: DEFAULT_OTP_PERIOD
 //                val isBase32 = uri[OTP_BASE32]?.toBoolean() ?: DEFAULT_BASE32
 
-                return Account(name, issuer, label, secret, type)
+                return Account(name, secret).apply {
+                    this.issuer = issuer
+                    this.label = label
+                    this.type = type
+                }
             } else {
                 error("Scheme should be 'otpauth'")
             }

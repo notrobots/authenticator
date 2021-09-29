@@ -26,11 +26,14 @@ interface AccountDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(vararg accounts: Account)
 
-    @Update(onConflict = OnConflictStrategy.ABORT)
+    @Update()
     suspend fun update(account: Account): Int
 
     @Delete
     suspend fun delete(account: Account)
+
+    @Delete
+    suspend fun delete(accounts: List<Account>)
 
     @Query("DELETE FROM Account")
     suspend fun deleteAll()
