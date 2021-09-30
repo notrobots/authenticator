@@ -2,7 +2,6 @@ package dev.notrobots.authenticator.ui.accountlist
 
 import android.app.Activity
 import android.content.Intent
-import dev.notrobots.authenticator.google.TotpClock
 import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
@@ -13,32 +12,38 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
 import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.authenticator.R
+import dev.notrobots.authenticator.activities.ThemedActivity
 import dev.notrobots.authenticator.dialogs.AccountURLDialog
 import dev.notrobots.authenticator.dialogs.ErrorDialog
 import dev.notrobots.authenticator.dialogs.ReplaceAccountDialog
+import dev.notrobots.authenticator.extensions.*
+import dev.notrobots.authenticator.google.TotpClock
 import dev.notrobots.authenticator.google.TotpCountdownTask
 import dev.notrobots.authenticator.google.TotpCounter
 import dev.notrobots.authenticator.models.Account
-import dev.notrobots.authenticator.util.*
-import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
-import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.models.OTPProvider
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
+import dev.notrobots.authenticator.util.*
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
 import dev.turingcomplete.kotlinonetimepassword.RandomSecretGenerator
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.android.synthetic.main.item_account.view.*
+import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
-class AccountListActivity : AppCompatActivity(), ActionMode.Callback {
+class AccountListActivity : ThemedActivity(), ActionMode.Callback {
     private val viewModel by viewModels<AccountListViewModel>()
     private val adapter by lazy {
         AccountListAdapter()
+    }
+    private val touchHelper by lazy {
+        ItemTouchHelper(AccountListTouchHelperCallback(adapter))
     }
     private var totpCountdownTask: TotpCountdownTask? = null
 
@@ -121,26 +126,6 @@ class AccountListActivity : AppCompatActivity(), ActionMode.Callback {
         list_accounts.adapter = adapter
         list_accounts.layoutManager = LinearLayoutManager(this)
 
-        adapter.onItemClickListener = { account, position, _ ->
-            if (actionMode != null) {
-                account.toggleSelected()
-
-                if (!account.isSelected && adapter.selectedAccounts.isEmpty()) {
-                    actionMode?.finish()
-                }
-
-                adapter.notifyItemChanged(position)
-            } else {
-                copyToClipboard(OTPProvider.generate(account))
-                makeToast("Copied!")
-            }
-        }
-        adapter.onItemLongClickListener = { _, _, _ ->
-            startSupportActionMode(this)
-
-            true
-        }
-
         btn_add_account_qr.setOnClickListener {
             val intent = Intent(this, BarcodeScannerActivity::class.java)
 
@@ -166,6 +151,32 @@ class AccountListActivity : AppCompatActivity(), ActionMode.Callback {
         viewModel.accounts.observe(this) {
             adapter.setData(it)
         }
+        touchHelper.attachToRecyclerView(list_accounts)
+        adapter.itemTouchHelper = touchHelper
+        adapter.onItemClickListener = { account, position, _ ->
+            if (actionMode != null) {
+                account.toggleSelected()
+
+                if (!account.isSelected && adapter.selectedAccounts.isEmpty()) {
+                    actionMode?.finish()
+                }
+
+                adapter.notifyItemChanged(position)
+                actionMode?.title = adapter.selectedAccounts.size.toString()
+            } else {
+                copyToClipboard(OTPProvider.generate(account))
+                makeToast("Copied!")
+            }
+        }
+        adapter.onItemLongClickListener = { account, position, _ ->
+            if (actionMode == null) {
+                account.isSelected = true
+                adapter.notifyItemChanged(position)
+                startSupportActionMode(this)
+            }
+
+            true
+        }
     }
 
     override fun onDestroy() {
@@ -174,8 +185,11 @@ class AccountListActivity : AppCompatActivity(), ActionMode.Callback {
     }
 
     override fun onBackPressed() {
-//        super.onBackPressed()
-        actionMode?.finish()
+        if (actionMode != null) {
+            actionMode!!.finish()
+        } else {
+            super.onBackPressed()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -208,14 +222,22 @@ class AccountListActivity : AppCompatActivity(), ActionMode.Callback {
                     viewModel.accountDao.insert(*tests)
                 }
             }
+            R.id.menu_account_list_edit -> {
+                if (actionMode == null) {
+                    startSupportActionMode(this)
+                }
+            }
         }
 
         return true
     }
 
     override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
-        actionMode = mode
         menuInflater.inflate(R.menu.menu_account_list_context, menu)
+        actionMode = mode
+        actionMode?.title = adapter.selectedAccounts.size.toString()
+        adapter.editMode = true
+        adapter.notifyDataSetChanged()
 
         return true
     }
@@ -227,12 +249,14 @@ class AccountListActivity : AppCompatActivity(), ActionMode.Callback {
     override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.menu_account_remove -> {
-                lifecycleScope.launch {
-                    //TODO Show dialog
+                if (adapter.selectedAccounts.isNotEmpty()) {
+                    lifecycleScope.launch {
+                        //TODO Show dialog
 
-                    viewModel.accountDao.delete(adapter.selectedAccounts)
+                        viewModel.accountDao.delete(adapter.selectedAccounts)
+                    }
+                    actionMode?.finish()
                 }
-                actionMode?.finish()
             }
         }
 
@@ -241,6 +265,7 @@ class AccountListActivity : AppCompatActivity(), ActionMode.Callback {
 
     override fun onDestroyActionMode(mode: ActionMode?) {
         actionMode = null
+        adapter.editMode = false
         adapter.clearSelected()
     }
 
@@ -251,8 +276,10 @@ class AccountListActivity : AppCompatActivity(), ActionMode.Callback {
     private fun setTotpCountdownPhase(phase: Double) {
         updateCountdownIndicators()
 
-        for (child in list_accounts.children) {
-            child.pb_phase.setPhase(phase)
+        if (actionMode == null) {
+            for (child in list_accounts.children) {
+                child.pb_phase.setPhase(phase)
+            }
         }
     }
 

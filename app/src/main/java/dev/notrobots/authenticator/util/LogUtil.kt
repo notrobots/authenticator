@@ -10,3 +10,11 @@ fun logd(content: Any? = "") {
 fun loge(error: Any? = "") {
     Log.e(App.TAG, error.toString())
 }
+
+fun loge(error: Exception) {
+    Log.e(App.TAG, error.toString())
+}
+
+fun logw(warning: Any? = "") {
+    Log.w(App.TAG, warning.toString())
+}

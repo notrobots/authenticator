@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.data.KnownIssuers
@@ -11,6 +12,7 @@ import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.OTPProvider
 import kotlinx.android.synthetic.main.item_account.view.*
+import java.util.*
 
 class AccountListAdapter : RecyclerView.Adapter<AccountListAdapter.ViewHolder>() {
     private var accounts = emptyList<Account>()
@@ -18,6 +20,8 @@ class AccountListAdapter : RecyclerView.Adapter<AccountListAdapter.ViewHolder>()
         get() = accounts.filter { it.isSelected }
     var onItemClickListener: (item: Account, position: Int, id: Long) -> Unit = { _, _, _ -> }
     var onItemLongClickListener: (item: Account, position: Int, id: Long) -> Boolean = { _, _, _ -> true }
+    var editMode = false
+    var itemTouchHelper: ItemTouchHelper? = null
 
     init {
         setHasStableIds(true)
@@ -42,12 +46,18 @@ class AccountListAdapter : RecyclerView.Adapter<AccountListAdapter.ViewHolder>()
         view.isSelected = account.isSelected
         view.text_account_label.text = account.displayName
         view.text_account_pin.text = OTPProvider.generate(account)
+        view.pb_phase.visibility = if (editMode) View.GONE else View.VISIBLE
+        view.img_drag_handle.visibility = if (editMode) View.VISIBLE else View.GONE
+        view.img_drag_handle.setOnTouchListener { v, event ->
+            itemTouchHelper?.startDrag(holder)
+
+            true
+        }
 
         view.setOnClickListener {
             onItemClickListener(account, position, id)
         }
         view.setOnLongClickListener {
-            setSelected(position, view.toggleSelected())
             onItemLongClickListener(account, position, id)
         }
     }
@@ -58,6 +68,17 @@ class AccountListAdapter : RecyclerView.Adapter<AccountListAdapter.ViewHolder>()
 
     override fun getItemCount(): Int {
         return accounts.size
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return VIEW_TYPE_ITEM
+    }
+
+    fun swap(from: Int, to: Int) {
+        Collections.swap(accounts, from, to)
+        notifyItemMoved(from, to)
+        notifyItemChanged(from)
+        notifyItemChanged(to)
     }
 
     fun getItem(position: Int): Account {
@@ -101,6 +122,10 @@ class AccountListAdapter : RecyclerView.Adapter<AccountListAdapter.ViewHolder>()
             accounts = list
             result.dispatchUpdatesTo(this)
         }
+    }
+
+    companion object {
+        private const val VIEW_TYPE_ITEM = 0
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)

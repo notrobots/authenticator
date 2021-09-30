@@ -9,7 +9,7 @@ import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowInsetsCompat
 
-abstract class ThemedActivity : AppCompatActivity() {
+abstract class ThemedActivity : BaseActivity() {
     protected fun setFullscreen() {
         hideActionBar()
         hideStatusBar()

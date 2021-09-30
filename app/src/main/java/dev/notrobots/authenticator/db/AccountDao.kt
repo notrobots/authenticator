@@ -26,7 +26,7 @@ interface AccountDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(vararg accounts: Account)
 
-    @Update()
+    @Update
     suspend fun update(account: Account): Int
 
     @Delete

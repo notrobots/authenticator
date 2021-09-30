@@ -6,6 +6,20 @@
     android:layout_height="wrap_content"
     android:background="@drawable/bg_account">
 
+    <ImageView
+        android:id="@+id/img_drag_handle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="-5dp"
+        android:layout_marginEnd="16dp"
+        android:src="@drawable/ic_reorder"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/text_account_label"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/colorOnSurface" />
+
     <TextView
         android:id="@+id/text_account_label"
         android:layout_width="0dp"
@@ -15,7 +29,7 @@
         android:layout_marginEnd="10dp"
         android:text="Label (name)"
         app:layout_constraintEnd_toStartOf="@+id/pb_phase"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/img_drag_handle"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
