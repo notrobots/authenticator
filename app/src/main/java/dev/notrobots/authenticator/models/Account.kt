@@ -20,13 +20,13 @@ data class Account(
     /**
      * Account secret, should be a base32 string
      */
-    var secret: String,
+    var secret: String
 ) : Serializable {
     /**
      * Primary key
      */
     @PrimaryKey(autoGenerate = true)
-    var id: Long? = null
+    var id: Long? = null    //FIXME: This should be 0 and non-nullable
 
     /**
      * Account issuer, should be the company's website
@@ -42,6 +42,11 @@ data class Account(
      * OTP type
      */
     var type: OTPType = OTPType.TOTP
+
+    /**
+     * Position of this account in the account list
+     */
+    var order: Long = -1
 
     /**
      * Whether or not the secret is a base32 string

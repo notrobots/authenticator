@@ -6,22 +6,29 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import dagger.hilt.EntryPoint
+import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.data.KnownIssuers
+import dev.notrobots.authenticator.db.AccountDao
 import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.OTPProvider
+import dev.notrobots.authenticator.util.Coroutines
+import dev.notrobots.authenticator.util.logd
+import dev.notrobots.authenticator.util.swap
 import kotlinx.android.synthetic.main.item_account.view.*
 import java.util.*
+import javax.inject.Inject
 
 class AccountListAdapter : RecyclerView.Adapter<AccountListAdapter.ViewHolder>() {
-    private var accounts = emptyList<Account>()
+    var accounts = emptyList<Account>()
     val selectedAccounts
         get() = accounts.filter { it.isSelected }
     var onItemClickListener: (item: Account, position: Int, id: Long) -> Unit = { _, _, _ -> }
     var onItemLongClickListener: (item: Account, position: Int, id: Long) -> Boolean = { _, _, _ -> true }
     var editMode = false
-    var itemTouchHelper: ItemTouchHelper? = null
+    var touchHelper: ItemTouchHelper? = null
 
     init {
         setHasStableIds(true)
@@ -49,7 +56,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountListAdapter.ViewHolder>()
         view.pb_phase.visibility = if (editMode) View.GONE else View.VISIBLE
         view.img_drag_handle.visibility = if (editMode) View.VISIBLE else View.GONE
         view.img_drag_handle.setOnTouchListener { v, event ->
-            itemTouchHelper?.startDrag(holder)
+            touchHelper?.startDrag(holder)
 
             true
         }
@@ -76,6 +83,11 @@ class AccountListAdapter : RecyclerView.Adapter<AccountListAdapter.ViewHolder>()
 
     fun swap(from: Int, to: Int) {
         Collections.swap(accounts, from, to)
+
+        if (from != to) {
+            swap(accounts[from], accounts[to], { it.order }, { t, v -> t.order = v })
+        }
+
         notifyItemMoved(from, to)
         notifyItemChanged(from)
         notifyItemChanged(to)

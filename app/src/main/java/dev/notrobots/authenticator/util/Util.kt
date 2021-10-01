@@ -17,3 +17,23 @@ fun error(message: String): Nothing {
 fun isValidBase32(base32: String): Boolean {
     return Base32().isInAlphabet(base32) && base32.length % 8 == 0
 }
+
+fun <T, V> swap(a: T, b: T, get: (T) -> V, set: (T, V) -> Unit) {
+    val c = get(a)
+
+    set(a, get(b))
+    set(b, c)
+}
+
+inline fun <reified T> swap(a: T, b: T, field: String) {
+    val field = T::class.java.declaredFields.find { it.name == field }
+
+    if (field != null) {
+        val c = field.get(a)
+
+        field.set(a, field.get(b))
+        field.set(b, c)
+    } else {
+        throw Exception("Type ${T::class} has no field named '$field'")
+    }
+}

@@ -5,11 +5,10 @@ import dev.notrobots.authenticator.extensions.makeToast
 
 abstract class BaseActivity : AppCompatActivity() {
     private var backPressedTime = 0L
-    protected var pressBackTwice = true
     protected var backPressedDelay = DEFAULT_BACK_PRESSED_DELAY
 
     override fun onBackPressed() {
-        if (!pressBackTwice || supportFragmentManager.backStackEntryCount != 0) {
+        if (!isDoubleBackPressToExitEnabled() || supportFragmentManager.backStackEntryCount != 0) {
             super.onBackPressed()
             return
         }
@@ -23,6 +22,8 @@ abstract class BaseActivity : AppCompatActivity() {
 
         backPressedTime = System.currentTimeMillis()
     }
+
+    open fun isDoubleBackPressToExitEnabled() = false
 
     companion object {
         const val DEFAULT_BACK_PRESSED_DELAY = 1500

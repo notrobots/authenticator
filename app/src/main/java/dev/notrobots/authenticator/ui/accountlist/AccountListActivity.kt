@@ -8,12 +8,12 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts.*
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
 import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.ThemedActivity
@@ -43,7 +43,7 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
         AccountListAdapter()
     }
     private val touchHelper by lazy {
-        ItemTouchHelper(AccountListTouchHelperCallback(adapter))
+        ItemTouchHelper(touchHelperCallback)
     }
     private var totpCountdownTask: TotpCountdownTask? = null
 
@@ -81,6 +81,26 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
                 updateAccount(account)
                 logd("Updating account with displayName: ${account.displayName}")
             }
+        }
+    }
+    private val touchHelperCallback = object : ItemTouchHelper.Callback() {
+        override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
+            return ItemTouchHelper.Callback.makeMovementFlags(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0)
+        }
+
+        override fun isItemViewSwipeEnabled(): Boolean {
+            return false
+        }
+
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
+
+        override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
+            val from = viewHolder.adapterPosition
+            val to = target.adapterPosition
+
+            adapter.swap(from, to)
+
+            return true
         }
     }
     private var actionMode: ActionMode? = null
@@ -151,8 +171,8 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
         viewModel.accounts.observe(this) {
             adapter.setData(it)
         }
-        touchHelper.attachToRecyclerView(list_accounts)
-        adapter.itemTouchHelper = touchHelper
+        adapter.touchHelper = touchHelper
+        adapter.touchHelper?.attachToRecyclerView(list_accounts)
         adapter.onItemClickListener = { account, position, _ ->
             if (actionMode != null) {
                 account.toggleSelected()
@@ -179,9 +199,21 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+
+        lifecycleScope.launch {
+            viewModel.accountDao.update(adapter.accounts)
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         actionMode?.finish()
+    }
+
+    override fun isDoubleBackPressToExitEnabled(): Boolean {
+        return true
     }
 
     override fun onBackPressed() {
@@ -219,7 +251,12 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
                 }
 
                 lifecycleScope.launch {
-                    viewModel.accountDao.insert(*tests)
+                    var last = viewModel.accountDao.getLastOrder()
+
+                    for (test in tests) {
+                        test.order = ++last
+                        viewModel.accountDao.insert(test)
+                    }
                 }
             }
             R.id.menu_account_list_edit -> {
@@ -345,6 +382,9 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
             // No account with the same name and issuer was found in the database,
             // insert the given account
             else {
+                val last = viewModel.accountDao.getLastOrder()
+
+                account.order = last + 1
                 viewModel.accountDao.insert(account)
                 logd("Adding new account: $account")
             }
