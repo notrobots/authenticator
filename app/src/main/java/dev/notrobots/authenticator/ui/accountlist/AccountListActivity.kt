@@ -18,6 +18,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.ThemedActivity
 import dev.notrobots.authenticator.dialogs.AccountURLDialog
+import dev.notrobots.authenticator.dialogs.DeleteAccountDialog
 import dev.notrobots.authenticator.dialogs.ErrorDialog
 import dev.notrobots.authenticator.dialogs.ReplaceAccountDialog
 import dev.notrobots.authenticator.extensions.*
@@ -287,12 +288,16 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
         when (item?.itemId) {
             R.id.menu_account_remove -> {
                 if (adapter.selectedAccounts.isNotEmpty()) {
-                    lifecycleScope.launch {
-                        //TODO Show dialog
+                    val accounts = adapter.selectedAccounts
+                    val dialog = DeleteAccountDialog(accounts)
 
-                        viewModel.accountDao.delete(adapter.selectedAccounts)
+                    dialog.onConfirmListener = {
+                        lifecycleScope.launch {
+                            viewModel.accountDao.delete(accounts)
+                        }
+                        actionMode?.finish()
                     }
-                    actionMode?.finish()
+                    dialog.show(supportFragmentManager, null)
                 }
             }
         }
