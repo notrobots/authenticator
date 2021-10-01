@@ -27,6 +27,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountListAdapter.ViewHolder>()
         get() = accounts.filter { it.isSelected }
     var onItemClickListener: (item: Account, position: Int, id: Long) -> Unit = { _, _, _ -> }
     var onItemLongClickListener: (item: Account, position: Int, id: Long) -> Boolean = { _, _, _ -> true }
+    var onItemEditListener: (item: Account) -> Unit = {}
     var editMode = false
     var touchHelper: ItemTouchHelper? = null
 
@@ -54,6 +55,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountListAdapter.ViewHolder>()
         view.text_account_label.text = account.displayName
         view.text_account_pin.text = OTPProvider.generate(account)
         view.pb_phase.visibility = if (editMode) View.GONE else View.VISIBLE
+        view.img_account_edit.visibility = if (editMode) View.VISIBLE else View.GONE
         view.img_drag_handle.visibility = if (editMode) View.VISIBLE else View.GONE
         view.img_drag_handle.setOnTouchListener { v, event ->
             touchHelper?.startDrag(holder)
@@ -61,6 +63,9 @@ class AccountListAdapter : RecyclerView.Adapter<AccountListAdapter.ViewHolder>()
             true
         }
 
+        view.img_account_edit.setOnClickListener {
+            onItemEditListener(account)
+        }
         view.setOnClickListener {
             onItemClickListener(account, position, id)
         }

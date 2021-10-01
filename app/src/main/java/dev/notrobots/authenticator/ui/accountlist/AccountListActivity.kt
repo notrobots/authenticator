@@ -35,6 +35,8 @@ import dev.turingcomplete.kotlinonetimepassword.RandomSecretGenerator
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.android.synthetic.main.item_account.view.*
 import kotlinx.coroutines.launch
+import org.apache.commons.codec.binary.Base32
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
@@ -73,15 +75,15 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
         }
     }
     private val editAccount = registerForActivityResult(StartActivityForResult()) {
-        if (it.data != null) {
-            val account = it.data!!.getSerializableExtra(AccountActivity.EXTRA_ACCOUNT) as Account
+        val account = it.data?.getSerializableExtra(AccountActivity.EXTRA_ACCOUNT) as? Account
 
-            if (it.resultCode == AccountActivity.RESULT_INSERT) {
-                addAccount(account)
-            } else if (it.resultCode == AccountActivity.RESULT_UPDATE) {
-                updateAccount(account)
-                logd("Updating account with displayName: ${account.displayName}")
-            }
+        if (it.resultCode == AccountActivity.RESULT_INSERT && account != null) {
+            addAccount(account)
+        } else if (it.resultCode == AccountActivity.RESULT_UPDATE && account != null) {
+            updateAccount(account)  //FIXME: Handle the case in which an account is updated and the new label already exists
+            logd("Updating account with displayName: ${account.displayName}")
+        } else if (it.resultCode == Activity.RESULT_CANCELED) {
+            logd("Action cancelled")
         }
     }
     private val touchHelperCallback = object : ItemTouchHelper.Callback() {
@@ -198,6 +200,13 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
 
             true
         }
+        adapter.onItemEditListener = {
+            val intent = Intent(this, AccountActivity::class.java)
+
+            intent.putExtra(AccountActivity.EXTRA_ACCOUNT, it)
+            editAccount.launch(intent)
+            actionMode?.finish()
+        }
     }
 
     override fun onPause() {
@@ -241,10 +250,14 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
                 adapter.notifyDataSetChanged()
             }
             R.id.menu_add_test -> {
+                val alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
+                val rand = Random()
                 val secret = {
-                    RandomSecretGenerator()
-                        .createRandomSecret(HmacAlgorithm.SHA1)
-                        .toString()
+                    buildString {
+                        repeat(8) {
+                            append(alphabet[rand.nextInt(alphabet.length)])
+                        }
+                    }
                 }
                 var count = 0
                 val tests = Array(30) {
@@ -410,9 +423,7 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
                 account.id = original.id
             }
 
-            val i = viewModel.accountDao.update(account)
-
-            logd("Something: $i")
+            viewModel.accountDao.update(account)
         }
     }
 }

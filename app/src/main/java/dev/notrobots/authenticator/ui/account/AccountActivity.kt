@@ -1,5 +1,6 @@
 package dev.notrobots.authenticator.ui.account
 
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -15,6 +16,7 @@ import kotlinx.android.synthetic.main.activity_account.*
 @AndroidEntryPoint
 class AccountActivity : ThemedActivity() {
     private var account: Account? = null
+    private var originalAccount: Account? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,6 +28,7 @@ class AccountActivity : ThemedActivity() {
         // Load that account and let the user edit its data
         if (intent.hasExtra(EXTRA_ACCOUNT)) {
             account = intent.getSerializableExtra(EXTRA_ACCOUNT) as Account
+            originalAccount = account!!.copy()
             resultCode = RESULT_UPDATE
 
             title = account!!.displayName
@@ -55,12 +58,15 @@ class AccountActivity : ThemedActivity() {
         }
 
         btn_account_confirm.setOnClickListener {
+
+
             val name = text_account_name.text.toString()
             val issuer = text_account_issuer.text.toString()
             val label = text_account_label.text.toString()
             val secret = text_account_secret.text.toString()
             val type = parseEnum<OTPType>(spinner_account_type.selectedValue.toString())!!
             var hasError = false
+            val result = Intent()
 
             if (name.isBlank()) {
                 layout_account_name.error = "Name cannot be empty"
@@ -89,18 +95,6 @@ class AccountActivity : ThemedActivity() {
             }
 
             if (!hasError) {
-                val result = Intent()
-
-//                if (account != null) {
-//                    //TODO: Edit account without adding a new one to the DB
-//                    // The DAO needs a primary integer key which is used to retrieve the values
-//                    // The insert should still check for the same name in the DB and disallow or replace the existing one
-//
-//                    result = RESULT_UPDATE
-//                } else {
-//                    result = RESULT_INSERT
-//                }
-
                 account?.also {
                     it.name = name
                     it.issuer = issuer
@@ -109,8 +103,13 @@ class AccountActivity : ThemedActivity() {
                     it.type = type
                 }
 
-                result.putExtra(EXTRA_ACCOUNT, account)
-                setResult(resultCode, result)
+                if (originalAccount == account) {
+                    setResult(Activity.RESULT_CANCELED)
+                } else {
+                    result.putExtra(EXTRA_ACCOUNT, account)
+                    setResult(resultCode, result)
+                }
+
                 finish()
             }
         }
