@@ -15,8 +15,7 @@ import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.OTPProvider
 import dev.notrobots.authenticator.util.Coroutines
-import dev.notrobots.authenticator.util.logd
-import dev.notrobots.authenticator.util.swap
+import dev.notrobots.androidstuff.util.*
 import kotlinx.android.synthetic.main.item_account.view.*
 import java.util.*
 import javax.inject.Inject

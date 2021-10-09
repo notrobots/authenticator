@@ -2,7 +2,7 @@ package dev.notrobots.authenticator.time
 
 import android.os.Handler
 import android.os.Looper
-import dev.notrobots.authenticator.util.now
+import dev.notrobots.androidstuff.util.now
 
 class TimerTask : Runnable {
     private var startTime = 0L

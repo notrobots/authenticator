@@ -15,12 +15,13 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
+import dev.notrobots.androidstuff.activities.ThemedActivity
+import dev.notrobots.androidstuff.extensions.copyToClipboard
+import dev.notrobots.androidstuff.extensions.makeToast
+import dev.notrobots.androidstuff.util.*
 import dev.notrobots.authenticator.R
-import dev.notrobots.authenticator.activities.ThemedActivity
-import dev.notrobots.authenticator.dialogs.AccountURLDialog
-import dev.notrobots.authenticator.dialogs.DeleteAccountDialog
-import dev.notrobots.authenticator.dialogs.ErrorDialog
-import dev.notrobots.authenticator.dialogs.ReplaceAccountDialog
+import dev.notrobots.authenticator.activities.BaseActivity
+import dev.notrobots.authenticator.dialogs.*
 import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.google.TotpClock
 import dev.notrobots.authenticator.google.TotpCountdownTask
@@ -29,18 +30,17 @@ import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.OTPProvider
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
+import dev.notrobots.authenticator.ui.export.ExportAccountsActivity
 import dev.notrobots.authenticator.util.*
-import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
-import dev.turingcomplete.kotlinonetimepassword.RandomSecretGenerator
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.android.synthetic.main.item_account.view.*
 import kotlinx.coroutines.launch
-import org.apache.commons.codec.binary.Base32
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.collections.ArrayList
 
 @AndroidEntryPoint
-class AccountListActivity : ThemedActivity(), ActionMode.Callback {
+class AccountListActivity : BaseActivity(), ActionMode.Callback {
     private val viewModel by viewModels<AccountListViewModel>()
     private val adapter by lazy {
         AccountListAdapter()
@@ -88,7 +88,7 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
     }
     private val touchHelperCallback = object : ItemTouchHelper.Callback() {
         override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
-            return ItemTouchHelper.Callback.makeMovementFlags(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0)
+            return makeMovementFlags(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0)
         }
 
         override fun isItemViewSwipeEnabled(): Boolean {
@@ -107,6 +107,8 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
         }
     }
     private var actionMode: ActionMode? = null
+
+    //region Activity lifecycle
 
     override fun onStart() {
         super.onStart()
@@ -222,6 +224,8 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
         actionMode?.finish()
     }
 
+    //endregion
+
     override fun isDoubleBackPressToExitEnabled(): Boolean {
         return true
     }
@@ -233,6 +237,8 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
             super.onBackPressed()
         }
     }
+
+    //region Options menu
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_account_list, menu)
@@ -283,6 +289,10 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
         return true
     }
 
+    //endregion
+
+    //region Action mode
+
     override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_account_list_context, menu)
         actionMode = mode
@@ -311,6 +321,34 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
                         actionMode?.finish()
                     }
                     dialog.show(supportFragmentManager, null)
+                } else {
+                    makeToast("No accounts selected")
+                }
+            }
+            R.id.menu_account_export -> {
+                if (adapter.selectedAccounts.isNotEmpty()) {
+                    val accounts = ArrayList(adapter.selectedAccounts)
+                    val intent = Intent(this, ExportAccountsActivity::class.java)
+
+//                    intent.putExtra(ExportAccountsActivity.EXTRA_EXPORT_FORMAT, format)
+//                    intent.putExtra(ExportAccountsActivity.EXTRA_EXPORT_COMPRESSION, compression)
+                    intent.putExtra(ExportAccountsActivity.EXTRA_ACCOUNT_LIST, accounts)
+
+                    startActivity(intent)
+                    actionMode?.finish()
+                } else {
+                    makeToast("No accounts selected")
+                }
+            }
+            R.id.menu_account_selectall -> {
+                if (adapter.accounts.isNotEmpty()) {
+                    for (account in adapter.accounts) {
+                        account.isSelected = true
+                    }
+                    actionMode?.title = adapter.selectedAccounts.size.toString()
+                    adapter.notifyDataSetChanged()
+                } else {
+                    makeToast("Nothing to select")
                 }
             }
         }
@@ -323,6 +361,8 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
         adapter.editMode = false
         adapter.clearSelected()
     }
+
+    //endregion
 
     private fun setTotpCountdownPhaseFromTimeTillNextValue(millisRemaining: Long) {
         setTotpCountdownPhase(millisRemaining.toDouble() / TimeUnit.SECONDS.toMillis(totpCounter.timeStep))
@@ -353,6 +393,8 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
 
 //        Log.d(App.TAG, "Phase: ${phase}")
     }
+
+    //region Account
 
     /**
      * Parses the given [input] into an [Uri] and tries to insert it into the database.
@@ -426,4 +468,6 @@ class AccountListActivity : ThemedActivity(), ActionMode.Callback {
             viewModel.accountDao.update(account)
         }
     }
+
+    //endregion
 }

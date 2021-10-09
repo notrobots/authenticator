@@ -5,6 +5,7 @@ import android.content.DialogInterface
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import dev.notrobots.authenticator.R
@@ -24,7 +25,7 @@ class AccountURLDialog : DialogFragment() {
             errorView = layout_account_url
             layout_account_url.setClearErrorOnType()
         }
-        val dialog = AlertDialog.Builder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle("Add account")
             .setView(view)
             .setCancelable(true)

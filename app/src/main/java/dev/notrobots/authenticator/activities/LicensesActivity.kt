@@ -1,11 +1,13 @@
 package dev.notrobots.authenticator.activities
 
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import dev.notrobots.androidstuff.activities.ThemedActivity
+import dev.notrobots.androidstuff.extensions.resolveColorAttribute
+import dev.notrobots.androidstuff.util.parseHEXColor
 import dev.notrobots.authenticator.R
-import dev.notrobots.authenticator.extensions.resolveColorAttribute
-import dev.notrobots.authenticator.util.parseHEXColor
 
-class LicensesActivity : ThemedActivity() {
+class LicensesActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

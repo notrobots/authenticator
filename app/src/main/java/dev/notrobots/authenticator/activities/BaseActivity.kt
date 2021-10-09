@@ -1,14 +1,14 @@
 package dev.notrobots.authenticator.activities
 
-import androidx.appcompat.app.AppCompatActivity
-import dev.notrobots.authenticator.extensions.makeToast
+import dev.notrobots.androidstuff.activities.ThemedActivity
+import dev.notrobots.androidstuff.extensions.makeToast
 
-abstract class BaseActivity : AppCompatActivity() {
+abstract class BaseActivity : ThemedActivity() {
     private var backPressedTime = 0L
     protected var backPressedDelay = DEFAULT_BACK_PRESSED_DELAY
 
     override fun onBackPressed() {
-        if (!isDoubleBackPressToExitEnabled() || supportFragmentManager.backStackEntryCount != 0) {
+        if (!isDoubleBackPressToExitEnabled()) {
             super.onBackPressed()
             return
         }

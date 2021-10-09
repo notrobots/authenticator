@@ -4,11 +4,11 @@ import android.net.Uri
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import dev.notrobots.androidstuff.util.parseEnum
 import dev.notrobots.authenticator.extensions.get
 import dev.notrobots.authenticator.extensions.isOnlySpaces
-import dev.notrobots.authenticator.util.parseEnum
+import dev.notrobots.authenticator.proto.GoogleAuthenticator
 import java.io.Serializable
-import dev.notrobots.authenticator.util.error
 import dev.notrobots.authenticator.util.isValidBase32
 
 @Entity
@@ -20,7 +20,7 @@ data class Account(
     /**
      * Account secret, should be a base32 string
      */
-    var secret: String
+    var secret: String,
 ) : Serializable {
     /**
      * Primary key
@@ -63,19 +63,26 @@ data class Account(
         get() = if (label.isNotEmpty()) "$label:$name" else name
     val displayName
         get() = if (label.isNotEmpty()) "$label ($name)" else name
-    val backup
-        get() = Uri.Builder()
-            .scheme(OTP_SCHEME)
-            .authority(type.toString().toLowerCase())
-            .path(path)
-            .appendQueryParameter(OTP_SECRET, secret)
-            .appendQueryParameter(OTP_ISSUER, issuer)
-            .build()
 
     constructor() : this("", "")
 
     fun toggleSelected() {
         isSelected = !isSelected
+    }
+
+    fun getUri(): Uri {
+        val uri = Uri.Builder()
+
+        uri.scheme(OTP_SCHEME)
+        uri.authority(type.toString().toLowerCase())
+        uri.path(path)
+        uri.appendQueryParameter(OTP_SECRET, secret)
+
+        if (issuer.isNotBlank()) {
+            uri.appendQueryParameter(OTP_ISSUER, issuer)
+        }
+
+        return uri.build()
     }
 
     companion object {

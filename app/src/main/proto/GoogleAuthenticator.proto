@@ -1,0 +1,43 @@
+syntax = "proto3";
+option java_package = "dev.notrobots.authenticator.proto";
+
+/**
+ * Migration payload used by the official Google Authenticator
+ */
+message MigrationPayload {
+  enum Algorithm {
+    UNSPECIFIED = 0;
+    SHA1 = 1;
+    SHA256 = 2;
+    SHA512 = 3;
+    MD5 = 4;
+  }
+
+  enum DigitCount {
+    DIGIT_COUNT_UNSPECIFIED = 0;
+    DIGIT_COUNT_SIX = 1;
+    DIGIT_COUNT_EIGHT = 2;
+  }
+
+  enum OtpType {
+    OTP_TYPE_UNSPECIFIED = 0;
+    OTP_TYPE_HOTP = 1;
+    OTP_TYPE_TOTP = 2;
+  }
+
+  message Account {
+    bytes secret = 1;
+    string name = 2;
+    string issuer = 3;
+    Algorithm algorithm = 4;
+    DigitCount digits = 5;
+    OtpType type = 6;
+    int64 counter = 7;
+  }
+
+  repeated Account account = 1;
+  int32 version = 2;
+  int32 batch_size = 3;   // Total number of payloads
+  int32 batch_index = 4;  // Index of this payload
+  int32 batch_id = 5;   // unique identifier for the export attempt
+}

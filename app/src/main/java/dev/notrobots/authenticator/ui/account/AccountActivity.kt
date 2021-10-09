@@ -5,16 +5,17 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import dagger.hilt.android.AndroidEntryPoint
+import dev.notrobots.androidstuff.activities.ThemedActivity
+import dev.notrobots.androidstuff.util.parseEnum
 import dev.notrobots.authenticator.R
-import dev.notrobots.authenticator.activities.ThemedActivity
+import dev.notrobots.authenticator.activities.BaseActivity
 import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.OTPType
-import dev.notrobots.authenticator.util.parseEnum
 import kotlinx.android.synthetic.main.activity_account.*
 
 @AndroidEntryPoint
-class AccountActivity : ThemedActivity() {
+class AccountActivity : BaseActivity() {
     private var account: Account? = null
     private var originalAccount: Account? = null
 
@@ -58,8 +59,6 @@ class AccountActivity : ThemedActivity() {
         }
 
         btn_account_confirm.setOnClickListener {
-
-
             val name = text_account_name.text.toString()
             val issuer = text_account_issuer.text.toString()
             val label = text_account_label.text.toString()

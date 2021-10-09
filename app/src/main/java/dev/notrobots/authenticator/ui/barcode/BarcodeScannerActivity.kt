@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.DisplayMetrics
-import android.util.Log
 import androidx.activity.viewModels
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -17,10 +16,9 @@ import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
-import dev.notrobots.authenticator.App
-import dev.notrobots.authenticator.activities.ThemedActivity
-import dev.notrobots.authenticator.extensions.makeToast
-import dev.notrobots.authenticator.util.loge
+import dev.notrobots.androidstuff.activities.ThemedActivity
+import dev.notrobots.androidstuff.extensions.makeToast
+import dev.notrobots.androidstuff.util.loge
 import kotlinx.android.synthetic.main.activity_barcode_scanner.*
 import java.util.concurrent.Executors
 import kotlin.math.abs
