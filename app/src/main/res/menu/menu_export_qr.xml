@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu_export_copy"
+        android:icon="@drawable/ic_copy"
+        android:title="Copy"
+        android:titleCondensed="Copy"
+        app:showAsAction="ifRoom">
+        <menu>
+            <item
+                android:id="@+id/menu_export_copy_current"
+                android:title="Current" />
+            <item
+                android:id="@+id/menu_export_copy_all"
+                android:title="All" />
+        </menu>
+    </item>
+
+    <item
+        android:icon="@drawable/ic_save"
+        android:title="Save"
+        app:showAsAction="ifRoom">
+        <menu>
+            <item
+                android:id="@+id/menu_export_save_current"
+                android:title="Current" />
+            <item
+                android:id="@+id/menu_export_save_all"
+                android:title="All" />
+        </menu>
+    </item>
+
+    <item
+        android:icon="@drawable/ic_palette"
+        android:title="Style"
+        app:showAsAction="ifRoom">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/menu_export_style_default"
+                    android:checked="true"
+                    android:title="Default" />
+                <item
+                    android:id="@+id/menu_export_style_rainbow"
+                    android:title="Rainbow" />
+                <item
+                    android:id="@+id/menu_export_style_trans"
+                    android:title="Rainbow2" />
+            </group>
+        </menu>
+    </item>
+
+    <item
+        android:icon="@drawable/ic_print"
+        android:title="Print"
+        app:showAsAction="ifRoom">
+        <menu>
+            <item
+                android:id="@+id/menu_export_print_current"
+                android:title="Current" />
+            <item
+                android:id="@+id/menu_export_print_all"
+                android:title="All" />
+        </menu>
+    </item>
+
+</menu>

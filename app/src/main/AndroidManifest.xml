@@ -33,7 +33,11 @@
             android:screenOrientation="portrait" />
 
         <activity
-            android:name=".ui.export.ExportAccountsActivity"
+            android:name=".ui.export.ExportActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".ui.export.ExportConfigActivity"
             android:screenOrientation="portrait" />
     </application>
 

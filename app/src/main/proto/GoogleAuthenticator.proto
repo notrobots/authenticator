@@ -19,6 +19,7 @@ message MigrationPayload {
     DIGIT_COUNT_EIGHT = 2;
   }
 
+  //FIXME: Make the names shorter
   enum OtpType {
     OTP_TYPE_UNSPECIFIED = 0;
     OTP_TYPE_HOTP = 1;

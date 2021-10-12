@@ -5,6 +5,10 @@ import android.net.Uri
 import com.google.protobuf.MessageLite
 import dev.notrobots.androidstuff.util.error
 import dev.notrobots.androidstuff.extensions.*
+import dev.notrobots.androidstuff.util.logi
+import dev.notrobots.androidstuff.util.now
+import dev.notrobots.authenticator.proto.Authenticator
+import dev.notrobots.authenticator.proto.Authenticator.*
 import dev.notrobots.authenticator.proto.GoogleAuthenticator.*
 import dev.notrobots.authenticator.util.byteString
 import org.apache.commons.codec.binary.Base64
@@ -26,7 +30,7 @@ class AccountExporter {
      *
      * The return type can be one of the following:
      * + [String]
-     * + List of [Bitmap]
+     * + List of [QRCode]
      */
     fun export(accounts: List<Account>): Any {
         val content = when (exportFormat) {
@@ -38,7 +42,7 @@ class AccountExporter {
 
         return when (exportOutput) {
             ExportOutput.Text -> content.joinToString("\n")
-            ExportOutput.QR -> content.map { QRCode(it.toString(), QR_BITMAP_SIZE).toBitmap() }
+            ExportOutput.QR -> content.map { QRCode(it.toString(), QR_BITMAP_SIZE) }
         }
     }
 
@@ -48,7 +52,24 @@ class AccountExporter {
 
     private fun encodeProtobuf(accounts: List<Account>, protobufVariant: ProtobufVariant, chunkSize: Int): List<Uri> {
         return when (protobufVariant) {
-            ProtobufVariant.Default -> encodeProtobuf(accounts, ProtobufVariant.GoogleAuthenticator, chunkSize)
+            ProtobufVariant.Default -> accounts.map {
+                Payload.Account.newBuilder()
+                    .setSecret(byteString(it.secret))
+                    .setName(it.name)
+                    .setIssuer(it.issuer)
+                    .setLabel(it.label)
+                    .setType(Payload.OTPType.forNumber(it.type.ordinal))
+                    .build()
+            }.chunked(chunkSize) {
+                it.serializedSize
+            }.map {
+                val payloadMessage = Payload.newBuilder()
+                    .addAllAccounts(it)
+                    .build()
+                val encoded = encodeMessage(payloadMessage)
+
+                Uri.parse("$EXPORT_URI$encoded")
+            }
             ProtobufVariant.GoogleAuthenticator -> accounts.map {
                 MigrationPayload.Account.newBuilder()
                     .setAlgorithm(MigrationPayload.Algorithm.SHA1)
@@ -58,6 +79,11 @@ class AccountExporter {
                     .setSecret(byteString(it.secret))
                     .setType(MigrationPayload.OtpType.forNumber(it.type.ordinal))
                     .build()
+            }.also {
+                //FIXME: Chunking doesn't work
+                // The chunks appear to be really small (23-24 bytes) instead of their regula size
+                // This also block is just for debugging, get rid of it
+                logi(it.joinToString { it.serializedSize.toString() })
             }.chunked(chunkSize) {
                 it.serializedSize
             }.map {

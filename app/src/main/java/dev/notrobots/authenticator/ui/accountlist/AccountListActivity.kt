@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
-import dev.notrobots.androidstuff.activities.ThemedActivity
 import dev.notrobots.androidstuff.extensions.copyToClipboard
 import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.util.*
@@ -30,8 +29,8 @@ import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.OTPProvider
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
-import dev.notrobots.authenticator.ui.export.ExportAccountsActivity
-import dev.notrobots.authenticator.util.*
+import dev.notrobots.authenticator.ui.export.ExportActivity
+import dev.notrobots.authenticator.ui.export.ExportConfigActivity
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.android.synthetic.main.item_account.view.*
 import kotlinx.coroutines.launch
@@ -328,11 +327,9 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
             R.id.menu_account_export -> {
                 if (adapter.selectedAccounts.isNotEmpty()) {
                     val accounts = ArrayList(adapter.selectedAccounts)
-                    val intent = Intent(this, ExportAccountsActivity::class.java)
+                    val intent = Intent(this, ExportActivity::class.java)
 
-//                    intent.putExtra(ExportAccountsActivity.EXTRA_EXPORT_FORMAT, format)
-//                    intent.putExtra(ExportAccountsActivity.EXTRA_EXPORT_COMPRESSION, compression)
-                    intent.putExtra(ExportAccountsActivity.EXTRA_ACCOUNT_LIST, accounts)
+                    intent.putExtra(ExportConfigActivity.EXTRA_ACCOUNT_LIST, accounts)
 
                     startActivity(intent)
                     actionMode?.finish()

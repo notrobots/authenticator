@@ -9,42 +9,42 @@
         android:id="@+id/imageslider_indicator"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
         android:gravity="end"
-        android:textColor="?attr/colorOnSurface"
-        android:textSize="22sp"
-        android:textStyle="bold"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        tools:text="4/10" />
+        tools:text="2/4" />
 
     <ImageView
         android:id="@+id/imageslider_previous"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackgroundBorderless"
         app:layout_constraintBottom_toTopOf="@+id/imageslider_indicator"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_chevron_left"
-        app:tint="?attr/colorOnSurface" />
+        app:tint="?attr/colorPrimary" />
 
     <ImageView
         android:id="@+id/imageslider_next"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackgroundBorderless"
         app:layout_constraintBottom_toTopOf="@+id/imageslider_indicator"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_chevron_right"
-        app:tint="?attr/colorOnSurface" />
+        app:tint="?attr/colorPrimary" />
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/imageslider_pager"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toTopOf="@+id/imageslider_indicator"
         app:layout_constraintEnd_toStartOf="@+id/imageslider_next"
         app:layout_constraintStart_toEndOf="@+id/imageslider_previous"

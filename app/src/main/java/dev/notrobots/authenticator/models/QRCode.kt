@@ -28,23 +28,13 @@ class QRCode(
         return bitMatrix
     }
 
-    fun toBitmap(): Bitmap {    //TODO: Pass a color map
+    fun toBitmap(style: QRCodeStyle): Bitmap {
         return Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565).apply {
-            val color = {
-                listOf(
-                    Color.RED,
-                    Color.BLUE,
-                    Color.CYAN,
-                    Color.MAGENTA,
-                    Color.YELLOW
-                ).shuffled().first()
-            }
-
-            for (x in 0 until width) {
-                for (y in 0 until height) {
-                    setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.WHITE)
-                }
-            }
+            style.paint(width, height, this, bitMatrix)
         }
+    }
+
+    fun toBitmap(): Bitmap {    //TODO: Pass a color map
+        return toBitmap(QRCodeStyle.Default)
     }
 }

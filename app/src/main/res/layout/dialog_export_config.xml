@@ -8,7 +8,7 @@
     android:padding="16dp">
 
     <dev.notrobots.authenticator.views.BetterSpinner
-        android:id="@+id/spinner_export_1"
+        android:id="@+id/spinner_export_format"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
@@ -23,7 +23,7 @@
         android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/spinner_export_1"
+        app:layout_constraintTop_toBottomOf="@+id/spinner_export_format"
         app:spinnerLabel="Compression" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

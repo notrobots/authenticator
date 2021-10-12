@@ -1,24 +1,20 @@
 package dev.notrobots.authenticator.views
 
 import android.content.Context
-import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.media.Image
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
-import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import dev.notrobots.androidstuff.extensions.resolveColorAttribute
-import dev.notrobots.androidstuff.util.logd
+import dev.notrobots.androidstuff.extensions.setTint
 import dev.notrobots.authenticator.R
 import kotlinx.android.synthetic.main.view_imageslider.view.*
 
@@ -27,38 +23,51 @@ class ImageSlider(
     attrs: AttributeSet?,
     defStyleAttr: Int
 ) : FrameLayout(context, attrs, defStyleAttr) {
-    private val activeColor: Int
-    private val disabledColor: Int
-    private val images = mutableListOf<Drawable>()
+    private var images = mutableListOf<Drawable>()
     private val imageAdapter = ImageAdapter()
+    private var callback: Callback? = null
+    private var useDefaultControls = true
+    var infiniteScroll: Boolean = false //TODO: Create attributes for these properties
     var currentImage: Drawable? = null
         private set
     var currentImageIndex: Int = -1
         private set
+    var indicatorView: View
+        private set
+    var nextView: View? = null
+        set(value) {
+            field?.visibility = View.INVISIBLE
+            field = value
+            field!!.visibility = View.VISIBLE
+            field!!.setOnClickListener { next() }
+            useDefaultControls = false
+        }
+    var previousView: View? = null
+        set(value) {
+            field?.visibility = View.INVISIBLE
+            field = value
+            field!!.visibility = View.VISIBLE
+            field!!.setOnClickListener { previous() }
+            useDefaultControls = false
+        }
 
     init {
         inflate(context, R.layout.view_imageslider, this)
 
-        activeColor = context.resolveColorAttribute(R.attr.colorPrimary)
-        disabledColor = Color.LTGRAY
+        nextView = imageslider_next
+        previousView = imageslider_previous
+        indicatorView = imageslider_indicator
+        useDefaultControls = true
 
         imageslider_pager.adapter = imageAdapter
         imageslider_pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
 
+                notifyImageChanged(currentImageIndex, position)
                 currentImageIndex = position
-                currentImage = images[currentImageIndex]
-                updateSliderControls()
             }
         })
-        imageslider_indicator.text = null
-        imageslider_previous.setOnClickListener {
-            previous()
-        }
-        imageslider_next.setOnClickListener {
-            next()
-        }
     }
 
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
@@ -77,16 +86,14 @@ class ImageSlider(
     }
 
     fun setImageDrawables(images: List<Drawable>) {
-        this.images.addAll(images)
+        this.images = images.toMutableList()
 
-        if (currentImageIndex < 0) {
+        if (images.isNotEmpty()) {
             currentImageIndex = 0
-            updateCurrentImage()
+            currentImage = images[0]
+            imageAdapter.notifyDataSetChanged()
+            imageslider_pager.currentItem = 0
         }
-
-        setupControls()
-
-        this.imageAdapter.notifyDataSetChanged()
     }
 
     fun clearImages() {
@@ -95,51 +102,72 @@ class ImageSlider(
         images.clear()
     }
 
-    private fun next() {
-        if (currentImageIndex < images.lastIndex) {
+    fun getImage(position: Int): Drawable {
+        return images[position]
+    }
+
+    fun next() {
+        val oldPosition = currentImageIndex
+
+        if (infiniteScroll) {
+            currentImageIndex = (currentImageIndex + 1) % images.size
+            notifyImageChanged(oldPosition, currentImageIndex)
+        } else if (currentImageIndex < images.lastIndex) {
             currentImageIndex++
-            updateCurrentImage()
+            notifyImageChanged(oldPosition, currentImageIndex)
         }
     }
 
-    private fun previous() {
-        if (currentImageIndex > 0) {
+    fun previous() {
+        val oldPosition = currentImageIndex
+
+        if (infiniteScroll) {
+            currentImageIndex = if (currentImageIndex == 0) images.lastIndex else currentImageIndex - 1
+            notifyImageChanged(oldPosition, currentImageIndex)
+        } else if (currentImageIndex > 0) {
             currentImageIndex--
-            updateCurrentImage()
+            notifyImageChanged(oldPosition, currentImageIndex)
         }
     }
 
-    private fun updateCurrentImage() {
-        currentImage = images[currentImageIndex]
-        imageslider_pager.currentItem = currentImageIndex
-        updateSliderControls()
+    fun setCallback(callback: Callback) {
+        this.callback = callback
     }
 
-    private fun updateSliderControls() {
-        if (images.size > 1) {
-            ImageViewCompat.setImageTintList(imageslider_previous, ColorStateList.valueOf(activeColor))
-            ImageViewCompat.setImageTintList(imageslider_next, ColorStateList.valueOf(activeColor))
+    private fun notifyImageChanged(oldIndex: Int, newIndex: Int) {
+        currentImage = images[newIndex]
+        imageslider_pager.currentItem = newIndex
 
-            if (currentImageIndex == 0) {
-                ImageViewCompat.setImageTintList(imageslider_previous, ColorStateList.valueOf(disabledColor))
-            } else if (currentImageIndex == images.lastIndex) {
-                ImageViewCompat.setImageTintList(imageslider_next, ColorStateList.valueOf(disabledColor))
+        if (oldIndex < newIndex) {
+            callback?.onNextImage(nextView!!, newIndex)
+        } else if (oldIndex > newIndex) {
+            callback?.onPreviousImage(previousView!!, newIndex)
+        }
+        callback?.onImageChanged(this, oldIndex, newIndex)
+
+        if (useDefaultControls) {
+            val activeColor = context.resolveColorAttribute(R.attr.colorPrimary)
+            val disabledColor = Color.LTGRAY
+
+            (nextView as ImageView).setTint(disabledColor)
+            (previousView as ImageView).setTint(disabledColor)
+
+            if (newIndex > 0) {
+                (previousView as ImageView).setTint(activeColor)
             }
 
-            imageslider_indicator.text = "${currentImageIndex + 1}/${images.size}"
+            if (newIndex < images.lastIndex) {
+                (nextView as ImageView).setTint(activeColor)
+            }
         }
+
+        imageslider_indicator.text = "${newIndex + 1}/${images.size}"
     }
 
-    private fun setupControls() {
-        if (images.size > 1) {
-            imageslider_previous.visibility = View.VISIBLE
-            imageslider_next.visibility = View.VISIBLE
-            imageslider_indicator.visibility = View.VISIBLE
-        } else {
-            imageslider_previous.visibility = View.INVISIBLE
-            imageslider_next.visibility = View.INVISIBLE
-            imageslider_indicator.visibility = View.INVISIBLE
-        }
+    interface Callback {
+        fun onNextImage(view: View, position: Int)
+        fun onPreviousImage(view: View, position: Int)
+        fun onImageChanged(view: ImageSlider, old: Int, new: Int)
     }
 
     private inner class ImageAdapter : RecyclerView.Adapter<ImageViewHolder>() {
