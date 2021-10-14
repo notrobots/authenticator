@@ -327,19 +327,41 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
             }
             R.id.menu_account_list_edit_group -> {
                 startSupportActionMode(object : ActionMode.Callback {
-                    override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
+                    override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+                        menuInflater.inflate(R.menu.menu_account_list_group, menu)
                         return true
                     }
 
-                    override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?): Boolean {
+                    override fun onPrepareActionMode(mode: ActionMode, menu: Menu?): Boolean {
                         return false
                     }
 
-                    override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
+                    override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
+                        when (item.itemId) {
+                            R.id.menu_group_selectall -> {
+                                for (group in adapter.groups) {
+                                    group.isSelected = true
+                                }
+                                for (adapter in adapter.adapters) {
+                                    adapter.notifyItemChanged(0)
+                                }
+                            }
+                            R.id.menu_group_remove -> {
+
+                            }
+                            R.id.menu_group_unpack -> {
+
+                            }
+                        }
+
                         return true
                     }
 
                     override fun onDestroyActionMode(mode: ActionMode?) {
+                        for (group in adapter.groups) {
+                            group.isSelected = false
+                        }
+
                         adapter.setEditMode(AccountListAdapter.EditMode.Disabled)
                         adapter.notifyAllDataSetChanged()
                     }
@@ -358,7 +380,7 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
     //region Action mode
 
     override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_account_list_context, menu)
+        menuInflater.inflate(R.menu.menu_account_list_item, menu)
         actionMode = mode
         actionMode?.title = adapter.selectedAccounts.size.toString()
         adapter.setEditMode(AccountListAdapter.EditMode.Item)

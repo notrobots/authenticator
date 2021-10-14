@@ -109,7 +109,13 @@ class AccountListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
                     true
                 }
+                view.isSelected = group.isSelected
                 view.setOnClickListener {
+                    if (editMode == EditMode.Group) {
+                        group.toggleSelected()
+                        view.isSelected = group.isSelected
+                    }
+
                     if (editMode == EditMode.Disabled) {
                         isExpanded = !isExpanded
                     }

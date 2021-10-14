@@ -27,6 +27,8 @@ class AccountGroup(
      */
     var isExpanded: Boolean = true
 
+    var isSelected: Boolean = false
+
     /**
      * Accounts belonging to this group
      */
@@ -34,5 +36,9 @@ class AccountGroup(
 
     operator fun get(position: Int): Account {
         return accounts[position]
+    }
+
+    fun toggleSelected() {
+        isSelected = !isSelected
     }
 }
