@@ -8,6 +8,7 @@ import dev.notrobots.androidstuff.util.parseEnum
 import dev.notrobots.authenticator.extensions.get
 import dev.notrobots.authenticator.extensions.isOnlySpaces
 import dev.notrobots.authenticator.proto.GoogleAuthenticator
+import dev.notrobots.authenticator.ui.accountlist.AccountListItem
 import java.io.Serializable
 import dev.notrobots.authenticator.util.isValidBase32
 
@@ -21,7 +22,7 @@ data class Account(
      * Account secret, should be a base32 string
      */
     var secret: String,
-) : Serializable {
+) : Serializable, AccountListItem {
     /**
      * Primary key
      */
@@ -47,6 +48,11 @@ data class Account(
      * Position of this account in the account list
      */
     var order: Long = -1
+
+//    /**
+//     * Parent group of this account, null if the account doesn't belong to any group
+//     */
+//    var group: AccountGroup? = null
 
     /**
      * Whether or not the secret is a base32 string

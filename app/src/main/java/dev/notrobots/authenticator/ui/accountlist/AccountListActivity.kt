@@ -11,6 +11,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
 import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -22,10 +23,12 @@ import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.BaseActivity
 import dev.notrobots.authenticator.dialogs.*
 import dev.notrobots.authenticator.extensions.*
+import dev.notrobots.authenticator.google.CountdownIndicator
 import dev.notrobots.authenticator.google.TotpClock
 import dev.notrobots.authenticator.google.TotpCountdownTask
 import dev.notrobots.authenticator.google.TotpCounter
 import dev.notrobots.authenticator.models.Account
+import dev.notrobots.authenticator.models.AccountGroup
 import dev.notrobots.authenticator.models.OTPProvider
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
@@ -42,7 +45,11 @@ import kotlin.collections.ArrayList
 class AccountListActivity : BaseActivity(), ActionMode.Callback {
     private val viewModel by viewModels<AccountListViewModel>()
     private val adapter by lazy {
-        AccountListAdapter()
+        val config = ConcatAdapter.Config.Builder()
+            .setIsolateViewTypes(false)
+            .build()
+
+        ConcatAdapter(config)
     }
     private val touchHelper by lazy {
         ItemTouchHelper(touchHelperCallback)
@@ -85,8 +92,14 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
             logd("Action cancelled")
         }
     }
+
     private val touchHelperCallback = object : ItemTouchHelper.Callback() {
         override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
+            // The header is allowed to move only if the the group edit mode is enabled
+            if (viewHolder.bindingAdapterPosition == 0 && adapter.editMode != AccountListAdapter.EditMode.Group) {
+                return 0
+            }
+
             return makeMovementFlags(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0)
         }
 
@@ -97,10 +110,27 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
 
         override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
-            val from = viewHolder.adapterPosition
-            val to = target.adapterPosition
+            val sourceAdapter = viewHolder.bindingAdapter as AccountListAdapter
+            val targetAdapter = target.bindingAdapter as AccountListAdapter
+            val from = viewHolder.bindingAdapterPosition
+            val to = target.bindingAdapterPosition
 
-            adapter.swap(from, to)
+            // If the current moved view is the header
+            // swap the adapters inside the main ConcatAdapter
+            if (from == 0) {
+                val sourceIndex = adapter.adapters.indexOf(sourceAdapter)
+                val targetIndex = adapter.adapters.indexOf(targetAdapter)
+
+                adapter.swap(sourceIndex, targetIndex)
+            } else {
+                // Items can't be swapped with the header
+                // or dragged to another group
+                if (to == 0 || sourceAdapter != targetAdapter) {
+                    return false
+                }
+
+                sourceAdapter.swap(from, to)
+            }
 
             return true
         }
@@ -173,41 +203,53 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
         }
 
         viewModel.accounts.observe(this) {
-            adapter.setData(it)
-        }
-        adapter.touchHelper = touchHelper
-        adapter.touchHelper?.attachToRecyclerView(list_accounts)
-        adapter.onItemClickListener = { account, position, _ ->
-            if (actionMode != null) {
-                account.toggleSelected()
-
-                if (!account.isSelected && adapter.selectedAccounts.isEmpty()) {
-                    actionMode?.finish()
+            val accounts = it.chunked(5).mapIndexed { i, list ->
+                AccountGroup("Group: ${i + 1}").apply {
+                    id = i.toLong()
+                    accounts = list.toMutableList()
                 }
-
-                adapter.notifyItemChanged(position)
-                actionMode?.title = adapter.selectedAccounts.size.toString()
-            } else {
-                copyToClipboard(OTPProvider.generate(account))
-                makeToast("Copied!")
             }
-        }
-        adapter.onItemLongClickListener = { account, position, _ ->
-            if (actionMode == null) {
-                account.isSelected = true
-                adapter.notifyItemChanged(position)
-                startSupportActionMode(this)
+            val adapters = accounts.map {
+                AccountListAdapter().apply {
+                    touchHelper = this@AccountListActivity.touchHelper
+                    onItemClickListener = { account, position, id ->
+                        if (actionMode != null) {
+                            account.toggleSelected()
+
+                            if (!account.isSelected && adapter.selectedAccounts.isEmpty()) {
+                                actionMode?.finish()
+                            }
+
+                            notifyItemChanged(position)
+                            actionMode?.title = adapter.selectedAccounts.size.toString()
+                        } else {
+                            copyToClipboard(OTPProvider.generate(account))
+                            makeToast("Copied!")
+                        }
+                    }
+                    onItemLongClickListener = { account, position, _ ->
+                        if (actionMode == null) {
+                            account.isSelected = true
+                            notifyItemChanged(position)
+                            startSupportActionMode(this@AccountListActivity)
+                        }
+
+                        true
+                    }
+                    onItemEditListener = {
+                        val intent = Intent(this@AccountListActivity, AccountActivity::class.java)
+
+                        intent.putExtra(AccountActivity.EXTRA_ACCOUNT, it)
+                        editAccount.launch(intent)
+                        actionMode?.finish()
+                    }
+                    setData(it)
+                }
             }
 
-            true
+            adapter.addAllAdapters(adapters)
         }
-        adapter.onItemEditListener = {
-            val intent = Intent(this, AccountActivity::class.java)
-
-            intent.putExtra(AccountActivity.EXTRA_ACCOUNT, it)
-            editAccount.launch(intent)
-            actionMode?.finish()
-        }
+        touchHelper.attachToRecyclerView(list_accounts)
     }
 
     override fun onPause() {
@@ -283,6 +325,29 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
                     startSupportActionMode(this)
                 }
             }
+            R.id.menu_account_list_edit_group -> {
+                startSupportActionMode(object : ActionMode.Callback {
+                    override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
+                        return true
+                    }
+
+                    override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?): Boolean {
+                        return false
+                    }
+
+                    override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
+                        return true
+                    }
+
+                    override fun onDestroyActionMode(mode: ActionMode?) {
+                        adapter.setEditMode(AccountListAdapter.EditMode.Disabled)
+                        adapter.notifyAllDataSetChanged()
+                    }
+                })
+
+                adapter.setEditMode(AccountListAdapter.EditMode.Group)
+                adapter.notifyAllDataSetChanged()
+            }
         }
 
         return true
@@ -296,7 +361,7 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
         menuInflater.inflate(R.menu.menu_account_list_context, menu)
         actionMode = mode
         actionMode?.title = adapter.selectedAccounts.size.toString()
-        adapter.editMode = true
+        adapter.setEditMode(AccountListAdapter.EditMode.Item)
         adapter.notifyDataSetChanged()
 
         return true
@@ -349,13 +414,13 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
                 }
             }
         }
-
+//
         return true
     }
 
     override fun onDestroyActionMode(mode: ActionMode?) {
         actionMode = null
-        adapter.editMode = false
+        adapter.setEditMode(AccountListAdapter.EditMode.Disabled)
         adapter.clearSelected()
     }
 
@@ -366,29 +431,13 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
     }
 
     private fun setTotpCountdownPhase(phase: Double) {
-        updateCountdownIndicators()
-
         if (actionMode == null) {
             for (child in list_accounts.children) {
-                child.pb_phase.setPhase(phase)
+                val indicator = child.findViewById<CountdownIndicator>(R.id.pb_phase)
+
+                indicator?.setPhase(phase)
             }
         }
-    }
-
-    private fun updateCountdownIndicators() {
-//        var i = 0
-//        val len: Int = userList.getChildCount()
-//        while (i < len) {
-//            val listEntry: View = userList.getChildAt(i)
-//            val indicator: CountdownIndicator = listEntry.findViewById(R.id.countdown_icon)
-//            if (indicator != null) {
-//                indicator.setPhase(totpCountdownPhase)
-//            }
-//            i++
-//        }
-
-
-//        Log.d(App.TAG, "Phase: ${phase}")
     }
 
     //region Account

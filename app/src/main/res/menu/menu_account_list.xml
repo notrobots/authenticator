@@ -4,7 +4,12 @@
 
     <item
         android:id="@+id/menu_account_list_edit"
-        android:title="Edit"
+        android:title="Edit items"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/menu_account_list_edit_group"
+        android:title="Edit groups"
         app:showAsAction="ifRoom"/>
 
     <item android:title="TEST MENU"/>
