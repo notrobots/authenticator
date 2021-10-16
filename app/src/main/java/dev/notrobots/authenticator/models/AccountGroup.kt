@@ -1,44 +1,37 @@
 package dev.notrobots.authenticator.models
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
-import dev.notrobots.authenticator.ui.accountlist.AccountListItem
 
-//@Entity
+@Entity
 class AccountGroup(
-    /**
-     * Name for this group
-     */
-    var name: String
-) : AccountListItem {
-    /**
-     * Id for this group
-     */
-//    @PrimaryKey(autoGenerate = true)
-    var id: Long = 0
-
-//    /**
-//     * Position of this account in the account list
-//     */
-//    var order: Long = -1
-
+    name: String
+) : AccountListItem(name) {
     /**
      * Expanded state of this group
      */
     var isExpanded: Boolean = true
 
-    var isSelected: Boolean = false
+    /**
+     * Whether or not this is a default group
+     *
+     * A default group is not shown like a regular group and there must be
+     * only one default group which is also automatically created
+     */
+    var isDefault: Boolean = false
 
     /**
      * Accounts belonging to this group
      */
-    var accounts: MutableList<Account> = mutableListOf()
+//    var accounts: MutableList<Account> = mutableListOf()
 
-    operator fun get(position: Int): Account {
-        return accounts[position]
-    }
+//    operator fun get(position: Int): Account {
+//        return accounts[position]
+//    }
 
-    fun toggleSelected() {
-        isSelected = !isSelected
+    companion object {
+        val DEFAULT_GROUP = AccountGroup("").apply {
+            order = DEFAULT_ORDER
+            isDefault = true
+        }
     }
 }

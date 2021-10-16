@@ -95,8 +95,15 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
 
     private val touchHelperCallback = object : ItemTouchHelper.Callback() {
         override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
-            // The header is allowed to move only if the the group edit mode is enabled
+            val adapterIndex = adapter.adapters.indexOf(viewHolder.bindingAdapter)
+
+            // Disable movement for the group header if the the group edit mode is not enabled
             if (viewHolder.bindingAdapterPosition == 0 && adapter.editMode != AccountListAdapter.EditMode.Group) {
+                return 0
+            }
+
+            // Disable movement for the group at the bottom but not for its items
+            if (adapterIndex == adapter.adapters.lastIndex && adapter.editMode == AccountListAdapter.EditMode.Group) {
                 return 0
             }
 
@@ -112,8 +119,15 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
         override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
             val sourceAdapter = viewHolder.bindingAdapter as AccountListAdapter
             val targetAdapter = target.bindingAdapter as AccountListAdapter
+            val targetAdapterIndex = adapter.adapters.indexOf(targetAdapter)
             val from = viewHolder.bindingAdapterPosition
             val to = target.bindingAdapterPosition
+
+            // Disable movement if the current group is dragged below the default group,
+            // that is at the bottom of the list
+            if (targetAdapterIndex == adapter.adapters.lastIndex && adapter.editMode == AccountListAdapter.EditMode.Group) {
+                return false
+            }
 
             // If the current moved view is the header
             // swap the adapters inside the main ConcatAdapter
@@ -201,16 +215,31 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
             editAccount.launch(intent)
             btn_add_account.close(true)
         }
+        btn_add_account_group.setOnClickListener {
+            val dialog = AddAccountGroupDialog()
 
-        viewModel.accounts.observe(this) {
-            val accounts = it.chunked(5).mapIndexed { i, list ->
-                AccountGroup("Group: ${i + 1}").apply {
-                    id = i.toLong()
-                    accounts = list.toMutableList()
+            dialog.onConfirmListener = {
+                val group = AccountGroup(it)
+
+                lifecycleScope.launch {
+                    val count = viewModel.accountGroupDao.getCount(group.name)
+
+                    if (count > 0) {
+                        dialog.error = "A group with the same name already exists"
+                    } else {
+                        addGroup(group)
+                        dialog.dismiss()
+                    }
                 }
             }
-            val adapters = accounts.map {
-                AccountListAdapter().apply {
+            dialog.show(supportFragmentManager, null)
+            btn_add_account.close(true)
+        }
+
+        viewModel.groupsWithAccount.observe(this) {
+            //FIXME: This needs to be optimized
+            val adapters = it.map {
+                AccountListAdapter(it).apply {
                     touchHelper = this@AccountListActivity.touchHelper
                     onItemClickListener = { account, position, id ->
                         if (actionMode != null) {
@@ -243,10 +272,10 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
                         editAccount.launch(intent)
                         actionMode?.finish()
                     }
-                    setData(it)
                 }
             }
 
+            adapter.clearAdapters()
             adapter.addAllAdapters(adapters)
         }
         touchHelper.attachToRecyclerView(list_accounts)
@@ -257,6 +286,7 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
 
         lifecycleScope.launch {
             viewModel.accountDao.update(adapter.accounts)
+            viewModel.accountGroupDao.update(adapter.groups)
         }
     }
 
@@ -291,10 +321,11 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
             R.id.menu_clear -> {
                 lifecycleScope.launch {
                     viewModel.accountDao.deleteAll()
+                    viewModel.accountGroupDao.deleteAll()
                 }
             }
             R.id.menu_refresh -> {
-                adapter.notifyDataSetChanged()
+                adapter.notifyAllDataSetChanged()
             }
             R.id.menu_add_test -> {
                 val alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
@@ -312,10 +343,15 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
                 }
 
                 lifecycleScope.launch {
+                    viewModel.accountDao.deleteAll()
+                    viewModel.accountGroupDao.deleteAll()
+
                     var last = viewModel.accountDao.getLastOrder()
+                    val defaultGroupId = viewModel.accountGroupDao.insert(AccountGroup.DEFAULT_GROUP)
 
                     for (test in tests) {
                         test.order = ++last
+                        test.groupId = defaultGroupId
                         viewModel.accountDao.insert(test)
                     }
                 }
@@ -340,7 +376,9 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
                         when (item.itemId) {
                             R.id.menu_group_selectall -> {
                                 for (group in adapter.groups) {
-                                    group.isSelected = true
+                                    if (!group.isDefault) {
+                                        group.isSelected = true
+                                    }
                                 }
                                 for (adapter in adapter.adapters) {
                                     adapter.notifyItemChanged(0)
@@ -462,7 +500,7 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
         }
     }
 
-    //region Account
+    //region Accounts & Groups
 
     /**
      * Parses the given [input] into an [Uri] and tries to insert it into the database.
@@ -485,14 +523,14 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
     }
 
     /**
-     * Inserts the given [account] to the database.
+     * Inserts the given [account] into the database.
      *
      * In case the account (name & issuer) already exists, the user is prompt with a
      * dialog asking them if they want to overwrite the existing account.
      *
      * This method **will not** throw any exceptions.
      */
-    private fun addAccount(account: Account) {
+    private fun addAccount(account: Account) {  //TODO: This method should only add the account without doing anything else
         lifecycleScope.launch {
             val count = viewModel.accountDao.getCount(account.name, account.issuer)
 
@@ -527,13 +565,28 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
      */
     private fun updateAccount(account: Account) {
         lifecycleScope.launch {
-            if (account.id == null) {
+            if (account.id <= 0) {  //FIXME: What the hell is this
                 val original = viewModel.accountDao.getAccount(account.name, account.issuer)
 
                 account.id = original.id
             }
 
             viewModel.accountDao.update(account)
+        }
+    }
+
+    /**
+     * Inserts the given [group] into the database
+     *
+     * If the group already exists it will be replaced
+     */
+    private fun addGroup(group: AccountGroup) {
+        lifecycleScope.launch {
+            val last = viewModel.accountGroupDao.getLastOrder()
+
+            group.order = last + 1
+            viewModel.accountGroupDao.insert(group)
+            logd("Adding new group: ${group.name}")
         }
     }
 

@@ -20,6 +20,11 @@ class AuthenticatorDatabaseModule {
     }
 
     @Provides
+    fun provideAccountGroupDao(database: AuthenticatorDatabase): AccountGroupDao {
+        return database.accountGroupDao()
+    }
+
+    @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext appContext: Context): AuthenticatorDatabase {
         return Room.databaseBuilder(

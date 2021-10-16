@@ -29,7 +29,7 @@ class AccountActivity : BaseActivity() {
         // Load that account and let the user edit its data
         if (intent.hasExtra(EXTRA_ACCOUNT)) {
             account = intent.getSerializableExtra(EXTRA_ACCOUNT) as Account
-            originalAccount = account!!.copy()
+            originalAccount = account   //FIXME: Should be a copy of account
             resultCode = RESULT_UPDATE
 
             title = account!!.displayName

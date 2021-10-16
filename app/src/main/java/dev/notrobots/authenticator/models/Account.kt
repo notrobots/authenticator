@@ -7,28 +7,17 @@ import androidx.room.PrimaryKey
 import dev.notrobots.androidstuff.util.parseEnum
 import dev.notrobots.authenticator.extensions.get
 import dev.notrobots.authenticator.extensions.isOnlySpaces
-import dev.notrobots.authenticator.proto.GoogleAuthenticator
-import dev.notrobots.authenticator.ui.accountlist.AccountListItem
 import java.io.Serializable
 import dev.notrobots.authenticator.util.isValidBase32
 
 @Entity
-data class Account(
-    /**
-     * Name associated with this account
-     */
-    var name: String,
+class Account(
+    name: String,
     /**
      * Account secret, should be a base32 string
      */
     var secret: String,
-) : Serializable, AccountListItem {
-    /**
-     * Primary key
-     */
-    @PrimaryKey(autoGenerate = true)
-    var id: Long? = null    //FIXME: This should be 0 and non-nullable
-
+) : AccountListItem(name), Serializable {
     /**
      * Account issuer, should be the company's website
      */
@@ -45,9 +34,9 @@ data class Account(
     var type: OTPType = OTPType.TOTP
 
     /**
-     * Position of this account in the account list
+     * ID of the group this account belongs to
      */
-    var order: Long = -1
+    var groupId: Long = DEFAULT_ID
 
 //    /**
 //     * Parent group of this account, null if the account doesn't belong to any group
@@ -59,22 +48,12 @@ data class Account(
      */
 //    var isBase32: Boolean = true
 
-    /**
-     * Whether or not this item is selected
-     */
-    @Ignore
-    var isSelected: Boolean = false
-
     val path
         get() = if (label.isNotEmpty()) "$label:$name" else name
     val displayName
         get() = if (label.isNotEmpty()) "$label ($name)" else name
 
     constructor() : this("", "")
-
-    fun toggleSelected() {
-        isSelected = !isSelected
-    }
 
     fun getUri(): Uri {
         val uri = Uri.Builder()

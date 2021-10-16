@@ -13,15 +13,14 @@ import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.OTPProvider
 import dev.notrobots.androidstuff.util.*
-import dev.notrobots.authenticator.models.AccountGroup
+import dev.notrobots.authenticator.models.GroupWithAccounts
 import kotlinx.android.synthetic.main.item_account.view.*
-import kotlinx.android.synthetic.main.item_account_group.view.text_account_group_name
+import kotlinx.android.synthetic.main.item_account_group.view.text_group_name
 import java.util.*
 
-class AccountListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-    var group: AccountGroup? = null
+class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     val selectedAccounts
-        get() = group?.accounts?.filter { it.isSelected } ?: emptyList()
+        get() = groupWithAccounts.accounts.filter { it.isSelected } ?: emptyList()
 
     //TODO: setListener
     var onItemClickListener: (item: Account, position: Int, id: Long) -> Unit = { _, _, _ -> }
@@ -29,18 +28,14 @@ class AccountListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     var onItemEditListener: (item: Account) -> Unit = {}
 
     var editMode: EditMode = EditMode.Disabled
+    var isExpanded: Boolean
+        get() = groupWithAccounts.group.isExpanded
         set(value) {
-            field = value
-            //TODO: Notify
-        }
-    var isExpanded: Boolean = group?.isExpanded ?: true
-        set(value) {
-            field = value
-            group!!.isExpanded = value
+            groupWithAccounts.group.isExpanded = value
             if (value) {
-                notifyItemRangeInserted(1, group!!.accounts.size)
+                notifyItemRangeInserted(1, groupWithAccounts.accounts.size)
             } else {
-                notifyItemRangeRemoved(1, group!!.accounts.size)
+                notifyItemRangeRemoved(1, groupWithAccounts.accounts.size)
             }
             notifyItemChanged(0)
         }
@@ -73,8 +68,8 @@ class AccountListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         when (holder) {
             is AccountViewHolder -> {
-                val account = group!!.accounts[position - 1]
-                val id = account.id!!
+                val account = groupWithAccounts.accounts[position - 1]
+                val id = account.id
                 val icon = KnownIssuers.find { k, _ -> k.matches(account.issuer) }
 
                 view.isSelected = account.isSelected
@@ -99,25 +94,32 @@ class AccountListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 }
             }
             is GroupViewHolder -> {
-                val group = group!!
+                val group = groupWithAccounts.group
 
-                view.text_account_group_name.text = group.name
-                view.img_account_edit.visibility = if (editMode == EditMode.Group) View.VISIBLE else View.GONE
-                view.img_drag_handle.visibility = if (editMode == EditMode.Group) View.VISIBLE else View.GONE
+                view.text_group_name.text = group.name
+                view.img_account_edit.visibility = if (editMode == EditMode.Group && !group.isDefault) View.VISIBLE else View.GONE
+                view.img_drag_handle.visibility = if (editMode == EditMode.Group && !group.isDefault) View.VISIBLE else View.GONE
                 view.img_drag_handle.setOnTouchListener { v, event ->
                     touchHelper?.startDrag(holder)
 
                     true
                 }
                 view.isSelected = group.isSelected
-                view.setOnClickListener {
-                    if (editMode == EditMode.Group) {
-                        group.toggleSelected()
-                        view.isSelected = group.isSelected
-                    }
 
-                    if (editMode == EditMode.Disabled) {
-                        isExpanded = !isExpanded
+                if (!group.isDefault) {
+                    view.setOnClickListener {
+                        if (editMode == EditMode.Group) {
+                            group.toggleSelected()
+                            view.isSelected = group.isSelected
+                        }
+
+                        if (editMode == EditMode.Disabled) {
+                            isExpanded = !isExpanded
+                        }
+                    }
+                } else {
+                    if (editMode == EditMode.Group) {
+                        view.text_group_name.text = "Default group"
                     }
                 }
             }
@@ -125,11 +127,19 @@ class AccountListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     override fun getItemId(position: Int): Long {
-        return group?.get(position)?.id ?: -1
+        return when (position) {
+            0 -> groupWithAccounts.group.id
+
+            else -> groupWithAccounts.accounts[position].id
+        }
     }
 
     override fun getItemCount(): Int {
-        return if (editMode == EditMode.Group || !isExpanded) 1 else (group?.accounts?.size ?: 0) + 1
+        return when {
+            editMode == EditMode.Group || !isExpanded -> 1
+
+            else -> (groupWithAccounts.accounts.size ?: 0) + 1
+        }
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -137,17 +147,17 @@ class AccountListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     fun swap(from: Int, to: Int) {
-        if (group != null) {
-            Collections.swap(group!!.accounts, from - 1, to - 1)
+        val accounts = groupWithAccounts.accounts
 
-            if (from != to) {
-                swap(group!![from - 1], group!![to - 1], { it.order }, { t, v -> t.order = v })
-            }
+        Collections.swap(groupWithAccounts.accounts, from - 1, to - 1)
 
-            notifyItemMoved(from, to)
-            notifyItemChanged(from)
-            notifyItemChanged(to)
+        if (from != to) {
+            swap(accounts[from - 1], accounts[to - 1], { it.order }, { t, v -> t.order = v })
         }
+
+        notifyItemMoved(from, to)
+        notifyItemChanged(from) //TODO: Check if this is needed
+        notifyItemChanged(to)
     }
 
     fun clearSelected() {
@@ -155,32 +165,32 @@ class AccountListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         notifyDataSetChanged()
     }
 
-    fun setData(group: AccountGroup) {
-        if (this.group == null) {
-            this.group = group
-            notifyItemRangeInserted(0, this.group!!.accounts.size)
+    fun setData(groupWithAccounts: GroupWithAccounts) {
+        if (this.groupWithAccounts.accounts.isEmpty()) {
+            this.groupWithAccounts = groupWithAccounts
+            notifyItemRangeInserted(0, this.groupWithAccounts.accounts.size)
         } else {
             val result = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
                 override fun getOldListSize(): Int {
-                    return this@AccountListAdapter.group!!.accounts.size
+                    return this@AccountListAdapter.groupWithAccounts.accounts.size
                 }
 
                 override fun getNewListSize(): Int {
-                    return group.accounts.size
+                    return groupWithAccounts.accounts.size
                 }
 
                 override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                    return this@AccountListAdapter.group!!.accounts[oldItemPosition].id == group.accounts[newItemPosition].id
+                    return this@AccountListAdapter.groupWithAccounts.accounts[oldItemPosition].id == groupWithAccounts.accounts[newItemPosition].id
                 }
 
                 override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                    val old = this@AccountListAdapter.group!!.accounts[oldItemPosition]
-                    val new = group.accounts[newItemPosition]
+                    val old = this@AccountListAdapter.groupWithAccounts.accounts[oldItemPosition]
+                    val new = groupWithAccounts.accounts[newItemPosition]
 
                     return old == new
                 }
             })
-            this.group = group
+            this.groupWithAccounts = groupWithAccounts
             result.dispatchUpdatesTo(this)
         }
     }
