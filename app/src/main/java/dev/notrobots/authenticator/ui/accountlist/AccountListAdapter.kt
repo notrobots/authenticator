@@ -13,20 +13,16 @@ import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.OTPProvider
 import dev.notrobots.androidstuff.util.*
+import dev.notrobots.authenticator.models.AccountGroup
 import dev.notrobots.authenticator.models.GroupWithAccounts
 import kotlinx.android.synthetic.main.item_account.view.*
 import kotlinx.android.synthetic.main.item_account_group.view.text_group_name
 import java.util.*
 
 class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    private var listener: Listener? = null
     val selectedAccounts
-        get() = groupWithAccounts.accounts.filter { it.isSelected } ?: emptyList()
-
-    //TODO: setListener
-    var onItemClickListener: (item: Account, position: Int, id: Long) -> Unit = { _, _, _ -> }
-    var onItemLongClickListener: (item: Account, position: Int, id: Long) -> Boolean = { _, _, _ -> true }
-    var onItemEditListener: (item: Account) -> Unit = {}
-
+        get() = groupWithAccounts.accounts.filter { it.isSelected }
     var editMode: EditMode = EditMode.Disabled
     var isExpanded: Boolean
         get() = groupWithAccounts.group.isExpanded
@@ -84,13 +80,13 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
                     true
                 }
                 view.img_account_edit.setOnClickListener {
-                    onItemEditListener(account)
+                    listener?.onEdit(account, position, id)
                 }
-                view.setOnClickListener {
-                    onItemClickListener(account, position, id)
+                view.setOnClickListener {       //FIXME: Selection state should be changed here to improve performance
+                    listener?.onClick(account, position, id)
                 }
                 view.setOnLongClickListener {
-                    onItemLongClickListener(account, position, id)
+                    listener?.onLongClick(account, position, id) ?: false
                 }
             }
             is GroupViewHolder -> {
@@ -98,6 +94,9 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
 
                 view.text_group_name.text = group.name
                 view.img_account_edit.visibility = if (editMode == EditMode.Group && !group.isDefault) View.VISIBLE else View.GONE
+                view.img_account_edit.setOnClickListener {
+                    listener?.onEdit(group, position, group.id)
+                }
                 view.img_drag_handle.visibility = if (editMode == EditMode.Group && !group.isDefault) View.VISIBLE else View.GONE
                 view.img_drag_handle.setOnTouchListener { v, event ->
                     touchHelper?.startDrag(holder)
@@ -116,6 +115,11 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
                         if (editMode == EditMode.Disabled) {
                             isExpanded = !isExpanded
                         }
+
+                        listener?.onClick(group, position, group.id)
+                    }
+                    view.setOnLongClickListener {
+                        listener?.onLongClick(group, position, group.id) ?: false
                     }
                 } else {
                     if (editMode == EditMode.Group) {
@@ -195,9 +199,22 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
         }
     }
 
+    fun setListener(listener: Listener) {
+        this.listener = listener
+    }
+
     companion object {
         private const val VIEW_TYPE_ITEM = 0
         private const val VIEW_TYPE_GROUP = 1
+    }
+
+    interface Listener {
+        fun onClick(account: Account, position: Int, id: Long)
+        fun onLongClick(account: Account, position: Int, id: Long): Boolean
+        fun onEdit(account: Account, position: Int, id: Long)
+        fun onClick(group: AccountGroup, position: Int, id: Long)
+        fun onLongClick(group: AccountGroup, position: Int, id: Long): Boolean
+        fun onEdit(group: AccountGroup, position: Int, id: Long)
     }
 
     enum class EditMode {

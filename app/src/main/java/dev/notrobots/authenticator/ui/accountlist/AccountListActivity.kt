@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 
 @AndroidEntryPoint
-class AccountListActivity : BaseActivity(), ActionMode.Callback {
+class AccountListActivity : BaseActivity() {
     private val viewModel by viewModels<AccountListViewModel>()
     private val adapter by lazy {
         val config = ConcatAdapter.Config.Builder()
@@ -151,6 +151,127 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
     }
     private var actionMode: ActionMode? = null
 
+    private val accountActionMode = object  : ActionMode.Callback {
+        override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
+            menuInflater.inflate(R.menu.menu_account_list_item, menu)
+            actionMode = mode
+            actionMode?.title = adapter.selectedAccounts.size.toString()
+            adapter.setEditMode(AccountListAdapter.EditMode.Item)
+            adapter.notifyDataSetChanged()
+
+            return true
+        }
+
+        override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?): Boolean {
+            return true
+        }
+
+        override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
+            when (item?.itemId) {
+                R.id.menu_account_remove -> {
+                    if (adapter.selectedAccounts.isNotEmpty()) {
+                        val accounts = adapter.selectedAccounts
+                        val dialog = DeleteAccountDialog(accounts)
+
+                        dialog.onConfirmListener = {
+                            lifecycleScope.launch {
+                                viewModel.accountDao.delete(accounts)
+                            }
+                            actionMode?.finish()
+                        }
+                        dialog.show(supportFragmentManager, null)
+                    } else {
+                        makeToast("No accounts selected")
+                    }
+                }
+                R.id.menu_account_export -> {
+                    if (adapter.selectedAccounts.isNotEmpty()) {
+                        val accounts = ArrayList(adapter.selectedAccounts)
+                        val intent = Intent(this@AccountListActivity, ExportActivity::class.java)
+
+                        intent.putExtra(ExportConfigActivity.EXTRA_ACCOUNT_LIST, accounts)
+
+                        startActivity(intent)
+                        actionMode?.finish()
+                    } else {
+                        makeToast("No accounts selected")
+                    }
+                }
+                R.id.menu_account_selectall -> {
+                    if (adapter.accounts.isNotEmpty()) {
+                        for (account in adapter.accounts) {
+                            account.isSelected = true
+                        }
+                        actionMode?.title = adapter.selectedAccounts.size.toString()
+                        adapter.notifyDataSetChanged()
+                    } else {
+                        makeToast("Nothing to select")
+                    }
+                }
+            }
+//
+            return true
+        }
+
+        override fun onDestroyActionMode(mode: ActionMode?) {
+            actionMode = null
+            adapter.setEditMode(AccountListAdapter.EditMode.Disabled)
+            adapter.clearSelectedAccounts()
+        }
+    }
+    private val groupActionMode = object : ActionMode.Callback {
+        override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+            menuInflater.inflate(R.menu.menu_account_list_group, menu)
+            actionMode = mode
+            actionMode?.title = adapter.selectedGroups.size.toString()
+            adapter.setEditMode(AccountListAdapter.EditMode.Group)
+            adapter.notifyAllDataSetChanged()   //FIXME: This or the regular notify??
+
+            return true
+        }
+
+        override fun onPrepareActionMode(mode: ActionMode, menu: Menu?): Boolean {
+            return false
+        }
+
+        override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
+            when (item.itemId) {
+                R.id.menu_group_selectall -> {
+                    for (group in adapter.groups) {
+                        if (!group.isDefault) {
+                            group.isSelected = true
+                        }
+                    }
+                    for (adapter in adapter.adapters) {
+                        adapter.notifyItemChanged(0)
+                    }
+                }
+                R.id.menu_group_remove -> {
+                    val dialog = DeleteGroupDialog(adapter.selectedGroups.size, adapter.selectedAccounts.size)
+
+                    dialog.onConfirmListener = {
+                        lifecycleScope.launch {
+                            viewModel.accountDao.delete(adapter.selectedAccounts)
+                            viewModel.accountGroupDao.delete(adapter.selectedGroups)
+                        }
+                    }
+                    dialog.show(supportFragmentManager, null)
+                }
+                R.id.menu_group_unpack -> {
+
+                }
+            }
+
+            return true
+        }
+
+        override fun onDestroyActionMode(mode: ActionMode?) {
+            actionMode = null
+            adapter.setEditMode(AccountListAdapter.EditMode.Disabled)
+            adapter.clearSelectedGroups()
+        }
+    }
+
     //region Activity lifecycle
 
     override fun onStart() {
@@ -221,10 +342,8 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
             dialog.onConfirmListener = {
                 val group = AccountGroup(it)
 
-                lifecycleScope.launch {
-                    val count = viewModel.accountGroupDao.getCount(group.name)
-
-                    if (count > 0) {
+                checkIfGroupExists(group) {
+                    if (it) {
                         dialog.error = "A group with the same name already exists"
                     } else {
                         addGroup(group)
@@ -241,37 +360,75 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
             val adapters = it.map {
                 AccountListAdapter(it).apply {
                     touchHelper = this@AccountListActivity.touchHelper
-                    onItemClickListener = { account, position, id ->
-                        if (actionMode != null) {
-                            account.toggleSelected()
+                    setListener(object : AccountListAdapter.Listener {
+                        override fun onClick(account: Account, position: Int, id: Long) {
+                            if (actionMode != null) {
+                                account.toggleSelected()
 
-                            if (!account.isSelected && adapter.selectedAccounts.isEmpty()) {
-                                actionMode?.finish()
+                                if (!account.isSelected && adapter.selectedAccounts.isEmpty()) {
+                                    actionMode?.finish()
+                                }
+
+                                notifyItemChanged(position)
+                                actionMode?.title = adapter.selectedAccounts.size.toString()
+                            } else {
+                                copyToClipboard(OTPProvider.generate(account))
+                                makeToast("Copied!")
+                            }
+                        }
+
+                        override fun onLongClick(account: Account, position: Int, id: Long): Boolean {
+                            if (actionMode == null) {
+                                account.isSelected = true
+                                notifyItemChanged(position)
+                                startSupportActionMode(accountActionMode)
                             }
 
-                            notifyItemChanged(position)
-                            actionMode?.title = adapter.selectedAccounts.size.toString()
-                        } else {
-                            copyToClipboard(OTPProvider.generate(account))
-                            makeToast("Copied!")
-                        }
-                    }
-                    onItemLongClickListener = { account, position, _ ->
-                        if (actionMode == null) {
-                            account.isSelected = true
-                            notifyItemChanged(position)
-                            startSupportActionMode(this@AccountListActivity)
+                            return true
                         }
 
-                        true
-                    }
-                    onItemEditListener = {
-                        val intent = Intent(this@AccountListActivity, AccountActivity::class.java)
+                        override fun onEdit(account: Account, position: Int, id: Long) {
+                            val intent = Intent(this@AccountListActivity, AccountActivity::class.java)
 
-                        intent.putExtra(AccountActivity.EXTRA_ACCOUNT, it)
-                        editAccount.launch(intent)
-                        actionMode?.finish()
-                    }
+                            intent.putExtra(AccountActivity.EXTRA_ACCOUNT, account)
+                            editAccount.launch(intent)
+                            actionMode?.finish()
+                        }
+
+                        override fun onClick(group: AccountGroup, position: Int, id: Long) {
+                            if (adapter.editMode == AccountListAdapter.EditMode.Group) {
+                                actionMode?.title = adapter.selectedGroups.size.toString()
+                            }
+                        }
+
+                        override fun onLongClick(group: AccountGroup, position: Int, id: Long): Boolean {
+                            //TODO: Edit groups
+
+                            return true
+                        }
+
+                        override fun onEdit(group: AccountGroup, position: Int, id: Long) {
+                            val dialog = AddAccountGroupDialog()
+
+                            dialog.text = group.name
+                            dialog.onConfirmListener = { name ->
+                                if (name == group.name) {
+                                    dialog.dismiss()
+                                } else {
+                                    checkIfGroupExists(name) {
+                                        if (it) {
+                                            dialog.error = "A group with the same name already exists"
+                                        } else {
+                                            group.name = name
+                                            viewModel.accountGroupDao.update(group)
+                                            dialog.dismiss()
+                                        }
+                                    }
+                                }
+                            }
+                            dialog.show(supportFragmentManager, null)
+                        }
+                    })
                 }
             }
 
@@ -357,53 +514,10 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
                 }
             }
             R.id.menu_account_list_edit -> {
-                if (actionMode == null) {
-                    startSupportActionMode(this)
-                }
+                startSupportActionMode(accountActionMode)
             }
             R.id.menu_account_list_edit_group -> {
-                startSupportActionMode(object : ActionMode.Callback {
-                    override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-                        menuInflater.inflate(R.menu.menu_account_list_group, menu)
-                        return true
-                    }
-
-                    override fun onPrepareActionMode(mode: ActionMode, menu: Menu?): Boolean {
-                        return false
-                    }
-
-                    override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
-                        when (item.itemId) {
-                            R.id.menu_group_selectall -> {
-                                for (group in adapter.groups) {
-                                    if (!group.isDefault) {
-                                        group.isSelected = true
-                                    }
-                                }
-                                for (adapter in adapter.adapters) {
-                                    adapter.notifyItemChanged(0)
-                                }
-                            }
-                            R.id.menu_group_remove -> {
-
-                            }
-                            R.id.menu_group_unpack -> {
-
-                            }
-                        }
-
-                        return true
-                    }
-
-                    override fun onDestroyActionMode(mode: ActionMode?) {
-                        for (group in adapter.groups) {
-                            group.isSelected = false
-                        }
-
-                        adapter.setEditMode(AccountListAdapter.EditMode.Disabled)
-                        adapter.notifyAllDataSetChanged()
-                    }
-                })
+                startSupportActionMode(groupActionMode)
 
                 adapter.setEditMode(AccountListAdapter.EditMode.Group)
                 adapter.notifyAllDataSetChanged()
@@ -411,77 +525,6 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
         }
 
         return true
-    }
-
-    //endregion
-
-    //region Action mode
-
-    override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_account_list_item, menu)
-        actionMode = mode
-        actionMode?.title = adapter.selectedAccounts.size.toString()
-        adapter.setEditMode(AccountListAdapter.EditMode.Item)
-        adapter.notifyDataSetChanged()
-
-        return true
-    }
-
-    override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?): Boolean {
-        return true
-    }
-
-    override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
-        when (item?.itemId) {
-            R.id.menu_account_remove -> {
-                if (adapter.selectedAccounts.isNotEmpty()) {
-                    val accounts = adapter.selectedAccounts
-                    val dialog = DeleteAccountDialog(accounts)
-
-                    dialog.onConfirmListener = {
-                        lifecycleScope.launch {
-                            viewModel.accountDao.delete(accounts)
-                        }
-                        actionMode?.finish()
-                    }
-                    dialog.show(supportFragmentManager, null)
-                } else {
-                    makeToast("No accounts selected")
-                }
-            }
-            R.id.menu_account_export -> {
-                if (adapter.selectedAccounts.isNotEmpty()) {
-                    val accounts = ArrayList(adapter.selectedAccounts)
-                    val intent = Intent(this, ExportActivity::class.java)
-
-                    intent.putExtra(ExportConfigActivity.EXTRA_ACCOUNT_LIST, accounts)
-
-                    startActivity(intent)
-                    actionMode?.finish()
-                } else {
-                    makeToast("No accounts selected")
-                }
-            }
-            R.id.menu_account_selectall -> {
-                if (adapter.accounts.isNotEmpty()) {
-                    for (account in adapter.accounts) {
-                        account.isSelected = true
-                    }
-                    actionMode?.title = adapter.selectedAccounts.size.toString()
-                    adapter.notifyDataSetChanged()
-                } else {
-                    makeToast("Nothing to select")
-                }
-            }
-        }
-//
-        return true
-    }
-
-    override fun onDestroyActionMode(mode: ActionMode?) {
-        actionMode = null
-        adapter.setEditMode(AccountListAdapter.EditMode.Disabled)
-        adapter.clearSelected()
     }
 
     //endregion
@@ -530,13 +573,11 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
      *
      * This method **will not** throw any exceptions.
      */
-    private fun addAccount(account: Account) {  //TODO: This method should only add the account without doing anything else
-        lifecycleScope.launch {
-            val count = viewModel.accountDao.getCount(account.name, account.issuer)
-
+    private fun addAccount(account: Account) {
+        checkIfAccountExists(account) {
             // If the count is greater than 0, that means there's one other account
             // with the same name and issuer, ask the user if they want to overwrite it
-            if (count > 0) {
+            if (it) {
                 val dialog = ReplaceAccountDialog() //TODO Let the user keep both accounts
 
                 dialog.onReplaceListener = {
@@ -581,12 +622,51 @@ class AccountListActivity : BaseActivity(), ActionMode.Callback {
      * If the group already exists it will be replaced
      */
     private fun addGroup(group: AccountGroup) {
-        lifecycleScope.launch {
-            val last = viewModel.accountGroupDao.getLastOrder()
+        checkIfGroupExists(group) {
+            if (it) {
+                error("A group with the same name already exists")
+            } else {
+                val last = viewModel.accountGroupDao.getLastOrder()
 
-            group.order = last + 1
-            viewModel.accountGroupDao.insert(group)
-            logd("Adding new group: ${group.name}")
+                group.order = last + 1
+                viewModel.accountGroupDao.insert(group)
+                logd("Adding new group: ${group.name}")
+            }
+        }
+    }
+
+    /**
+     * Checks if the given [account] already exists and then invokes the given [block] with the result
+     *
+     * The [block] is invoked inside of a coroutine
+     */
+    private fun checkIfAccountExists(account: Account, block: suspend (Boolean) -> Unit) {
+        lifecycleScope.launch {
+            val count = viewModel.accountDao.getCount(account.name, account.issuer)
+
+            block(count > 0)
+        }
+    }
+
+    /**
+     * Checks if the given [group] already exists and then invokes the given [block] with the result
+     *
+     * The [block] is invoked inside of a coroutine
+     */
+    private fun checkIfGroupExists(group: AccountGroup, block: suspend (Boolean) -> Unit) {
+        checkIfGroupExists(group.name, block)
+    }
+
+    /**
+     * Checks if a group with the given [name] already exists and then invokes the given [block] with the result
+     *
+     * The [block] is invoked inside of a coroutine
+     */
+    private fun checkIfGroupExists(name: String, block: suspend (Boolean) -> Unit) {
+        lifecycleScope.launch {
+            val count = viewModel.accountGroupDao.getCount(name)
+
+            block(count > 0)
         }
     }
 

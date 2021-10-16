@@ -36,6 +36,9 @@ interface AccountGroupDao {
     @Delete
     suspend fun delete(group: AccountGroup) //FIXME: Fix the return parameters, they may be useful in the future
 
+    @Delete
+    suspend fun delete(groups: List<AccountGroup>) //FIXME: Fix the return parameters, they may be useful in the future
+
     @Query("DELETE FROM AccountGroup")
     suspend fun deleteAll()
 }

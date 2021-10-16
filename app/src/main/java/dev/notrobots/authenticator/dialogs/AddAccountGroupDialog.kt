@@ -7,6 +7,7 @@ import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.extensions.setClearErrorOnType
+import kotlinx.android.synthetic.main.dialog_account_group.*
 import kotlinx.android.synthetic.main.dialog_account_group.view.*
 
 class AddAccountGroupDialog : DialogFragment() {
@@ -14,6 +15,11 @@ class AddAccountGroupDialog : DialogFragment() {
         set(value) {
             field = value
             dialogView?.layout_group_name?.error = value
+        }
+    var text: String? = null
+        set(value) {
+            field = value
+            dialogView?.text_group_name?.error = value
         }
     var onConfirmListener: (name: String) -> Unit = {}
     var dialogView: View? = null
@@ -23,6 +29,7 @@ class AddAccountGroupDialog : DialogFragment() {
         val view = layoutInflater.inflate(R.layout.dialog_account_group, null).apply {
             layout_group_name.error = error
             layout_group_name.setClearErrorOnType()
+            text_group_name.setText(text)
             dialogView = this
         }
         val dialog = MaterialAlertDialogBuilder(requireContext())

@@ -9,6 +9,9 @@ import java.util.*
 val ConcatAdapter.selectedAccounts
     get() = (adapters as List<AccountListAdapter>).flatMap { it.selectedAccounts }
 
+val ConcatAdapter.selectedGroups
+    get() = (adapters as List<AccountListAdapter>).map { it.groupWithAccounts.group }.filter { it.isSelected }
+
 val ConcatAdapter.accounts
     get() = (adapters as List<AccountListAdapter>).flatMap { it.groupWithAccounts.accounts }
 
@@ -18,11 +21,18 @@ val ConcatAdapter.groups
 val ConcatAdapter.editMode
     get() = if (adapters.isNotEmpty()) (adapters.first() as AccountListAdapter).editMode else AccountListAdapter.EditMode.Disabled
 
-fun ConcatAdapter.clearSelected() {
+fun ConcatAdapter.clearSelectedAccounts() {
     for (adapter in adapters) {
         adapter as AccountListAdapter
         adapter.clearSelected()
     }
+}
+
+fun ConcatAdapter.clearSelectedGroups() {
+    for (group in groups) {
+        group.isSelected = false
+    }
+    notifyAllDataSetChanged()
 }
 
 fun ConcatAdapter.setEditMode(editMode: AccountListAdapter.EditMode) {
