@@ -71,7 +71,6 @@ class BetterSpinner(
     var label: String = ""
         set(value) {
             field = value
-
             layout?.hint = label
         }
 
@@ -86,8 +85,9 @@ class BetterSpinner(
         inflate(context, R.layout.view_betterspinner, this)
 
         adapter = ArrayAdapter(context, android.R.layout.simple_list_item_1, mutableListOf())
-        layout = rootView.layout
-        textView = rootView.text
+        layout = rootView.betterspinner_layout
+        textView = rootView.betterspinner_text
+        label = label
         textView!!.setAdapter(adapter)
         textView!!.setOnItemClickListener { _, _, position, _ ->
             setSelection(position)
