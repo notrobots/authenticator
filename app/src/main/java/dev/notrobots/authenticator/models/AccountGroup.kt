@@ -1,11 +1,12 @@
 package dev.notrobots.authenticator.models
 
 import androidx.room.Entity
+import java.io.Serializable
 
 @Entity
 class AccountGroup(
     name: String
-) : AccountListItem(name) {
+) : BaseAccount(name), Serializable {
     /**
      * Expanded state of this group
      */
@@ -30,6 +31,7 @@ class AccountGroup(
 
     companion object {
         val DEFAULT_GROUP = AccountGroup("").apply {
+            id = 1
             order = DEFAULT_ORDER
             isDefault = true
         }

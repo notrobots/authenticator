@@ -2,13 +2,14 @@ package dev.notrobots.authenticator.models
 
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import java.io.Serializable
 
-abstract class AccountListItem(
+abstract class BaseAccount(
     /**
      * Displayed name for this item
      */
     var name: String,
-) {
+) : Serializable {
     /**
      * Room Id for this item
      */

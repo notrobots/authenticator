@@ -2,8 +2,6 @@ package dev.notrobots.authenticator.models
 
 import android.net.Uri
 import androidx.room.Entity
-import androidx.room.Ignore
-import androidx.room.PrimaryKey
 import dev.notrobots.androidstuff.util.parseEnum
 import dev.notrobots.authenticator.extensions.get
 import dev.notrobots.authenticator.extensions.isOnlySpaces
@@ -17,7 +15,7 @@ class Account(
      * Account secret, should be a base32 string
      */
     var secret: String,
-) : AccountListItem(name), Serializable {
+) : BaseAccount(name), Serializable {
     /**
      * Account issuer, should be the company's website
      */
