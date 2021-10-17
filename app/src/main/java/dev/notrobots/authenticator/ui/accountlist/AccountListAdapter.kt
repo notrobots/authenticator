@@ -92,20 +92,8 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
             is GroupViewHolder -> {
                 val group = groupWithAccounts.group
 
-                view.text_group_name.text = group.name
-                view.img_account_edit.visibility = if (editMode == EditMode.Group && !group.isDefault) View.VISIBLE else View.GONE
-                view.img_account_edit.setOnClickListener {
-                    listener?.onEdit(group, position, group.id)
-                }
-                view.img_drag_handle.visibility = if (editMode == EditMode.Group && !group.isDefault) View.VISIBLE else View.GONE
-                view.img_drag_handle.setOnTouchListener { v, event ->
-                    touchHelper?.startDrag(holder)
-
-                    true
-                }
-                view.isSelected = group.isSelected
-
                 if (!group.isDefault) {
+                    view.isSelected = group.isSelected
                     view.setOnClickListener {
                         if (editMode == EditMode.Group) {
                             group.toggleSelected()
@@ -121,10 +109,20 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
                     view.setOnLongClickListener {
                         listener?.onLongClick(group, position, group.id) ?: false
                     }
-                } else {
-                    if (editMode == EditMode.Group) {
-                        view.text_group_name.text = "Default group"
+
+                    view.text_group_name.text = group.name
+                    view.img_account_edit.visibility = if (editMode == EditMode.Group) View.VISIBLE else View.GONE
+                    view.img_account_edit.setOnClickListener {
+                        listener?.onEdit(group, position, group.id)
                     }
+                    view.img_drag_handle.visibility = if (editMode == EditMode.Group) View.VISIBLE else View.GONE
+                    view.img_drag_handle.setOnTouchListener { v, event ->
+                        touchHelper?.startDrag(holder)
+
+                        true
+                    }
+                } else {
+                    view.text_group_name.text = null
                 }
             }
         }
