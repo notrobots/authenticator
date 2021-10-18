@@ -41,7 +41,7 @@ class AccountURLDialog : DialogFragment() {
                     view.layout_account_url.error = "Field is empty"
                 } else {
                     try {
-                        val account = Account.parse(text.toUri())
+                        val account = Account.parse(text.toUri())   //TODO: Handle this in the activity
 
                         onConfirmListener(account)
 

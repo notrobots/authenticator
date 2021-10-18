@@ -80,7 +80,6 @@ class AccountActivity : BaseActivity() {
 
             tryRun({ AccountExporter.validateName(name) }) {
                 it?.let {
-                    it as AuthenticatorException
                     layout_account_name.error = it.message
                     hasError = true
                 }
@@ -88,7 +87,6 @@ class AccountActivity : BaseActivity() {
 
             tryRun({ AccountExporter.validateLabel(label) }) {
                 it?.let {
-                    it as AuthenticatorException
                     layout_account_label.error = it.message
                     hasError = true
                 }
@@ -96,7 +94,6 @@ class AccountActivity : BaseActivity() {
 
             tryRun({ AccountExporter.validateIssuer(issuer) }) {
                 it?.let {
-                    it as AuthenticatorException
                     layout_account_issuer.error = it.message
                     hasError = true
                 }

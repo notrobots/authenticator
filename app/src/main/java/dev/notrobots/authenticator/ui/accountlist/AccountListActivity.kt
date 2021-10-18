@@ -31,6 +31,7 @@ import dev.notrobots.authenticator.google.TotpCountdownTask
 import dev.notrobots.authenticator.google.TotpCounter
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.AccountGroup
+import dev.notrobots.authenticator.models.BaseAccount
 import dev.notrobots.authenticator.models.OTPProvider
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
@@ -71,7 +72,7 @@ class AccountListActivity : BaseActivity() {
                 val url = it.data!!.getStringExtra(BarcodeScannerActivity.EXTRA_QR_DATA) ?: ""
 
                 try {
-                    addAccount(url)
+                    addOrReplaceAccount(Account.parse(url))
                 } catch (e: Exception) {
                     //FIXME: This dialog sucks ass
                     val dialog = ErrorDialog()
@@ -82,21 +83,6 @@ class AccountListActivity : BaseActivity() {
             }
         }
     }
-//    private val editAccount = registerForActivityResult(StartActivityForResult()) {
-//        val account = it.data?.getSerializableExtra(AccountActivity.EXTRA_ACCOUNT) as? Account
-//
-//        if (it.resultCode == AccountActivity.RESULT_INSERT && account != null) {
-//            addAccount(account)
-//        } else if (it.resultCode == AccountActivity.RESULT_UPDATE && account != null) {
-//            updateAccount(account)  //FIXME: Handle the case in which an account is updated and the new label already exists
-//            logd("Updating account with displayName: ${account.displayName}")
-//        } else if (it.resultCode == Activity.RESULT_CANCELED) {
-//            logd("Action cancelled")
-//        }
-//    }
-//    private val addAccount = registerForActivityResult(StartActivityForResult()) {
-//
-//    }
 
     private val touchHelperCallback = object : ItemTouchHelper.Callback() {
         override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
@@ -156,7 +142,7 @@ class AccountListActivity : BaseActivity() {
     }
     private var actionMode: ActionMode? = null
 
-    private val accountActionMode = object  : ActionMode.Callback {
+    private val accountActionMode = object : ActionMode.Callback {
         override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
             menuInflater.inflate(R.menu.menu_account_list_item, menu)
             actionMode = mode
@@ -244,7 +230,7 @@ class AccountListActivity : BaseActivity() {
                 R.id.menu_group_selectall -> {
                     adapter.selectAllGroups()
                 }
-                R.id.menu_group_remove -> {
+                R.id.menu_group_remove -> { //TODO: Let the user keep the accounts, either unpack the group (move to default) or move to a specific group
                     val selectedGroups = adapter.selectedGroups
                     val selectedGroupIDs = selectedGroups.map { it.id }
                     val accounts = adapter.groupsWithAccounts.flatMap { it.accounts.filter { it.groupId in selectedGroupIDs } }
@@ -326,7 +312,7 @@ class AccountListActivity : BaseActivity() {
             val dialog = AccountURLDialog()
 
             dialog.onConfirmListener = {
-                addAccount(it)
+                addOrReplaceAccount(it) //TODO: Check for errors
             }
             dialog.show(supportFragmentManager, null)
             btn_add_account.close(true)
@@ -341,11 +327,13 @@ class AccountListActivity : BaseActivity() {
             dialog.onConfirmListener = {
                 val group = AccountGroup(it)
 
-                try {
-                    addGroup(group)
-                    dialog.dismiss()
-                }catch (e: Exception) {
-                    dialog.error = e.message
+                lifecycleScope.launch {
+                    try {
+                        viewModel.addGroup(group)
+                        dialog.dismiss()
+                    } catch (e: Exception) {
+                        dialog.error = e.message
+                    }
                 }
             }
             dialog.show(supportFragmentManager, null)
@@ -411,13 +399,13 @@ class AccountListActivity : BaseActivity() {
                                 if (name == group.name) {
                                     dialog.dismiss()
                                 } else {
-                                    checkIfGroupExists(name) {
-                                        if (it) {
-                                            dialog.error = "A group with the same name already exists"
-                                        } else {
-                                            group.name = name
-                                            viewModel.accountGroupDao.update(group)
+                                    lifecycleScope.launch {
+                                        try {
+                                            group.name = name   //FIXME: Isn't this changing the name even if there's an exception
+                                            viewModel.addGroup(group)
                                             dialog.dismiss()
+                                        } catch (e: Exception) {
+                                            dialog.error = e.message
                                         }
                                     }
                                 }
@@ -539,45 +527,23 @@ class AccountListActivity : BaseActivity() {
         }
     }
 
-    //region Accounts & Groups
-
-    /**
-     * Parses the given [input] into an [Uri] and tries to insert it into the database.
-     *
-     * This method may throw an exception if the string is malformed, the exception message
-     * can be shown to the user.
-     */
-    private fun addAccount(input: String) {
-        addAccount(input.toUri())
-    }
-
-    /**
-     * Retrieves the [Account] information from the [Uri] and tries to insert it into the database.
-     *
-     * This method may throw an exception if the Uri is malformed, the exception message
-     * can be shown to the user.
-     */
-    private fun addAccount(uri: Uri) {
-        addAccount(Account.parse(uri))
-    }
-
-    /**
-     * Inserts the given [account] into the database.
-     *
-     * In case the account (name & issuer) already exists, the user is prompt with a
-     * dialog asking them if they want to overwrite the existing account.
-     *
-     * This method **will not** throw any exceptions.
-     */
-    private fun addAccount(account: Account) {
-        checkIfAccountExists(account) {
+    private fun addOrReplaceAccount(account: Account) {
+        lifecycleScope.launch {
             // If the count is greater than 0, that means there's one other account
             // with the same name and issuer, ask the user if they want to overwrite it
-            if (it) {
+            if (viewModel.checkIfAccountExists(account)) {
                 val dialog = ReplaceAccountDialog() //TODO Let the user keep both accounts
 
                 dialog.onReplaceListener = {
-                    updateAccount(account)
+                    lifecycleScope.launch {
+                        if (account.id == BaseAccount.DEFAULT_ID) {
+                            val id = viewModel.accountDao.getAccount(account.name, account.issuer).id
+
+                            account.id = id
+                        }
+
+                        viewModel.accountDao.update(account)
+                    }
                     logd("Replacing existing account: $account")
                 }
                 dialog.show(supportFragmentManager, null)
@@ -585,91 +551,8 @@ class AccountListActivity : BaseActivity() {
             // No account with the same name and issuer was found in the database,
             // insert the given account
             else {
-                val last = viewModel.accountDao.getLastOrder()
-                val defaultGroupCreated = viewModel.accountGroupDao.isNotEmpty() > 0
-
-                if (!defaultGroupCreated) {
-                    viewModel.accountGroupDao.insert(AccountGroup.DEFAULT_GROUP)
-                }
-
-                account.order = last + 1
-                viewModel.accountDao.insert(account)
-                logd("Adding new account: ${account.name}")
+                viewModel.addAccount(account)
             }
         }
     }
-
-    /**
-     * Updates the given account in the database.
-     *
-     * If the account ID is null it looks up for a record with the same name and issuer and
-     * updates that record
-     */
-    private fun updateAccount(account: Account) {
-        lifecycleScope.launch {
-            if (account.id <= 0) {  //FIXME: What the hell is this
-                val original = viewModel.accountDao.getAccount(account.name, account.issuer)
-
-                account.id = original.id
-            }
-
-            viewModel.accountDao.update(account)
-        }
-    }
-
-    /**
-     * Inserts the given [group] into the database
-     *
-     * If the group already exists it will be replaced
-     */
-    private fun addGroup(group: AccountGroup) {
-        checkIfGroupExists(group) {
-            if (it) {
-                error("A group with the same name already exists")
-            } else {
-                val last = viewModel.accountGroupDao.getLastOrder()
-
-                group.order = last + 1
-                viewModel.accountGroupDao.insert(group)
-                logd("Adding new group: ${group.name}")
-            }
-        }
-    }
-
-    /**
-     * Checks if the given [account] already exists and then invokes the given [block] with the result
-     *
-     * The [block] is invoked inside of a coroutine
-     */
-    private fun checkIfAccountExists(account: Account, block: suspend (Boolean) -> Unit) {
-        lifecycleScope.launch {
-            val count = viewModel.accountDao.getCount(account.name, account.issuer)
-
-            block(count > 0)
-        }
-    }
-
-    /**
-     * Checks if the given [group] already exists and then invokes the given [block] with the result
-     *
-     * The [block] is invoked inside of a coroutine
-     */
-    private fun checkIfGroupExists(group: AccountGroup, block: suspend (Boolean) -> Unit) {
-        checkIfGroupExists(group.name, block)
-    }
-
-    /**
-     * Checks if a group with the given [name] already exists and then invokes the given [block] with the result
-     *
-     * The [block] is invoked inside of a coroutine
-     */
-    private fun checkIfGroupExists(name: String, block: suspend (Boolean) -> Unit) {
-        lifecycleScope.launch {
-            val count = viewModel.accountGroupDao.getCount(name)
-
-            block(count > 0)
-        }
-    }
-
-    //endregion
 }

@@ -96,6 +96,10 @@ class Account(
         private val DEFAULT_OTP_ALGORITHM = OTPAlgorithm.SHA1
         const val DEFAULT_GROUP_ID = 1L
 
+        fun parse(uri: String): Account {
+            return parse(Uri.parse(uri))
+        }
+
         /**
          * Parses the given [uri] into an [Account] object.
          *
