@@ -162,7 +162,7 @@ dependencies {
     implementation 'commons-codec:commons-codec:1.15'
     implementation 'com.google.zxing:core:3.3.0'
     implementation 'com.google.protobuf:protobuf-lite:3.0.0'
-    implementation 'com.github.notrobots:android-stuff:0.1.5'
+    implementation 'com.github.notrobots:android-stuff:0.1.8'
 }
 
 kapt {

@@ -9,6 +9,7 @@ import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts.*
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
+import androidx.core.content.ContextCompat.startActivity
 import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ConcatAdapter
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.copyToClipboard
 import dev.notrobots.androidstuff.extensions.makeToast
+import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.util.*
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.BaseActivity
@@ -80,18 +82,21 @@ class AccountListActivity : BaseActivity() {
             }
         }
     }
-    private val editAccount = registerForActivityResult(StartActivityForResult()) {
-        val account = it.data?.getSerializableExtra(AccountActivity.EXTRA_ACCOUNT) as? Account
-
-        if (it.resultCode == AccountActivity.RESULT_INSERT && account != null) {
-            addAccount(account)
-        } else if (it.resultCode == AccountActivity.RESULT_UPDATE && account != null) {
-            updateAccount(account)  //FIXME: Handle the case in which an account is updated and the new label already exists
-            logd("Updating account with displayName: ${account.displayName}")
-        } else if (it.resultCode == Activity.RESULT_CANCELED) {
-            logd("Action cancelled")
-        }
-    }
+//    private val editAccount = registerForActivityResult(StartActivityForResult()) {
+//        val account = it.data?.getSerializableExtra(AccountActivity.EXTRA_ACCOUNT) as? Account
+//
+//        if (it.resultCode == AccountActivity.RESULT_INSERT && account != null) {
+//            addAccount(account)
+//        } else if (it.resultCode == AccountActivity.RESULT_UPDATE && account != null) {
+//            updateAccount(account)  //FIXME: Handle the case in which an account is updated and the new label already exists
+//            logd("Updating account with displayName: ${account.displayName}")
+//        } else if (it.resultCode == Activity.RESULT_CANCELED) {
+//            logd("Action cancelled")
+//        }
+//    }
+//    private val addAccount = registerForActivityResult(StartActivityForResult()) {
+//
+//    }
 
     private val touchHelperCallback = object : ItemTouchHelper.Callback() {
         override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
@@ -237,22 +242,18 @@ class AccountListActivity : BaseActivity() {
         override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
             when (item.itemId) {
                 R.id.menu_group_selectall -> {
-                    for (group in adapter.groups) {
-                        if (!group.isDefault) {
-                            group.isSelected = true
-                        }
-                    }
-                    for (adapter in adapter.adapters) {
-                        adapter.notifyItemChanged(0)
-                    }
+                    adapter.selectAllGroups()
                 }
                 R.id.menu_group_remove -> {
-                    val dialog = DeleteGroupDialog(adapter.selectedGroups.size, adapter.selectedAccounts.size)
+                    val selectedGroups = adapter.selectedGroups
+                    val selectedGroupIDs = selectedGroups.map { it.id }
+                    val accounts = adapter.groupsWithAccounts.flatMap { it.accounts.filter { it.groupId in selectedGroupIDs } }
+                    val dialog = DeleteGroupDialog(selectedGroups.size, accounts.size)
 
                     dialog.onConfirmListener = {
                         lifecycleScope.launch {
-                            viewModel.accountDao.delete(adapter.selectedAccounts)
-                            viewModel.accountGroupDao.delete(adapter.selectedGroups)
+                            viewModel.accountDao.delete(accounts)
+                            viewModel.accountGroupDao.delete(selectedGroups)
                         }
                     }
                     dialog.show(supportFragmentManager, null)
@@ -331,9 +332,7 @@ class AccountListActivity : BaseActivity() {
             btn_add_account.close(true)
         }
         btn_add_account_custom.setOnClickListener {
-            val intent = Intent(this, AccountActivity::class.java)
-
-            editAccount.launch(intent)
+            startActivity(AccountActivity::class)
             btn_add_account.close(true)
         }
         btn_add_account_group.setOnClickListener {
@@ -342,13 +341,11 @@ class AccountListActivity : BaseActivity() {
             dialog.onConfirmListener = {
                 val group = AccountGroup(it)
 
-                checkIfGroupExists(group) {
-                    if (it) {
-                        dialog.error = "A group with the same name already exists"
-                    } else {
-                        addGroup(group)
-                        dialog.dismiss()
-                    }
+                try {
+                    addGroup(group)
+                    dialog.dismiss()
+                }catch (e: Exception) {
+                    dialog.error = e.message
                 }
             }
             dialog.show(supportFragmentManager, null)
@@ -388,10 +385,9 @@ class AccountListActivity : BaseActivity() {
                         }
 
                         override fun onEdit(account: Account, position: Int, id: Long) {
-                            val intent = Intent(this@AccountListActivity, AccountActivity::class.java)
-
-                            intent.putExtra(AccountActivity.EXTRA_ACCOUNT, account)
-                            editAccount.launch(intent)
+                            startActivity(AccountActivity::class) {
+                                putExtra(AccountActivity.EXTRA_ACCOUNT, account)
+                            }
                             actionMode?.finish()
                         }
 
@@ -590,10 +586,15 @@ class AccountListActivity : BaseActivity() {
             // insert the given account
             else {
                 val last = viewModel.accountDao.getLastOrder()
+                val defaultGroupCreated = viewModel.accountGroupDao.isNotEmpty() > 0
+
+                if (!defaultGroupCreated) {
+                    viewModel.accountGroupDao.insert(AccountGroup.DEFAULT_GROUP)
+                }
 
                 account.order = last + 1
                 viewModel.accountDao.insert(account)
-                logd("Adding new account: $account")
+                logd("Adding new account: ${account.name}")
             }
         }
     }

@@ -10,13 +10,16 @@ val ConcatAdapter.selectedAccounts
     get() = (adapters as List<AccountListAdapter>).flatMap { it.selectedAccounts }
 
 val ConcatAdapter.selectedGroups
-    get() = (adapters as List<AccountListAdapter>).map { it.groupWithAccounts.group }.filter { it.isSelected }
+    get() = groups.filter { it.isSelected }
 
 val ConcatAdapter.accounts
-    get() = (adapters as List<AccountListAdapter>).flatMap { it.groupWithAccounts.accounts }
+    get() = groupsWithAccounts.flatMap { it.accounts }
 
 val ConcatAdapter.groups
-    get() = (adapters as List<AccountListAdapter>).map { it.groupWithAccounts.group }
+    get() = groupsWithAccounts.map { it.group }
+
+val ConcatAdapter.groupsWithAccounts
+    get() = (adapters as List<AccountListAdapter>).map { it.groupWithAccounts }
 
 val ConcatAdapter.editMode
     get() = if (adapters.isNotEmpty()) (adapters.first() as AccountListAdapter).editMode else AccountListAdapter.EditMode.Disabled
@@ -85,5 +88,16 @@ fun ConcatAdapter.getMutableAdapters(): List<*>? {
 fun ConcatAdapter.notifyAllDataSetChanged() {
     for (adapter in adapters) {
         adapter.notifyDataSetChanged()
+    }
+}
+
+fun ConcatAdapter.selectAllGroups() {
+    for (group in groups) {
+        if (!group.isDefault) {
+            group.isSelected = true
+        }
+    }
+    for (adapter in adapters) {
+        adapter.notifyItemChanged(0)
     }
 }

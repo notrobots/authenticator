@@ -77,6 +77,15 @@
             android:inputType="text"/>
     </com.google.android.material.textfield.TextInputLayout>
 
+    <dev.notrobots.authenticator.views.BetterSpinner
+        android:id="@+id/spinner_account_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Group"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <FrameLayout
         android:id="@+id/frame_account_extra"
         android:layout_width="match_parent"

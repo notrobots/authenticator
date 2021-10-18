@@ -17,8 +17,8 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.Fragment
 import dev.notrobots.androidstuff.extensions.copyToClipboard
 import dev.notrobots.androidstuff.extensions.makeToast
-import dev.notrobots.androidstuff.extensions.print
 import dev.notrobots.androidstuff.extensions.printHTML
+import dev.notrobots.androidstuff.extensions.printImage
 import dev.notrobots.androidstuff.util.now
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.models.QRCode
@@ -132,7 +132,7 @@ class ExportQRFragment : Fragment() {
             R.id.menu_export_print_current -> {
                 val bitmap = qrCodes[currentQRCode].toBitmap(qrCodeStyle)
 
-                requireContext().print(bitmap)
+                requireContext().printImage(bitmap)
             }
             R.id.menu_export_print_all -> {
                 //TODO: Show more info and put all QRs in one file if possible

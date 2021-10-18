@@ -3,7 +3,7 @@ package dev.notrobots.authenticator.db
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import dev.notrobots.authenticator.models.AccountGroup
-import dev.notrobots.authenticator.models.AccountListItem
+import dev.notrobots.authenticator.models.BaseAccount
 import dev.notrobots.authenticator.models.GroupWithAccounts
 
 @Dao
@@ -12,11 +12,14 @@ interface AccountGroupDao {
     fun getGroups(): LiveData<List<AccountGroup>>
 
     @Transaction
-    @Query("SELECT * FROM AccountGroup ORDER BY `order`=${AccountListItem.DEFAULT_ORDER}, `order`")
+    @Query("SELECT * FROM AccountGroup ORDER BY `order`=${BaseAccount.DEFAULT_ORDER}, `order`")
     fun getGroupsWithAccounts(): LiveData<List<GroupWithAccounts>>
 
     @Query("SELECT COUNT(id) FROM AccountGroup WHERE name = :name")
     suspend fun getCount(name: String): Int
+
+    @Query("SELECT count(1) WHERE EXISTS (SELECT * FROM AccountGroup)")
+    suspend fun isNotEmpty(): Int
 
     @Query("SELECT COALESCE(MAX(`order`), 0) FROM AccountGroup")
     suspend fun getLastOrder(): Long

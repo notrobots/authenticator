@@ -4,44 +4,50 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.activities.ThemedActivity
-import dev.notrobots.androidstuff.util.parseEnum
+import dev.notrobots.androidstuff.extensions.makeToast
+import dev.notrobots.androidstuff.util.*
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.BaseActivity
+import dev.notrobots.authenticator.db.AccountDao
+import dev.notrobots.authenticator.db.AccountGroupDao
 import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.models.Account
+import dev.notrobots.authenticator.models.AccountExporter
+import dev.notrobots.authenticator.models.AccountGroup
 import dev.notrobots.authenticator.models.OTPType
+import dev.notrobots.authenticator.util.AuthenticatorException
 import kotlinx.android.synthetic.main.activity_account.*
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class AccountActivity : BaseActivity() {
-    private var account: Account? = null
-    private var originalAccount: Account? = null
+    private val viewModel by viewModels<AccountViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_account)
 
-        val resultCode: Int
+        val account: Account
+        val sourceAccount: Account?
 
-        // An account ID was passed from the previous activity
-        // Load that account and let the user edit its data
         if (intent.hasExtra(EXTRA_ACCOUNT)) {
             account = intent.getSerializableExtra(EXTRA_ACCOUNT) as Account
-            originalAccount = account   //FIXME: Should be a copy of account
-            resultCode = RESULT_UPDATE
-
-            title = account!!.displayName
-            text_account_name.setText(account!!.name)
-            text_account_secret.setText(account!!.secret)
-            text_account_label.setText(account!!.label)
-            text_account_issuer.setText(account!!.issuer)
-            spinner_account_type.setSelection(account!!.type.toString())
+            sourceAccount = account.clone()
+            title = account.displayName
+            text_account_name.setText(account.name)
+            text_account_secret.setText(account.secret)
+            text_account_label.setText(account.label)
+            text_account_issuer.setText(account.issuer)
+            spinner_account_type.setSelection(account.type.toString())
         } else {
-            title = "Add account"
             account = Account()
-            resultCode = RESULT_INSERT
+            sourceAccount = null
+            title = "Add account"
         }
 
         layout_account_name.setClearErrorOnType()
@@ -58,6 +64,12 @@ class AccountActivity : BaseActivity() {
 //            }
         }
 
+        viewModel.groups.observe(this) {
+            spinner_account_group.entries = it.map { it.name }
+            spinner_account_group.values = it.map { it.id }
+            spinner_account_group.setSelection(account.groupId)
+        }
+
         btn_account_confirm.setOnClickListener {
             val name = text_account_name.text.toString()
             val issuer = text_account_issuer.text.toString()
@@ -65,28 +77,36 @@ class AccountActivity : BaseActivity() {
             val secret = text_account_secret.text.toString()
             val type = parseEnum<OTPType>(spinner_account_type.selectedValue.toString())!!
             var hasError = false
-            val result = Intent()
 
-            if (name.isBlank()) {
-                layout_account_name.error = "Name cannot be empty"
-                hasError = true
+            tryRun({ AccountExporter.validateName(name) }) {
+                it?.let {
+                    it as AuthenticatorException
+                    layout_account_name.error = it.message
+                    hasError = true
+                }
             }
 
-            if (label.isOnlySpaces()) {
-                layout_account_label.error = "Label cannot be blank"
-                hasError = true
+            tryRun({ AccountExporter.validateLabel(label) }) {
+                it?.let {
+                    it as AuthenticatorException
+                    layout_account_label.error = it.message
+                    hasError = true
+                }
             }
 
-            if (issuer.isOnlySpaces()) {
-                layout_account_issuer.error = "Issuer cannot be blank"
-                hasError = true
+            tryRun({ AccountExporter.validateIssuer(issuer) }) {
+                it?.let {
+                    it as AuthenticatorException
+                    layout_account_issuer.error = it.message
+                    hasError = true
+                }
             }
 
-            try {
-                Account.validateSecret(secret)
-            } catch (e: Exception) {
-                layout_account_secret.error = e.message
-                hasError = true
+            tryRun({ AccountExporter.validateSecret(secret) }) {
+                it?.let {
+                    layout_account_secret.error = it.message
+                    hasError = true
+                }
             }
 
             when (type) {
@@ -94,7 +114,8 @@ class AccountActivity : BaseActivity() {
             }
 
             if (!hasError) {
-                account?.also {
+                account.also {
+                    it.groupId = spinner_account_group.selectedValue as Long
                     it.name = name
                     it.issuer = issuer
                     it.label = label
@@ -102,21 +123,29 @@ class AccountActivity : BaseActivity() {
                     it.type = type
                 }
 
-                if (originalAccount == account) {
-                    setResult(Activity.RESULT_CANCELED)
-                } else {
-                    result.putExtra(EXTRA_ACCOUNT, account)
-                    setResult(resultCode, result)
-                }
+                lifecycleScope.launch {
+                    try {
+                        if (sourceAccount != null) {
+                            if (sourceAccount == account) {
+                                makeToast("No changes were made")
+                            } else {
+                                viewModel.updateAccount(account)
+                            }
+                        } else {
+                            viewModel.addAccount(account)
+                        }
 
-                finish()
+                        finish()
+                    } catch (e: Exception) {
+                        //FIXME: Could use a snackbar here
+                        layout_account_name.error = e.message
+                    }
+                }
             }
         }
     }
 
     companion object {
         const val EXTRA_ACCOUNT = "AccountActivity.ACCOUNT"
-        const val RESULT_INSERT = 100
-        const val RESULT_UPDATE = 200
     }
 }

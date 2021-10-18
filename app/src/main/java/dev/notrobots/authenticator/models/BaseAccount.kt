@@ -29,6 +29,14 @@ abstract class BaseAccount(
      */
     var order: Long = DEFAULT_ORDER
 
+    override fun equals(other: Any?): Boolean {
+        return other is BaseAccount &&
+                name == other.name &&
+                id == other.id &&
+                isSelected == other.isSelected &&
+                order == other.order
+    }
+
     fun toggleSelected() {
         isSelected = !isSelected
     }

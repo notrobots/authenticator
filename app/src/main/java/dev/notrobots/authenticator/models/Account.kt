@@ -15,7 +15,7 @@ class Account(
      * Account secret, should be a base32 string
      */
     var secret: String,
-) : BaseAccount(name), Serializable {
+) : BaseAccount(name), Serializable, Cloneable {
     /**
      * Account issuer, should be the company's website
      */
@@ -34,7 +34,7 @@ class Account(
     /**
      * ID of the group this account belongs to
      */
-    var groupId: Long = DEFAULT_ID
+    var groupId: Long = DEFAULT_GROUP_ID
 
 //    /**
 //     * Parent group of this account, null if the account doesn't belong to any group
@@ -52,6 +52,20 @@ class Account(
         get() = if (label.isNotEmpty()) "$label ($name)" else name
 
     constructor() : this("", "")
+
+    public override fun clone(): Account {
+        return super.clone() as Account
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return super.equals(other) &&
+                other is Account &&
+                secret == other.secret &&
+                issuer == other.issuer &&
+                label == other.label &&
+                type == other.type &&
+                groupId == other.groupId
+    }
 
     fun getUri(): Uri {
         val uri = Uri.Builder()
@@ -80,6 +94,7 @@ class Account(
         private const val DEFAULT_OTP_PERIOD = 30
         private const val DEFAULT_OTP_COUNTER = 0
         private val DEFAULT_OTP_ALGORITHM = OTPAlgorithm.SHA1
+        const val DEFAULT_GROUP_ID = 1L
 
         /**
          * Parses the given [uri] into an [Account] object.
@@ -104,26 +119,17 @@ class Account(
                 val name = path.groupValues[2]
                 val secret = uri[OTP_SECRET] ?: error("Missing parameter 'secret'")
 
-                if (name.isBlank()) {
-                    error("Name cannot be empty")
-                }
-
-                validateSecret(secret)
+                AccountExporter.validateName(name)
+                AccountExporter.validateSecret(secret)
 
                 //
                 // Optional fields
                 //
                 val label = path.groupValues[1]
-
-                if (label.isOnlySpaces()) {
-                    error("Label cannot be blank")
-                }
-
                 val issuer = uri[OTP_ISSUER] ?: ""
 
-                if (issuer.isOnlySpaces()) {
-                    error("Issuer cannot be blank")
-                }
+                AccountExporter.validateLabel(label)
+                AccountExporter.validateIssuer(issuer)
 
                 //
                 // Extra optional fields
@@ -141,29 +147,6 @@ class Account(
                 }
             } else {
                 error("Scheme should be 'otpauth'")
-            }
-        }
-
-        /**
-         * Validates the given [Account] fields and throws an exception if any of them doesn't
-         * follow the requirements
-         */
-        fun validateSecret(secret: String) {
-            if (secret.isBlank()) {
-                error("Secret cannot be empty")
-            }
-
-            //TODO: If isBase32Secret is true then check if it's actually a base32 string and pass it to the GoogleAuthenticator
-            // if isBase32Secret is false then pass the string to the TotpGenerator
-
-            //TODO:FEATURE It would be nice to show the users an advanced error and a regular error
-            if (!isValidBase32(secret)) {   //&& isBase32Secret
-                error("Secret key must be a base32 string")
-            }
-
-            // This check shouldn't be need but you never know
-            if (!OTPProvider.checkSecret(secret)) {
-                error("Invalid secret key")
             }
         }
 

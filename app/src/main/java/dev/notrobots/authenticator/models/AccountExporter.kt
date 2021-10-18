@@ -7,10 +7,12 @@ import dev.notrobots.androidstuff.util.error
 import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.logi
 import dev.notrobots.androidstuff.util.now
+import dev.notrobots.authenticator.extensions.isOnlySpaces
 import dev.notrobots.authenticator.proto.Authenticator
 import dev.notrobots.authenticator.proto.Authenticator.*
 import dev.notrobots.authenticator.proto.GoogleAuthenticator.*
 import dev.notrobots.authenticator.util.byteString
+import dev.notrobots.authenticator.util.isValidBase32
 import org.apache.commons.codec.binary.Base64
 
 class AccountExporter {
@@ -124,5 +126,46 @@ class AccountExporter {
         private const val QR_MAX_BYTES = 512       // 2953
         private const val EXPORT_URI = "otpauth://offline?data="
         private const val EXPORT_URI_GOOGLE = "otpauth-migration://offline?data="
+
+        /**
+         * Validates the given [Account] fields and throws an exception if any of them doesn't
+         * follow the requirements
+         */
+        fun validateSecret(secret: String) {
+            if (secret.isBlank()) {
+                error("Secret cannot be empty")
+            }
+
+            //TODO: If isBase32Secret is true then check if it's actually a base32 string and pass it to the GoogleAuthenticator
+            // if isBase32Secret is false then pass the string to the TotpGenerator
+
+            //TODO:FEATURE It would be nice to show the users an advanced error and a regular error
+            if (!isValidBase32(secret)) {   //&& isBase32Secret
+                error("Secret key must be a base32 string")
+            }
+
+            // This check shouldn't be need but you never know
+            if (!OTPProvider.checkSecret(secret)) {
+                error("Invalid secret key")
+            }
+        }
+
+        fun validateIssuer(issuer: String) {
+            if (issuer.isOnlySpaces()) {
+                error("Issuer cannot be blank")
+            }
+        }
+
+        fun validateLabel(label: String) {
+            if (label.isOnlySpaces()) {
+                error("Label cannot be blank")
+            }
+        }
+
+        fun validateName(name: String) {
+            if (name.isBlank()) {
+                error("Name cannot be empty")
+            }
+        }
     }
 }
