@@ -123,8 +123,8 @@ class AccountActivity : BaseActivity() {
                 lifecycleScope.launch {
                     try {
                         if (sourceAccount != null) {
-                            if (sourceAccount == account) {
-                                makeToast("No changes were made")
+                            if (sourceAccount.name == account.name && sourceAccount.issuer == account.issuer) {
+                                viewModel.accountDao.update(account)
                             } else {
                                 viewModel.updateAccount(account)
                             }
