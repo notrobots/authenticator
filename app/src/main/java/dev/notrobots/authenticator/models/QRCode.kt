@@ -34,7 +34,7 @@ class QRCode(
         }
     }
 
-    fun toBitmap(): Bitmap {    //TODO: Pass a color map
+    fun toBitmap(): Bitmap {
         return toBitmap(QRCodeStyle.Default)
     }
 }

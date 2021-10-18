@@ -3,6 +3,7 @@ package dev.notrobots.authenticator.dialogs
 import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -16,14 +17,20 @@ import dev.notrobots.authenticator.models.Account
 import kotlinx.android.synthetic.main.dialog_account_url.view.*
 
 class AccountURLDialog : DialogFragment() {
-    private var errorView: TextInputLayout? = null
-    var onConfirmListener: (Account) -> Unit = {}
+    var dialogView: View? = null
+    var onConfirmListener: (String) -> Unit = {}
     var onCancelListener: () -> Unit = {}
+    var error: String? = null
+        set(value) {
+            field = value
+            dialogView?.layout_account_url?.error = value
+        }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val view = layoutInflater.inflate(R.layout.dialog_account_url).apply {
-            errorView = layout_account_url
+            layout_account_url.error = error
             layout_account_url.setClearErrorOnType()
+            dialogView = this
         }
         val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle("Add account")
@@ -35,22 +42,12 @@ class AccountURLDialog : DialogFragment() {
 
         dialog.setOnShowListener {
             dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener {
-                val text = view.text_account_url.text
+                val text = view.text_account_url.text.toString()
 
-                if (text.isNullOrBlank()) {
+                if (text.isBlank()) {
                     view.layout_account_url.error = "Field is empty"
                 } else {
-                    try {
-                        val account = Account.parse(text.toUri())   //TODO: Handle this in the activity
-
-                        onConfirmListener(account)
-
-                        // Dialog is only dismissed if no exception is thrown
-                        // or if the user clicks outside or on the neutral button
-                        dialog.dismiss()
-                    } catch (e: Exception) {
-                        view.layout_account_url.error = e.message
-                    }
+                    onConfirmListener(text)
                 }
             }
         }

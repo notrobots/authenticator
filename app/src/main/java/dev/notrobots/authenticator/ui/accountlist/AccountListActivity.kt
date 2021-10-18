@@ -38,6 +38,7 @@ import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import dev.notrobots.authenticator.ui.export.ExportActivity
 import dev.notrobots.authenticator.ui.export.ExportConfigActivity
 import kotlinx.android.synthetic.main.activity_account_list.*
+import kotlinx.android.synthetic.main.dialog_account_url.view.*
 import kotlinx.android.synthetic.main.item_account.view.*
 import kotlinx.coroutines.launch
 import java.util.*
@@ -312,7 +313,12 @@ class AccountListActivity : BaseActivity() {
             val dialog = AccountURLDialog()
 
             dialog.onConfirmListener = {
-                addOrReplaceAccount(it) //TODO: Check for errors
+                try {
+                    addOrReplaceAccount(Account.parse(it))
+                    dialog.dismiss()
+                } catch (e: Exception) {
+                    dialog.error = e.message
+                }
             }
             dialog.show(supportFragmentManager, null)
             btn_add_account.close(true)

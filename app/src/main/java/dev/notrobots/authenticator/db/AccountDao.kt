@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface AccountDao {
     @Query("SELECT * FROM Account ORDER BY `order`")
-    fun getAll(): LiveData<List<Account>>   //FIXME: Rename to getAccounts
+    fun getAccounts(): LiveData<List<Account>>
 
     @Query("SELECT * FROM Account WHERE id = :id")
     suspend fun getAccount(id: Long): Account
