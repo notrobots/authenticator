@@ -31,7 +31,7 @@ class AccountGroup(
 
     companion object {
         val DEFAULT_GROUP = AccountGroup("").apply {
-            id = 1
+            id = Account.DEFAULT_GROUP_ID
             order = DEFAULT_ORDER
             isDefault = true
         }

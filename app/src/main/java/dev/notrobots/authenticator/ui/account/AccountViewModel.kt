@@ -34,11 +34,6 @@ class AccountViewModel @Inject constructor(
             error("An account with the same name and issuer already exists")
         } else {
             val last = accountDao.getLastOrder()
-            val defaultGroupCreated = accountGroupDao.isNotEmpty() > 0
-
-            if (!defaultGroupCreated) {
-                accountGroupDao.insert(AccountGroup.DEFAULT_GROUP)
-            }
 
             account.order = last + 1
             accountDao.insert(account)

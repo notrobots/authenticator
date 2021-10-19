@@ -346,6 +346,7 @@ class AccountListActivity : BaseActivity() {
             btn_add_account.close(true)
         }
 
+        createDefaultGroup()
         viewModel.groupsWithAccount.observe(this) {
             //FIXME: This needs to be optimized
             val adapters = it.map {
@@ -529,6 +530,19 @@ class AccountListActivity : BaseActivity() {
                 val indicator = child.findViewById<CountdownIndicator>(R.id.pb_phase)
 
                 indicator?.setPhase(phase)
+            }
+        }
+    }
+
+    private fun createDefaultGroup() {
+        lifecycleScope.launch {
+            val defaultGroup = viewModel.accountGroupDao.getGroup(Account.DEFAULT_GROUP_ID)
+
+            if (defaultGroup == null) {
+                viewModel.addGroup(AccountGroup.DEFAULT_GROUP)
+                logd("Default group added")
+            } else {
+                logd("Default group already added")
             }
         }
     }

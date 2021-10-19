@@ -15,11 +15,14 @@ interface AccountGroupDao {
     @Query("SELECT * FROM AccountGroup ORDER BY `order`=${BaseAccount.DEFAULT_ORDER}, `order`")
     fun getGroupsWithAccounts(): LiveData<List<GroupWithAccounts>>
 
+    @Query("SELECT * FROM AccountGroup WHERE name = :name")
+    suspend fun getGroup(name: String): AccountGroup?
+
+    @Query("SELECT * FROM AccountGroup WHERE id = :id")
+    suspend fun getGroup(id: Long): AccountGroup?
+
     @Query("SELECT COUNT(id) FROM AccountGroup WHERE name = :name")
     suspend fun getCount(name: String): Int
-
-    @Query("SELECT count(1) WHERE EXISTS (SELECT * FROM AccountGroup)")
-    suspend fun isNotEmpty(): Int
 
     @Query("SELECT COALESCE(MAX(`order`), 0) FROM AccountGroup")
     suspend fun getLastOrder(): Long
