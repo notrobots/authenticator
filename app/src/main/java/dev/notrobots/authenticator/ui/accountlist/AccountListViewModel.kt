@@ -20,9 +20,7 @@ class AccountListViewModel @Inject constructor(
     val groupsWithAccount = accountGroupDao.getGroupsWithAccounts()
 
     /**
-     * Checks if the given [account] already exists and then invokes the given [block] with the result
-     *
-     * The [block] is invoked inside of a coroutine
+     * Checks if the given [account] already exists.
      */
     suspend fun checkIfAccountExists(account: Account): Boolean {
         val count = accountDao.getCount(account.name, account.issuer)
@@ -31,18 +29,14 @@ class AccountListViewModel @Inject constructor(
     }
 
     /**
-     * Checks if the given [group] already exists and then invokes the given [block] with the result
-     *
-     * The [block] is invoked inside of a coroutine
+     * Checks if the given [group] already exists.
      */
     suspend fun checkIfGroupExists(group: AccountGroup): Boolean {
         return checkIfGroupExists(group.name)
     }
 
     /**
-     * Checks if a group with the given [name] already exists and then invokes the given [block] with the result
-     *
-     * The [block] is invoked inside of a coroutine
+     * Checks if a group with the given [name] already exists.
      */
     suspend fun checkIfGroupExists(name: String): Boolean {
         val count = accountGroupDao.getCount(name)
@@ -51,7 +45,7 @@ class AccountListViewModel @Inject constructor(
     }
 
     /**
-     * Inserts the given [account] into the database.
+     * Inserts the given [account] into the database and takes care of the group ordering.
      *
      * In case the account (name & issuer) already exists, the user is prompt with a
      * dialog asking them if they want to overwrite the existing account.
@@ -72,9 +66,11 @@ class AccountListViewModel @Inject constructor(
     }
 
     /**
-     * Inserts the given [group] into the database
+     * Inserts the given [group] into the database and takes care of the group ordering.
      *
-     * If the group already exists an exception is thrown
+     * To bypass the group ordering, call [AccountGroupDao.insert] directly.
+     *
+     * If the group already exists an exception is thrown.
      */
     suspend fun addGroup(group: AccountGroup) {
         if (checkIfGroupExists(group)) {
@@ -88,5 +84,4 @@ class AccountListViewModel @Inject constructor(
             logd("Adding new group")
         }
     }
-
 }

@@ -1,8 +1,9 @@
 package dev.notrobots.authenticator.models
 
 import dev.turingcomplete.kotlinonetimepassword.*
+import org.apache.commons.codec.binary.Base32
 
-object OTPProvider {
+object OTPProvider {    //FIXME: OTPGenerator
     fun checkSecret(secret: String): Boolean {
         return try {
             val gen = GoogleAuthenticator(secret)
@@ -24,9 +25,9 @@ object OTPProvider {
                     HmacAlgorithm.SHA1
                 )
                 HmacOneTimePasswordGenerator(
-                    account.secret.toByteArray(),
+                    Base32().decode(account.secret.toByteArray()),
                     config
-                ).generate(0)
+                ).generate(account.counter)
             }
         }
     }

@@ -4,7 +4,9 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import androidx.activity.viewModels
+import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.activities.ThemedActivity
@@ -19,6 +21,7 @@ import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.AccountExporter
 import dev.notrobots.authenticator.models.AccountGroup
 import dev.notrobots.authenticator.models.OTPType
+import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
 import dev.notrobots.authenticator.util.AuthenticatorException
 import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.coroutines.launch
@@ -27,6 +30,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class AccountActivity : BaseActivity() {
     private val viewModel by viewModels<AccountViewModel>()
+    private val viewModel2 by viewModels<AccountListViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +47,7 @@ class AccountActivity : BaseActivity() {
             text_account_secret.setText(account.secret)
             text_account_label.setText(account.label)
             text_account_issuer.setText(account.issuer)
+            text_account_counter_value.setText(account.counter.toString())
             spinner_account_type.setSelection(account.type.toString())
         } else {
             account = Account()
@@ -50,26 +55,40 @@ class AccountActivity : BaseActivity() {
             title = "Add account"
         }
 
+        if (account.type == OTPType.HOTP) {
+            layout_account_counter.visibility = View.VISIBLE
+            img_account_counter_decrement.setOnClickListener {
+                if (account.counter > 0) {
+                    account.counter--
+                    text_account_counter_value.setText(account.counter.toString())
+                }
+            }
+            img_account_counter_increment.setOnClickListener {
+                account.counter++   //FIXME: What's the maximum here??
+                text_account_counter_value.setText(account.counter.toString())
+            }
+            text_account_counter_value.addTextChangedListener {
+                account.counter = try {
+                    it.toString().toLong()
+                } catch (e: NumberFormatException) {
+                    0
+                }
+            }
+        } else {
+            layout_account_counter.visibility = View.GONE
+        }
+
         layout_account_name.setClearErrorOnType()
         layout_account_secret.setClearErrorOnType()
         layout_account_label.setClearErrorOnType()
         layout_account_issuer.setClearErrorOnType()
-
         spinner_account_type.onItemClickListener = { entry, value ->
-            //TODO: Switch extra parameters fragments
-
-//            when(parseEnum<OTPType>(value.toString())) {
-//                OTPType.TOTP -> TODO()
-//                OTPType.HOTP -> TODO()
-//            }
+            if (parseEnum<OTPType>(value.toString()) == OTPType.HOTP) {
+                layout_account_counter.visibility = View.VISIBLE
+            } else {
+                layout_account_counter.visibility = View.GONE
+            }
         }
-
-        viewModel.groups.observe(this) {
-            spinner_account_group.entries = it.map { it.name }
-            spinner_account_group.values = it.map { it.id }
-            spinner_account_group.setSelection(account.groupId)
-        }
-
         btn_account_confirm.setOnClickListener {
             val name = text_account_name.text.toString()
             val issuer = text_account_issuer.text.toString()
@@ -123,11 +142,9 @@ class AccountActivity : BaseActivity() {
                 lifecycleScope.launch {
                     try {
                         if (sourceAccount != null) {
-                            if (sourceAccount.name == account.name && sourceAccount.issuer == account.issuer) {
-                                viewModel.accountDao.update(account)
-                            } else {
-                                viewModel.updateAccount(account)
-                            }
+                            val overwrite = sourceAccount.name == account.name && sourceAccount.issuer == account.issuer
+
+                            viewModel.updateAccount(account, overwrite)
                         } else {
                             viewModel.addAccount(account)
                         }
@@ -139,6 +156,12 @@ class AccountActivity : BaseActivity() {
                     }
                 }
             }
+        }
+
+        viewModel.groups.observe(this) {
+            spinner_account_group.entries = it.map { it.name }
+            spinner_account_group.values = it.map { it.id }
+            spinner_account_group.setSelection(account.groupId)
         }
     }
 

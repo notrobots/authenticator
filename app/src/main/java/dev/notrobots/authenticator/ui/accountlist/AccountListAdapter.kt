@@ -1,26 +1,34 @@
 package dev.notrobots.authenticator.ui.accountlist
 
 import android.annotation.SuppressLint
+import android.graphics.Color
+import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import dev.notrobots.androidstuff.extensions.setTint
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.data.KnownIssuers
 import dev.notrobots.authenticator.extensions.*
-import dev.notrobots.authenticator.models.Account
-import dev.notrobots.authenticator.models.OTPProvider
 import dev.notrobots.androidstuff.util.*
-import dev.notrobots.authenticator.models.AccountGroup
-import dev.notrobots.authenticator.models.GroupWithAccounts
-import kotlinx.android.synthetic.main.item_account.view.*
+import dev.notrobots.authenticator.models.*
 import kotlinx.android.synthetic.main.item_account_group.view.text_group_name
+import kotlinx.android.synthetic.main.item_account_hotp.view.*
+import kotlinx.android.synthetic.main.item_account_hotp.view.img_account_edit
+import kotlinx.android.synthetic.main.item_account_totp.view.*
+import kotlinx.android.synthetic.main.item_account_totp.view.img_drag_handle
+import kotlinx.android.synthetic.main.item_account_totp.view.text_account_label
+import kotlinx.android.synthetic.main.item_account_totp.view.text_account_pin
 import java.util.*
 
 class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private var listener: Listener? = null
+    private val handler = Handler()
     val selectedAccounts
         get() = groupWithAccounts.accounts.filter { it.isSelected }
     var editMode: EditMode = EditMode.Disabled
@@ -51,8 +59,9 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
         }
 
         return when (viewType) {
-            VIEW_TYPE_ITEM -> AccountViewHolder(inflate(R.layout.item_account))
             VIEW_TYPE_GROUP -> GroupViewHolder(inflate(R.layout.item_account_group))
+            VIEW_TYPE_ACCOUNT_TOTP -> AccountViewHolder(inflate(R.layout.item_account_totp))
+            VIEW_TYPE_ACCOUNT_HOTP -> AccountViewHolder(inflate(R.layout.item_account_hotp))
 
             else -> error("Unknown view type")
         }
@@ -68,25 +77,46 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
                 val id = account.id
                 val icon = KnownIssuers.find { k, _ -> k.matches(account.issuer) }
 
-                view.isSelected = account.isSelected
                 view.text_account_label.text = account.displayName
-                view.text_account_pin.text = OTPProvider.generate(account)
-                view.pb_phase.visibility = if (editMode == EditMode.Item) View.GONE else View.VISIBLE
-                view.img_account_edit.visibility = if (editMode == EditMode.Item) View.VISIBLE else View.GONE
                 view.img_drag_handle.visibility = if (editMode == EditMode.Item) View.VISIBLE else View.GONE
                 view.img_drag_handle.setOnTouchListener { v, event ->
                     touchHelper?.startDrag(holder)
 
                     true
                 }
+                view.img_account_edit.visibility = if (editMode == EditMode.Item) View.VISIBLE else View.GONE
                 view.img_account_edit.setOnClickListener {
                     listener?.onEdit(account, position, id)
                 }
+                view.isSelected = account.isSelected
                 view.setOnClickListener {       //FIXME: Selection state should be changed here to improve performance
                     listener?.onClick(account, position, id)
                 }
                 view.setOnLongClickListener {
                     listener?.onLongClick(account, position, id) ?: false
+                }
+
+                when (account.type) {
+                    OTPType.TOTP -> {
+                        view.text_account_pin.text = OTPProvider.generate(account)
+                        view.pb_phase.visibility = if (editMode == EditMode.Item) View.GONE else View.VISIBLE
+                    }
+                    OTPType.HOTP -> {
+                        //view.text_account_pin.text = "- - - - - -"           // "-".repeat(account.digits)
+                        view.img_account_counter_update.visibility = if (editMode == EditMode.Item) View.GONE else View.VISIBLE
+                        view.img_account_counter_update.setOnClickListener {
+                            it as ImageView
+
+                            listener?.onCounterIncrement(view.text_account_pin, account, position, id)
+                            it.isEnabled = false
+                            it.setTint(Color.LTGRAY)    //FIXME: Use the app's colors
+
+                            handler.postDelayed({
+                                it.isEnabled = true
+                                it.setTint(Color.BLUE)
+                            }, Account.HOTP_CODE_INTERVAL)
+                        }
+                    }
                 }
             }
             is GroupViewHolder -> {
@@ -145,10 +175,18 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if (position == 0) VIEW_TYPE_GROUP else VIEW_TYPE_ITEM
+        if (position == 0) {
+            return VIEW_TYPE_GROUP
+        }
+
+        return when (groupWithAccounts.accounts[position - 1].type) {
+            OTPType.TOTP -> VIEW_TYPE_ACCOUNT_TOTP
+            OTPType.HOTP -> VIEW_TYPE_ACCOUNT_HOTP
+        }
     }
 
     fun swap(from: Int, to: Int) {
+        //FIXME: It doesn't swap anything
         val accounts = groupWithAccounts.accounts
 
         Collections.swap(groupWithAccounts.accounts, from - 1, to - 1)
@@ -202,8 +240,9 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
     }
 
     companion object {
-        private const val VIEW_TYPE_ITEM = 0
-        private const val VIEW_TYPE_GROUP = 1
+        private const val VIEW_TYPE_GROUP = 0
+        private const val VIEW_TYPE_ACCOUNT_TOTP = 1
+        private const val VIEW_TYPE_ACCOUNT_HOTP = 2
     }
 
     interface Listener {
@@ -213,6 +252,7 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
         fun onClick(group: AccountGroup, position: Int, id: Long)
         fun onLongClick(group: AccountGroup, position: Int, id: Long): Boolean
         fun onEdit(group: AccountGroup, position: Int, id: Long)
+        fun onCounterIncrement(view: TextView, account: Account, position: Int, id: Long)
     }
 
     enum class EditMode {

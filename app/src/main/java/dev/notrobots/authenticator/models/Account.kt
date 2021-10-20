@@ -7,6 +7,7 @@ import dev.notrobots.authenticator.extensions.get
 import dev.notrobots.authenticator.extensions.isOnlySpaces
 import java.io.Serializable
 import dev.notrobots.authenticator.util.isValidBase32
+import java.util.concurrent.TimeUnit
 
 @Entity
 class Account(
@@ -30,6 +31,11 @@ class Account(
      * OTP type
      */
     var type: OTPType = OTPType.TOTP
+
+    /**
+     * Counter used by the HOTP
+     */
+    var counter: Long = 0
 
     /**
      * ID of the group this account belongs to
@@ -74,6 +80,7 @@ class Account(
         uri.authority(type.toString().toLowerCase())
         uri.path(path)
         uri.appendQueryParameter(OTP_SECRET, secret)
+        uri.appendQueryParameter(OTP_COUNTER, counter.toString())
 
         if (issuer.isNotBlank()) {
             uri.appendQueryParameter(OTP_ISSUER, issuer)
@@ -95,6 +102,7 @@ class Account(
         private const val DEFAULT_OTP_COUNTER = 0
         private val DEFAULT_OTP_ALGORITHM = OTPAlgorithm.SHA1
         const val DEFAULT_GROUP_ID = 1L
+        val HOTP_CODE_INTERVAL = TimeUnit.SECONDS.toMillis(10)
 
         fun parse(uri: String): Account {
             return parse(Uri.parse(uri))

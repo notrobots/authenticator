@@ -1,7 +1,9 @@
 <component name="ProjectDictionaryState">
   <dictionary name="Max">
     <words>
+      <w>hotp</w>
       <w>protobuf</w>
+      <w>totp</w>
     </words>
   </dictionary>
 </component>

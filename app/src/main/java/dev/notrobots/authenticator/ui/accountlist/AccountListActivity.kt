@@ -6,10 +6,10 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts.*
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
-import androidx.core.content.ContextCompat.startActivity
 import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ConcatAdapter
@@ -39,7 +39,6 @@ import dev.notrobots.authenticator.ui.export.ExportActivity
 import dev.notrobots.authenticator.ui.export.ExportConfigActivity
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.android.synthetic.main.dialog_account_url.view.*
-import kotlinx.android.synthetic.main.item_account.view.*
 import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -419,6 +418,11 @@ class AccountListActivity : BaseActivity() {
                             }
                             dialog.show(supportFragmentManager, null)
                         }
+
+                        override fun onCounterIncrement(view: TextView, account: Account, position: Int, id: Long) {
+                            account.counter++
+                            view.text = OTPProvider.generate(account)
+                        }
                     })
                 }
             }
@@ -470,6 +474,7 @@ class AccountListActivity : BaseActivity() {
                 lifecycleScope.launch {
                     viewModel.accountDao.deleteAll()
                     viewModel.accountGroupDao.deleteAll()
+                    viewModel.accountGroupDao.insert(AccountGroup.DEFAULT_GROUP)
                 }
             }
             R.id.menu_refresh -> {
@@ -539,7 +544,7 @@ class AccountListActivity : BaseActivity() {
             val defaultGroup = viewModel.accountGroupDao.getGroup(Account.DEFAULT_GROUP_ID)
 
             if (defaultGroup == null) {
-                viewModel.addGroup(AccountGroup.DEFAULT_GROUP)
+                viewModel.accountGroupDao.insert(AccountGroup.DEFAULT_GROUP)
                 logd("Default group added")
             } else {
                 logd("Default group already added")
@@ -547,6 +552,9 @@ class AccountListActivity : BaseActivity() {
         }
     }
 
+    /**
+     * Adds or replace the given [account].
+     */
     private fun addOrReplaceAccount(account: Account) {
         lifecycleScope.launch {
             // If the count is greater than 0, that means there's one other account
@@ -571,6 +579,7 @@ class AccountListActivity : BaseActivity() {
             // No account with the same name and issuer was found in the database,
             // insert the given account
             else {
+                //TODO: Find out why the exception can be caught here but not if it's thrown directly from the coroutine
                 viewModel.addAccount(account)
             }
         }
