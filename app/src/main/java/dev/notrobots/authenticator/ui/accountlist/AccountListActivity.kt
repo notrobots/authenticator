@@ -498,32 +498,29 @@ class AccountListActivity : BaseActivity() {
                 adapter.notifyAllDataSetChanged()
             }
             R.id.menu_add_test -> {
-                val alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
-                val rand = Random()
-                val secret = {
-                    buildString {
-                        repeat(8) {
-                            append(alphabet[rand.nextInt(alphabet.length)])
-                        }
-                    }
-                }
-                var count = 0
-                val tests = Array(30) {
-                    Account("Test: ${count++}", secret())
-                }
-
+                val groups = listOf(
+                    AccountGroup("Work").apply { id = 2; order = 0 },
+                    AccountGroup("Personal").apply { id = 3; order = 1 },
+                    AccountGroup("Others").apply { id = 4; order = 2 }
+                )
+                val accounts = listOf(
+                    Account("Max", "22334455").apply { label = "Twitter"; groupId = 3 },
+                    Account("Max", "22334466").apply { label = "Steam"; groupId = 3 },
+                    Account("Max", "22332277").apply { label = "Amazon"; groupId = 3 },
+                    Account("Max", "22334455").apply { label = "EGS"; groupId = 3 },
+                    Account("Max", "22444455").apply { label = "Github"; groupId = 2 },
+                    Account("JohnDoe", "22774477").apply { groupId = 4 },
+                    Account("MarioRossi", "77334455").apply { groupId = 4 },
+                    Account("JaneDoe", "22223355")
+                )
                 lifecycleScope.launch {
                     viewModel.accountDao.deleteAll()
                     viewModel.accountGroupDao.deleteAll()
 
-                    var last = viewModel.accountDao.getLastOrder()
-                    val defaultGroupId = viewModel.accountGroupDao.insert(AccountGroup.DEFAULT_GROUP)
+                    groups.forEach { viewModel.accountGroupDao.insert(it) }
+                    accounts.forEach { viewModel.accountDao.insert(it) }
 
-                    for (test in tests) {
-                        test.order = ++last
-                        test.groupId = defaultGroupId
-                        viewModel.accountDao.insert(test)
-                    }
+                    viewModel.accountGroupDao.insert(AccountGroup.DEFAULT_GROUP)
                 }
             }
             R.id.menu_account_list_edit -> {
@@ -542,8 +539,6 @@ class AccountListActivity : BaseActivity() {
                 preferences.edit {
                     putBoolean(Preferences.SHOW_PINS, !showPins)
                 }
-//
-//                invalidateOptionsMenu()
             }
         }
 
