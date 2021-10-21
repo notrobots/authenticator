@@ -2,7 +2,6 @@ package dev.notrobots.authenticator.ui.accountlist
 
 import android.app.Activity
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -10,8 +9,10 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts.*
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
+import androidx.core.content.edit
 import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -23,6 +24,7 @@ import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.util.*
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.BaseActivity
+import dev.notrobots.authenticator.data.Preferences
 import dev.notrobots.authenticator.dialogs.*
 import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.google.CountdownIndicator
@@ -56,6 +58,9 @@ class AccountListActivity : BaseActivity() {
     }
     private val touchHelper by lazy {
         ItemTouchHelper(touchHelperCallback)
+    }
+    private val preferences by lazy {
+        PreferenceManager.getDefaultSharedPreferences(this)
     }
     private var totpCountdownTask: TotpCountdownTask? = null
 
@@ -258,42 +263,9 @@ class AccountListActivity : BaseActivity() {
             adapter.clearSelectedGroups()
         }
     }
+//    private var showPins = true
 
     //region Activity lifecycle
-
-    override fun onStart() {
-        super.onStart()
-
-        if (totpCountdownTask != null) {
-            totpCountdownTask!!.stop()
-            totpCountdownTask = null
-        }
-
-        totpCountdownTask = TotpCountdownTask(
-            totpCounter,
-            totpClock,
-            100
-        )
-        totpCountdownTask!!.setListener(object : TotpCountdownTask.Listener {
-            override fun onTotpCountdown(millisRemaining: Long) {
-                if (isFinishing) {
-                    // No need to reach to this even because the Activity is finishing anyway
-                    return
-                }
-                setTotpCountdownPhaseFromTimeTillNextValue(millisRemaining)
-            }
-
-            override fun onTotpCounterValueChanged() {
-                if (isFinishing) {
-                    // No need to reach to this even because the Activity is finishing anyway
-                    return
-                }
-
-                adapter.notifyDataSetChanged()
-            }
-        })
-        totpCountdownTask!!.startAndNotifyListener()
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -351,6 +323,7 @@ class AccountListActivity : BaseActivity() {
             val adapters = it.map {
                 AccountListAdapter(it).apply {
                     touchHelper = this@AccountListActivity.touchHelper
+                    showPins = preferences.getBoolean(Preferences.SHOW_PINS, true)
                     setListener(object : AccountListAdapter.Listener {
                         override fun onClick(account: Account, position: Int, id: Long) {
                             if (actionMode != null) {
@@ -433,6 +406,40 @@ class AccountListActivity : BaseActivity() {
         touchHelper.attachToRecyclerView(list_accounts)
     }
 
+    override fun onStart() {
+        super.onStart()
+
+        if (totpCountdownTask != null) {
+            totpCountdownTask!!.stop()
+            totpCountdownTask = null
+        }
+
+        totpCountdownTask = TotpCountdownTask(
+            totpCounter,
+            totpClock,
+            100
+        )
+        totpCountdownTask!!.setListener(object : TotpCountdownTask.Listener {
+            override fun onTotpCountdown(millisRemaining: Long) {
+                if (isFinishing) {
+                    // No need to reach to this even because the Activity is finishing anyway
+                    return
+                }
+                setTotpCountdownPhaseFromTimeTillNextValue(millisRemaining)
+            }
+
+            override fun onTotpCounterValueChanged() {
+                if (isFinishing) {
+                    // No need to reach to this even because the Activity is finishing anyway
+                    return
+                }
+
+                adapter.notifyDataSetChanged()
+            }
+        })
+        totpCountdownTask!!.startAndNotifyListener()
+    }
+
     override fun onPause() {
         super.onPause()
 
@@ -465,6 +472,16 @@ class AccountListActivity : BaseActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_account_list, menu)
+        return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        menu.findItem(R.id.menu_account_list_toggle_pins).title = if (adapter.showPins) {
+            "Hide pins"
+        } else {
+            "Show pins"
+        }
+
         return true
     }
 
@@ -517,6 +534,16 @@ class AccountListActivity : BaseActivity() {
 
                 adapter.setEditMode(AccountListAdapter.EditMode.Group)
                 adapter.notifyAllDataSetChanged()
+            }
+            R.id.menu_account_list_toggle_pins -> {
+                val showPins = preferences.getBoolean(Preferences.SHOW_PINS, true)
+
+                adapter.showPins = !showPins
+                preferences.edit {
+                    putBoolean(Preferences.SHOW_PINS, !showPins)
+                }
+//
+//                invalidateOptionsMenu()
             }
         }
 

@@ -24,6 +24,15 @@ val ConcatAdapter.groupsWithAccounts
 val ConcatAdapter.editMode
     get() = if (adapters.isNotEmpty()) (adapters.first() as AccountListAdapter).editMode else AccountListAdapter.EditMode.Disabled
 
+var ConcatAdapter.showPins
+    get() = if (adapters.isNotEmpty()) (adapters.first() as AccountListAdapter).showPins else true
+    set(value) {
+        for (adapter in adapters) {
+            adapter as AccountListAdapter
+            adapter.showPins = value
+        }
+    }
+
 fun ConcatAdapter.clearSelectedAccounts() {
     for (adapter in adapters) {
         adapter as AccountListAdapter

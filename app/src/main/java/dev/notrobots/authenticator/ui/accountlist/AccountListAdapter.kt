@@ -32,6 +32,11 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
     val selectedAccounts
         get() = groupWithAccounts.accounts.filter { it.isSelected }
     var editMode: EditMode = EditMode.Disabled
+    var showPins: Boolean = true
+        set(value) {
+            field = value
+            notifyItemRangeChanged(1, groupWithAccounts.accounts.size + 1)
+        }
     var isExpanded: Boolean
         get() = groupWithAccounts.group.isExpanded
         set(value) {
@@ -77,6 +82,7 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
                 val id = account.id
                 val icon = KnownIssuers.find { k, _ -> k.matches(account.issuer) }
 
+                view.text_account_pin.visibility = if (showPins) View.VISIBLE else View.INVISIBLE
                 view.text_account_label.text = account.displayName
                 view.img_drag_handle.visibility = if (editMode == EditMode.Item) View.VISIBLE else View.GONE
                 view.img_drag_handle.setOnTouchListener { v, event ->
