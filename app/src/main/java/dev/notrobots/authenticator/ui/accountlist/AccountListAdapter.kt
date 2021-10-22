@@ -92,14 +92,14 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
                 }
                 view.img_account_edit.visibility = if (editMode == EditMode.Item) View.VISIBLE else View.GONE
                 view.img_account_edit.setOnClickListener {
-                    listener?.onEdit(account, position, id)
+                    listener?.onEdit(account, position, id, this)
                 }
                 view.isSelected = account.isSelected
                 view.setOnClickListener {       //FIXME: Selection state should be changed here to improve performance
-                    listener?.onClick(account, position, id)
+                    listener?.onClick(account, position, id, this)
                 }
                 view.setOnLongClickListener {
-                    listener?.onLongClick(account, position, id) ?: false
+                    listener?.onLongClick(account, position, id, this) ?: false
                 }
 
                 when (account.type) {
@@ -113,7 +113,7 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
                         view.img_account_counter_update.setOnClickListener {
                             it as ImageView
 
-                            listener?.onCounterIncrement(view.text_account_pin, account, position, id)
+                            listener?.onCounterIncrement(view.text_account_pin, account, position, id, this)
                             it.isEnabled = false
                             it.setTint(Color.LTGRAY)    //FIXME: Use the app's colors
 
@@ -140,16 +140,16 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
                             isExpanded = !isExpanded
                         }
 
-                        listener?.onClick(group, position, group.id)
+                        listener?.onClick(group, position, group.id, this)
                     }
                     view.setOnLongClickListener {
-                        listener?.onLongClick(group, position, group.id) ?: false
+                        listener?.onLongClick(group, position, group.id, this) ?: false
                     }
 
                     view.text_group_name.text = group.name
                     view.img_account_edit.visibility = if (editMode == EditMode.Group) View.VISIBLE else View.GONE
                     view.img_account_edit.setOnClickListener {
-                        listener?.onEdit(group, position, group.id)
+                        listener?.onEdit(group, position, group.id, this)
                     }
                     view.img_drag_handle.visibility = if (editMode == EditMode.Group) View.VISIBLE else View.GONE
                     view.img_drag_handle.setOnTouchListener { v, event ->
@@ -252,13 +252,13 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
     }
 
     interface Listener {
-        fun onClick(account: Account, position: Int, id: Long)
-        fun onLongClick(account: Account, position: Int, id: Long): Boolean
-        fun onEdit(account: Account, position: Int, id: Long)
-        fun onClick(group: AccountGroup, position: Int, id: Long)
-        fun onLongClick(group: AccountGroup, position: Int, id: Long): Boolean
-        fun onEdit(group: AccountGroup, position: Int, id: Long)
-        fun onCounterIncrement(view: TextView, account: Account, position: Int, id: Long)
+        fun onClick(account: Account, position: Int, id: Long, adapter: AccountListAdapter)
+        fun onLongClick(account: Account, position: Int, id: Long, adapter: AccountListAdapter): Boolean
+        fun onEdit(account: Account, position: Int, id: Long, adapter: AccountListAdapter)
+        fun onClick(group: AccountGroup, position: Int, id: Long, adapter: AccountListAdapter)
+        fun onLongClick(group: AccountGroup, position: Int, id: Long, adapter: AccountListAdapter): Boolean
+        fun onEdit(group: AccountGroup, position: Int, id: Long, adapter: AccountListAdapter)
+        fun onCounterIncrement(view: TextView, account: Account, position: Int, id: Long, adapter: AccountListAdapter)
     }
 
     enum class EditMode {

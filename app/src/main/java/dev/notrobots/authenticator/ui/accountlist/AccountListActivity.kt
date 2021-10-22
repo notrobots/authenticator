@@ -13,10 +13,7 @@ import androidx.core.content.edit
 import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
-import androidx.recyclerview.widget.ConcatAdapter
-import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.*
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.copyToClipboard
 import dev.notrobots.androidstuff.extensions.makeToast
@@ -146,6 +143,80 @@ class AccountListActivity : BaseActivity() {
         }
     }
     private var actionMode: ActionMode? = null
+
+    private val accountListListener = object : AccountListAdapter.Listener {
+        override fun onClick(account: Account, position: Int, id: Long, adapter: AccountListAdapter) {
+            if (actionMode != null) {
+                account.toggleSelected()
+
+                if (!account.isSelected && adapter.selectedAccounts.isEmpty()) {
+                    actionMode?.finish()
+                }
+
+                adapter.notifyItemChanged(position)
+                actionMode?.title = adapter.selectedAccounts.size.toString()
+            } else {
+                copyToClipboard(OTPProvider.generate(account))
+                makeToast("Copied!")
+            }
+        }
+
+        override fun onLongClick(account: Account, position: Int, id: Long, adapter: AccountListAdapter): Boolean {
+            if (actionMode == null) {
+                account.isSelected = true
+                adapter.notifyItemChanged(position)
+                startSupportActionMode(accountActionMode)
+            }
+
+            return true
+        }
+
+        override fun onEdit(account: Account, position: Int, id: Long, adapter: AccountListAdapter) {
+            startActivity(AccountActivity::class) {
+                putExtra(AccountActivity.EXTRA_ACCOUNT, account)
+            }
+            actionMode?.finish()
+        }
+
+        override fun onClick(group: AccountGroup, position: Int, id: Long, adapter: AccountListAdapter) {
+            if (adapter.editMode == AccountListAdapter.EditMode.Group) {
+                actionMode?.title = this@AccountListActivity.adapter.selectedGroups.size.toString()
+            }
+        }
+
+        override fun onLongClick(group: AccountGroup, position: Int, id: Long, adapter: AccountListAdapter): Boolean {
+            //TODO: Edit groups
+
+            return true
+        }
+
+        override fun onEdit(group: AccountGroup, position: Int, id: Long, adapter: AccountListAdapter) {
+            val dialog = AddAccountGroupDialog()
+
+            dialog.text = group.name
+            dialog.onConfirmListener = { name ->
+                if (name == group.name) {
+                    dialog.dismiss()
+                } else {
+                    lifecycleScope.launch {
+                        try {
+                            group.name = name   //FIXME: Isn't this changing the name even if there's an exception
+                            viewModel.addGroup(group)
+                            dialog.dismiss()
+                        } catch (e: Exception) {
+                            dialog.error = e.message
+                        }
+                    }
+                }
+            }
+            dialog.show(supportFragmentManager, null)
+        }
+
+        override fun onCounterIncrement(view: TextView, account: Account, position: Int, id: Long, adapter: AccountListAdapter) {
+            account.counter++
+            view.text = OTPProvider.generate(account)
+        }
+    }
 
     private val accountActionMode = object : ActionMode.Callback {
         override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
@@ -319,89 +390,46 @@ class AccountListActivity : BaseActivity() {
 
         createDefaultGroup()
         viewModel.groupsWithAccount.observe(this) {
-            //FIXME: This needs to be optimized
             val adapters = it.map {
                 AccountListAdapter(it).apply {
                     touchHelper = this@AccountListActivity.touchHelper
                     showPins = preferences.getBoolean(Preferences.SHOW_PINS, true)
-                    setListener(object : AccountListAdapter.Listener {
-                        override fun onClick(account: Account, position: Int, id: Long) {
-                            if (actionMode != null) {
-                                account.toggleSelected()
-
-                                if (!account.isSelected && adapter.selectedAccounts.isEmpty()) {
-                                    actionMode?.finish()
-                                }
-
-                                notifyItemChanged(position)
-                                actionMode?.title = adapter.selectedAccounts.size.toString()
-                            } else {
-                                copyToClipboard(OTPProvider.generate(account))
-                                makeToast("Copied!")
-                            }
-                        }
-
-                        override fun onLongClick(account: Account, position: Int, id: Long): Boolean {
-                            if (actionMode == null) {
-                                account.isSelected = true
-                                notifyItemChanged(position)
-                                startSupportActionMode(accountActionMode)
-                            }
-
-                            return true
-                        }
-
-                        override fun onEdit(account: Account, position: Int, id: Long) {
-                            startActivity(AccountActivity::class) {
-                                putExtra(AccountActivity.EXTRA_ACCOUNT, account)
-                            }
-                            actionMode?.finish()
-                        }
-
-                        override fun onClick(group: AccountGroup, position: Int, id: Long) {
-                            if (adapter.editMode == AccountListAdapter.EditMode.Group) {
-                                actionMode?.title = adapter.selectedGroups.size.toString()
-                            }
-                        }
-
-                        override fun onLongClick(group: AccountGroup, position: Int, id: Long): Boolean {
-                            //TODO: Edit groups
-
-                            return true
-                        }
-
-                        override fun onEdit(group: AccountGroup, position: Int, id: Long) {
-                            val dialog = AddAccountGroupDialog()
-
-                            dialog.text = group.name
-                            dialog.onConfirmListener = { name ->
-                                if (name == group.name) {
-                                    dialog.dismiss()
-                                } else {
-                                    lifecycleScope.launch {
-                                        try {
-                                            group.name = name   //FIXME: Isn't this changing the name even if there's an exception
-                                            viewModel.addGroup(group)
-                                            dialog.dismiss()
-                                        } catch (e: Exception) {
-                                            dialog.error = e.message
-                                        }
-                                    }
-                                }
-                            }
-                            dialog.show(supportFragmentManager, null)
-                        }
-
-                        override fun onCounterIncrement(view: TextView, account: Account, position: Int, id: Long) {
-                            account.counter++
-                            view.text = OTPProvider.generate(account)
-                        }
-                    })
+                    setListener(accountListListener)
                 }
             }
 
-            adapter.clearAdapters()
-            adapter.addAllAdapters(adapters)
+            if (adapter.adapters.isEmpty()) {
+                adapter.addAllAdapters(adapters)
+            } else {
+                val result = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+                    override fun getOldListSize(): Int {
+                        return adapter.adapters.size
+                    }
+
+                    override fun getNewListSize(): Int {
+                        return adapters.size
+                    }
+
+                    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                        val oldId = (adapter.adapters[oldItemPosition] as AccountListAdapter).groupWithAccounts.group.id
+                        val newId = adapters[newItemPosition].groupWithAccounts.group.id
+
+                        return oldId == newId
+                    }
+
+                    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                        val old = (adapter.adapters[oldItemPosition] as AccountListAdapter).groupWithAccounts
+                        val new = adapters[newItemPosition].groupWithAccounts
+
+                        return old.group == new.group && old.accounts == new.accounts
+                    }
+                })
+                list_accounts.adapter = null
+                adapter.clearAdapters()
+                adapter.addAllAdapters(adapters)
+                list_accounts.adapter = adapter
+                result.dispatchUpdatesTo(adapter)
+            }
         }
         touchHelper.attachToRecyclerView(list_accounts)
     }
@@ -511,6 +539,30 @@ class AccountListActivity : BaseActivity() {
                     Account("Max", "22444455").apply { label = "Github"; groupId = 2 },
                     Account("JohnDoe", "22774477").apply { groupId = 4 },
                     Account("MarioRossi", "77334455").apply { groupId = 4 },
+                    Account("JaneDoe", "22223355")
+                )
+                lifecycleScope.launch {
+                    viewModel.accountDao.deleteAll()
+                    viewModel.accountGroupDao.deleteAll()
+
+                    groups.forEach { viewModel.accountGroupDao.insert(it) }
+                    accounts.forEach { viewModel.accountDao.insert(it) }
+
+                    viewModel.accountGroupDao.insert(AccountGroup.DEFAULT_GROUP)
+                }
+            }
+            R.id.menu_add_test_2 -> {
+                val groups = listOf(
+                    AccountGroup("Work").apply { id = 2; order = 0 }
+                )
+                val accounts = listOf(
+                    Account("Max", "22334455").apply { label = "Twitter"; groupId = 2 },
+                    Account("Max", "22334466").apply { label = "Steam"; groupId = 2 },
+                    Account("Max", "22332277").apply { label = "Amazon"; groupId = 2 },
+                    Account("Max", "22334455").apply { label = "EGS"; groupId = 2 },
+                    Account("Max", "22444455").apply { label = "Github"},
+                    Account("JohnDoe", "22774477"),
+                    Account("MarioRossi", "77334455"),
                     Account("JaneDoe", "22223355")
                 )
                 lifecycleScope.launch {

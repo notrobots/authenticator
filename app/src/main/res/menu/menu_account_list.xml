@@ -32,4 +32,8 @@
     <item
         android:id="@+id/menu_add_test"
         android:title="Add test accounts" />
+
+    <item
+        android:id="@+id/menu_add_test_2"
+        android:title="Add test accounts 2" />
 </menu>

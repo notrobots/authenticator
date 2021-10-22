@@ -78,7 +78,7 @@ fun ConcatAdapter.swap(from: Int, to: Int) {
     }
 }
 
-fun ConcatAdapter.getMutableAdapters(): List<*>? {
+fun ConcatAdapter.getMutableAdapters(): MutableList<*>? {
     // Since the adapters field is an immutable list, we try and get the private field and use that instead
     // The field is in ConcatAdapter -> mController(ConcatAdapterController) -> mWrappers(List<NestedAdapterWrapper>)
     // This is an hack and it should be replaced with the public APIs
@@ -91,7 +91,7 @@ fun ConcatAdapter.getMutableAdapters(): List<*>? {
 
     val controller = controllerField?.get(this)
 
-    return wrappersField?.get(controller) as? List<*>
+    return wrappersField?.get(controller) as? MutableList<*>
 }
 
 fun ConcatAdapter.notifyAllDataSetChanged() {
