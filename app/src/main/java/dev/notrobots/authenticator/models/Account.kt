@@ -43,13 +43,8 @@ class Account(
     var groupId: Long = DEFAULT_GROUP_ID
 
 //    /**
-//     * Parent group of this account, null if the account doesn't belong to any group
+//     * Whether or not the secret is a base32 string
 //     */
-//    var group: AccountGroup? = null
-
-    /**
-     * Whether or not the secret is a base32 string
-     */
 //    var isBase32: Boolean = true
 
     val path
@@ -76,104 +71,21 @@ class Account(
     fun getUri(): Uri {
         val uri = Uri.Builder()
 
-        uri.scheme(OTP_SCHEME)
+        uri.scheme(AccountExporter.OTP_SCHEME)
         uri.authority(type.toString().toLowerCase())
         uri.path(path)
-        uri.appendQueryParameter(OTP_SECRET, secret)
-        uri.appendQueryParameter(OTP_COUNTER, counter.toString())
+        uri.appendQueryParameter(AccountExporter.OTP_SECRET, secret)
+        uri.appendQueryParameter(AccountExporter.OTP_COUNTER, counter.toString())
 
         if (issuer.isNotBlank()) {
-            uri.appendQueryParameter(OTP_ISSUER, issuer)
+            uri.appendQueryParameter(AccountExporter.OTP_ISSUER, issuer)
         }
 
         return uri.build()
     }
 
     companion object {
-        private const val OTP_SCHEME = "otpauth"
-        private const val OTP_SECRET = "secret"
-        private const val OTP_ISSUER = "issuer"
-        private const val OTP_COUNTER = "counter"
-        private const val OTP_ALGORITHM = "algorithm"
-        private const val OTP_DIGITS = "digits"
-        private const val OTP_PERIOD = "period"
-        private const val DEFAULT_OTP_DIGITS = 6
-        private const val DEFAULT_OTP_PERIOD = 30
-        private const val DEFAULT_OTP_COUNTER = 0
-        private val DEFAULT_OTP_ALGORITHM = OTPAlgorithm.SHA1
         const val DEFAULT_GROUP_ID = 1L
         val HOTP_CODE_INTERVAL = TimeUnit.SECONDS.toMillis(10)
-
-        fun parse(uri: String): Account {
-            return parse(Uri.parse(uri))
-        }
-
-        /**
-         * Parses the given [uri] into an [Account] object.
-         *
-         * The [Uri] must match the format:
-         *
-         * + `otpauth://{type}/{label}:{name}?secret={secret}`
-         *
-         * Where `label` can be optional and `name`, `type` and `secret` must be defined. In addition
-         * more values can be specified:
-         * + issuer, can be empty but not blank
-         */
-        fun parse(uri: Uri): Account {
-            val typeError = { error("Type must be one of [${OTPType.values().joinToString()}]") }
-
-            if (uri.scheme == OTP_SCHEME) {
-                //
-                // Required fields
-                //
-                val type = parseEnum<OTPType>(uri.authority?.toUpperCase()) ?: typeError()
-                val path = parsePath(uri)
-                val name = path.groupValues[2]
-                val secret = uri[OTP_SECRET] ?: error("Missing parameter 'secret'")
-
-                AccountExporter.validateName(name)
-                AccountExporter.validateSecret(secret)
-
-                //
-                // Optional fields
-                //
-                val label = path.groupValues[1]
-                val issuer = uri[OTP_ISSUER] ?: ""
-
-                AccountExporter.validateLabel(label)
-                AccountExporter.validateIssuer(issuer)
-
-                //
-                // Extra optional fields
-                //
-//                val algorithm = parseEnum(uri[OTP_ALGORITHM], true) ?: DEFAULT_OTP_ALGORITHM
-//                val digits = uri[OTP_DIGITS]?.toIntOrNull() ?: DEFAULT_OTP_DIGITS
-//                val counter = uri[OTP_COUNTER]?.toIntOrNull() ?: DEFAULT_OTP_COUNTER
-//                val period = uri[OTP_PERIOD]?.toIntOrNull() ?: DEFAULT_OTP_PERIOD
-//                val isBase32 = uri[OTP_BASE32]?.toBoolean() ?: DEFAULT_BASE32
-
-                return Account(name, secret).apply {
-                    this.issuer = issuer
-                    this.label = label
-                    this.type = type
-                }
-            } else {
-                error("Scheme should be 'otpauth'")
-            }
-        }
-
-        /**
-         * Parses the path and returns a [MatchResult]
-         */
-        private fun parsePath(uri: Uri): MatchResult {
-            val pathError = { error("Path malformed, must be /label:name or /name") }
-            val path = uri.path.let {
-                val s = it?.removePrefix("/")
-
-                if (s.isNullOrBlank()) pathError() else s
-            }
-
-            return Regex("^(?:(.+):)?(.+)$").find(path) ?: pathError()
-        }
     }
 }

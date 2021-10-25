@@ -28,10 +28,7 @@ import dev.notrobots.authenticator.google.CountdownIndicator
 import dev.notrobots.authenticator.google.TotpClock
 import dev.notrobots.authenticator.google.TotpCountdownTask
 import dev.notrobots.authenticator.google.TotpCounter
-import dev.notrobots.authenticator.models.Account
-import dev.notrobots.authenticator.models.AccountGroup
-import dev.notrobots.authenticator.models.BaseAccount
-import dev.notrobots.authenticator.models.OTPProvider
+import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import dev.notrobots.authenticator.ui.export.ExportActivity
@@ -60,6 +57,7 @@ class AccountListActivity : BaseActivity() {
         PreferenceManager.getDefaultSharedPreferences(this)
     }
     private var totpCountdownTask: TotpCountdownTask? = null
+    private val accountExporter = AccountExporter()
 
     /** Counter used for generating TOTP verification codes.  */
     private val totpCounter: TotpCounter = TotpCounter(30)
@@ -71,16 +69,23 @@ class AccountListActivity : BaseActivity() {
     private val scanBarcode = registerForActivityResult(StartActivityForResult()) {
         if (it.resultCode == Activity.RESULT_OK) {
             if (it.data != null) {
-                val url = it.data!!.getStringExtra(BarcodeScannerActivity.EXTRA_QR_DATA) ?: ""
+                val uri = it.data!!.getStringExtra(BarcodeScannerActivity.EXTRA_QR_DATA) ?: ""
+                val accounts = accountExporter.import(uri)
 
-                try {
-                    addOrReplaceAccount(Account.parse(url))
-                } catch (e: Exception) {
-                    //FIXME: This dialog sucks ass
-                    val dialog = ErrorDialog()
+                if (accounts.size > 1) {        //TODO: Show a special dialog that tells the user a backup is being imported
+                    logd("Importing backup")
+                }
 
-                    dialog.setErrorMessage(e.message)
-                    dialog.show(supportFragmentManager, null)
+                for (account in accounts) {
+                    try {
+                        addOrReplaceAccount(account)
+                    } catch (e: Exception) {
+                        //FIXME: This dialog sucks ass
+                        val dialog = ErrorDialog()
+
+                        dialog.setErrorMessage(e.message)
+                        dialog.show(supportFragmentManager, null)
+                    }
                 }
             }
         }
@@ -356,7 +361,7 @@ class AccountListActivity : BaseActivity() {
 
             dialog.onConfirmListener = {
                 try {
-                    addOrReplaceAccount(Account.parse(it))
+                    addOrReplaceAccount(accountExporter.import(it).first())
                     dialog.dismiss()
                 } catch (e: Exception) {
                     dialog.error = e.message
