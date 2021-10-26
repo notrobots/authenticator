@@ -1,9 +1,7 @@
-package dev.notrobots.authenticator.ui.export
+package dev.notrobots.authenticator.ui.backupexport
 
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.*
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.*
 import androidx.fragment.app.Fragment
 import dev.notrobots.androidstuff.extensions.copyToClipboard
@@ -11,7 +9,6 @@ import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.extensions.printHTML
 import dev.notrobots.androidstuff.util.now
 import dev.notrobots.authenticator.R
-import dev.notrobots.authenticator.models.QRCodeStyle
 import kotlinx.android.synthetic.main.fragment_export_text.*
 
 class ExportTextFragment : Fragment() {

@@ -1,6 +1,5 @@
-package dev.notrobots.authenticator.ui.export
+package dev.notrobots.authenticator.ui.backupexport
 
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import androidx.fragment.app.commit
 import dev.notrobots.androidstuff.activities.ThemedActivity

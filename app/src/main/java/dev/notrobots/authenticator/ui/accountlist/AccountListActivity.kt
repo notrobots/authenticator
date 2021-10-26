@@ -30,9 +30,10 @@ import dev.notrobots.authenticator.google.TotpCountdownTask
 import dev.notrobots.authenticator.google.TotpCounter
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
+import dev.notrobots.authenticator.ui.backup.BackupActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
-import dev.notrobots.authenticator.ui.export.ExportActivity
-import dev.notrobots.authenticator.ui.export.ExportConfigActivity
+import dev.notrobots.authenticator.ui.backupexport.ExportActivity
+import dev.notrobots.authenticator.ui.backupexport.ExportConfigActivity
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.android.synthetic.main.dialog_account_url.view.*
 import kotlinx.coroutines.launch
@@ -70,7 +71,7 @@ class AccountListActivity : BaseActivity() {
         if (it.resultCode == Activity.RESULT_OK) {
             if (it.data != null) {
                 val uri = it.data!!.getStringExtra(BarcodeScannerActivity.EXTRA_QR_DATA) ?: ""
-                val accounts = accountExporter.import(uri)
+                val accounts = accountExporter.import(uri)  //TODO: Try-catch
 
                 if (accounts.size > 1) {        //TODO: Show a special dialog that tells the user a backup is being imported
                     logd("Importing backup")
@@ -596,6 +597,9 @@ class AccountListActivity : BaseActivity() {
                 preferences.edit {
                     putBoolean(Preferences.SHOW_PINS, !showPins)
                 }
+            }
+            R.id.menu_account_list_backup -> {
+                startActivity(BackupActivity::class)
             }
         }
 

@@ -33,11 +33,19 @@
             android:screenOrientation="portrait" />
 
         <activity
-            android:name=".ui.export.ExportActivity"
+            android:name=".ui.backupexport.ExportActivity"
             android:screenOrientation="portrait" />
 
         <activity
-            android:name=".ui.export.ExportConfigActivity"
+            android:name=".ui.backupexport.ExportConfigActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".ui.backup.BackupActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".ui.backupimport.ImportActivity"
             android:screenOrientation="portrait" />
     </application>
 

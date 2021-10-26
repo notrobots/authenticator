@@ -19,6 +19,16 @@
         android:title="Show/Hide pins"
         app:showAsAction="ifRoom" />
 
+    <item
+        android:id="@+id/menu_account_list_backup"
+        android:title="Backup"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/menu_account_list_settings"
+        android:title="Settings"
+        app:showAsAction="ifRoom"/>
+
     <item android:title="TEST MENU" />
 
     <item

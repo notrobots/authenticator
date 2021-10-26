@@ -1,4 +1,4 @@
-package dev.notrobots.authenticator.ui.export
+package dev.notrobots.authenticator.ui.backupexport
 
 import android.content.Intent
 import android.os.Bundle

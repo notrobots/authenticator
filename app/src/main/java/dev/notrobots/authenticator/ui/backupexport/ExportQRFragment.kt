@@ -1,16 +1,9 @@
-package dev.notrobots.authenticator.ui.export
+package dev.notrobots.authenticator.ui.backupexport
 
-import android.R.attr.bitmap
-import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
-import android.print.PrintAttributes
-import android.print.PrintManager
 import android.view.*
-import android.webkit.WebResourceRequest
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts.*
 import androidx.documentfile.provider.DocumentFile
