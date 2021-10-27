@@ -2,14 +2,11 @@ package dev.notrobots.authenticator.models
 
 import android.net.Uri
 import androidx.room.Entity
-import dev.notrobots.androidstuff.util.parseEnum
-import dev.notrobots.authenticator.extensions.get
-import dev.notrobots.authenticator.extensions.isOnlySpaces
+import androidx.room.Index
 import java.io.Serializable
-import dev.notrobots.authenticator.util.isValidBase32
 import java.util.concurrent.TimeUnit
 
-@Entity
+@Entity(indices = [Index(value = ["issuer", "name", "label"], unique = true)])
 class Account(
     name: String,
     /**
@@ -17,6 +14,7 @@ class Account(
      */
     var secret: String,
 ) : BaseAccount(name), Serializable, Cloneable {
+
     /**
      * Account issuer, should be the company's website
      */
@@ -56,16 +54,6 @@ class Account(
 
     public override fun clone(): Account {
         return super.clone() as Account
-    }
-
-    override fun equals(other: Any?): Boolean {
-        return super.equals(other) &&
-                other is Account &&
-                secret == other.secret &&
-                issuer == other.issuer &&
-                label == other.label &&
-                type == other.type &&
-                groupId == other.groupId
     }
 
     fun getUri(): Uri {

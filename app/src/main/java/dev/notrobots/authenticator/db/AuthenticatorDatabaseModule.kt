@@ -13,7 +13,7 @@ import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
-class AuthenticatorDatabaseModule {
+object AuthenticatorDatabaseModule {
     @Provides
     fun provideAccountDao(database: AuthenticatorDatabase): AccountDao {
         return database.accountDao()

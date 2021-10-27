@@ -17,7 +17,7 @@ class AccountViewModel @Inject constructor(
     val groups = accountGroupDao.getGroups()
 
     suspend fun updateAccount(account: Account, overwrite: Boolean) {
-        val exists = accountDao.getCount(account.name, account.issuer) > 0
+        val exists = accountDao.getCount(account.name, account.label, account.issuer) > 0
 
         if (exists && !overwrite) {
             error("An account with the same name and issuer already exists")
@@ -29,7 +29,7 @@ class AccountViewModel @Inject constructor(
 
     //FIXME: This method is duplicated in the other viewModel
     suspend fun addAccount(account: Account) {
-        val exists = accountDao.getCount(account.name, account.issuer) > 0
+        val exists = accountDao.getCount(account.name, account.label, account.issuer) > 0
 
         if (exists) {
             error("An account with the same name and issuer already exists")

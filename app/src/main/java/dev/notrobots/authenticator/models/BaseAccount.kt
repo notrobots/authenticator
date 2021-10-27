@@ -29,20 +29,12 @@ abstract class BaseAccount(
      */
     var order: Long = DEFAULT_ORDER
 
-    override fun equals(other: Any?): Boolean {
-        return other is BaseAccount &&
-                name == other.name &&
-                id == other.id &&
-                isSelected == other.isSelected &&
-                order == other.order
-    }
-
     fun toggleSelected() {
         isSelected = !isSelected
     }
 
     companion object {
-        const val DEFAULT_ORDER = -1L
+        const val DEFAULT_ORDER = -1L   //FIXME: Change to 0
         const val DEFAULT_ID = 0L
     }
 }

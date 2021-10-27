@@ -23,7 +23,7 @@ class AccountListViewModel @Inject constructor(
      * Checks if the given [account] already exists.
      */
     suspend fun checkIfAccountExists(account: Account): Boolean {
-        val count = accountDao.getCount(account.name, account.issuer)
+        val count = accountDao.getCount(account.name, account.label, account.issuer)
 
         return count > 0
     }

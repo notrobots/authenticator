@@ -1,9 +1,10 @@
 package dev.notrobots.authenticator.models
 
 import androidx.room.Entity
+import androidx.room.Index
 import java.io.Serializable
 
-@Entity
+@Entity(indices = [Index(value = ["name"], unique = true)])
 class AccountGroup(
     name: String
 ) : BaseAccount(name), Serializable {
