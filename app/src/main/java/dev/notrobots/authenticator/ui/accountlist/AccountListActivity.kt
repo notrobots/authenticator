@@ -162,7 +162,7 @@ class AccountListActivity : BaseActivity() {
                 adapter.notifyItemChanged(position)
                 actionMode?.title = adapter.selectedAccounts.size.toString()
             } else {
-                copyToClipboard(OTPProvider.generate(account))
+                copyToClipboard(OTPGenerator.generate(account))
                 makeToast("Copied!")
             }
         }
@@ -220,7 +220,7 @@ class AccountListActivity : BaseActivity() {
 
         override fun onCounterIncrement(view: TextView, account: Account, position: Int, id: Long, adapter: AccountListAdapter) {
             account.counter++
-            view.text = OTPProvider.generate(account)
+            view.text = OTPGenerator.generate(account)
         }
     }
 

@@ -104,7 +104,7 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
 
                 when (account.type) {
                     OTPType.TOTP -> {
-                        view.text_account_pin.text = OTPProvider.generate(account)
+                        view.text_account_pin.text = OTPGenerator.generate(account)
                         view.pb_phase.visibility = if (editMode == EditMode.Item) View.GONE else View.VISIBLE
                     }
                     OTPType.HOTP -> {
