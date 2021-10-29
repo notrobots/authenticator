@@ -128,6 +128,19 @@ class BetterSpinner(
         this.entries = entries.toList()
     }
 
+    inline fun <reified E : Enum<E>> setValues() {
+        this.values = E::class.java.enumConstants.toList()
+    }
+
+    inline fun <reified E : Enum<E>> setEntries() {
+        this.entries = E::class.java.enumConstants.map { it.name }
+    }
+
+    inline fun <reified E : Enum<E>> setItems() {
+        setValues<E>()
+        setEntries<E>()
+    }
+
     fun setSelection(value: Any?) {
         setSelection(values.indexOf(value))
     }
