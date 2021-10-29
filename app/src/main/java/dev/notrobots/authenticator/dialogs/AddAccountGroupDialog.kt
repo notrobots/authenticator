@@ -5,8 +5,8 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dev.notrobots.androidstuff.extensions.setClearErrorOnType
 import dev.notrobots.authenticator.R
-import dev.notrobots.authenticator.extensions.setClearErrorOnType
 import kotlinx.android.synthetic.main.dialog_account_group.*
 import kotlinx.android.synthetic.main.dialog_account_group.view.*
 

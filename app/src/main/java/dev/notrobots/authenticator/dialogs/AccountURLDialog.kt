@@ -9,9 +9,9 @@ import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import dev.notrobots.androidstuff.extensions.setClearErrorOnType
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.extensions.inflate
-import dev.notrobots.authenticator.extensions.setClearErrorOnType
 import dev.notrobots.authenticator.extensions.toUri
 import dev.notrobots.authenticator.models.Account
 import kotlinx.android.synthetic.main.dialog_account_url.view.*

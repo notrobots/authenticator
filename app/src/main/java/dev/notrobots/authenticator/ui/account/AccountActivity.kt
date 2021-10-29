@@ -10,7 +10,10 @@ import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.activities.ThemedActivity
+import dev.notrobots.androidstuff.extensions.hasErrors
 import dev.notrobots.androidstuff.extensions.makeToast
+import dev.notrobots.androidstuff.extensions.setClearErrorOnType
+import dev.notrobots.androidstuff.extensions.setErrorWhen
 import dev.notrobots.androidstuff.util.*
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.BaseActivity
@@ -67,11 +70,7 @@ class AccountActivity : BaseActivity() {
                 text_account_counter_value.setText(account.counter.toString())
             }
             text_account_counter_value.addTextChangedListener {
-                account.counter = try {
-                    it.toString().toLong()
-                } catch (e: NumberFormatException) {
-                    0
-                }
+                account.counter = it.toString().toLongOrNull() ?: 0
             }
         } else {
             layout_account_counter.visibility = View.GONE
@@ -94,41 +93,42 @@ class AccountActivity : BaseActivity() {
             val label = text_account_label.text.toString()
             val secret = text_account_secret.text.toString()
             val type = parseEnum<OTPType>(spinner_account_type.selectedValue.toString())!!
-            var hasError = false
-
-            tryRun({ AccountExporter.validateName(name) }) {
-                it?.let {
-                    layout_account_name.error = it.message
-                    hasError = true
-                }
+            val hasError = {
+                layout_account_name.hasErrors
+                        && layout_account_label.hasErrors
+                        && layout_account_issuer.hasErrors
+                        && layout_account_secret.hasErrors
             }
 
-            tryRun({ AccountExporter.validateLabel(label) }) {
-                it?.let {
-                    layout_account_label.error = it.message
-                    hasError = true
-                }
+            try {
+                AccountExporter.validateName(name)
+            } catch (e: Exception) {
+                layout_account_name.error = e.message
             }
 
-            tryRun({ AccountExporter.validateIssuer(issuer) }) {
-                it?.let {
-                    layout_account_issuer.error = it.message
-                    hasError = true
-                }
+            try {
+                AccountExporter.validateLabel(label)
+            } catch (e: Exception) {
+                layout_account_label.error = e.message
             }
 
-            tryRun({ AccountExporter.validateSecret(secret) }) {
-                it?.let {
-                    layout_account_secret.error = it.message
-                    hasError = true
-                }
+            try {
+                AccountExporter.validateIssuer(issuer)
+            } catch (e: Exception) {
+                layout_account_issuer.error = e.message
+            }
+
+            try {
+                AccountExporter.validateSecret(secret, true)
+            } catch (e: Exception) {
+                layout_account_secret.error = e.message
             }
 
             when (type) {
                 //TODO Check the conditions for each of the different extra options
             }
 
-            if (!hasError) {
+            if (!hasError()) {
                 account.also {
                     it.groupId = spinner_account_group.selectedValue as Long
                     it.name = name
