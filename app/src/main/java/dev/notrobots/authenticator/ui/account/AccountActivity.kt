@@ -29,8 +29,7 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class AccountActivity : BaseActivity() {
-    private val viewModel by viewModels<AccountViewModel>()
-    private val viewModel2 by viewModels<AccountListViewModel>()
+    private val viewModel by viewModels<AccountListViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

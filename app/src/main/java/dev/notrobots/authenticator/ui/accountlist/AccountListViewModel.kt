@@ -66,6 +66,23 @@ class AccountListViewModel @Inject constructor(
     }
 
     /**
+     * Checks if the given [account] exists and throws an exception if an account with the same
+     * name, label and issuer is found.
+     *
+     * If [overwrite] is true it will update the existing account
+     */
+    suspend fun updateAccount(account: Account, overwrite: Boolean) {
+        val exists = accountDao.getCount(account.name, account.label, account.issuer) > 0
+
+        if (exists && !overwrite) {
+            error("An account with the same name and issuer already exists")
+        } else {
+            accountDao.update(account)
+            logd("Updating account")
+        }
+    }
+
+    /**
      * Inserts the given [group] into the database and takes care of the group ordering.
      *
      * To bypass the group ordering, call [AccountGroupDao.insert] directly.
