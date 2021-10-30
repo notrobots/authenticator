@@ -1,6 +1,7 @@
 package dev.notrobots.authenticator.models
 
 import android.net.Uri
+import com.google.protobuf.ByteString
 import dev.notrobots.androidstuff.util.error
 import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.logi
@@ -9,8 +10,8 @@ import dev.notrobots.authenticator.extensions.get
 import dev.notrobots.authenticator.extensions.isOnlySpaces
 import dev.notrobots.authenticator.proto.Authenticator.*
 import dev.notrobots.authenticator.proto.GoogleAuthenticator.*
-import dev.notrobots.authenticator.util.byteString
 import dev.notrobots.authenticator.util.isValidBase32
+import org.apache.commons.codec.binary.Base32
 import org.apache.commons.codec.binary.Base64
 
 class AccountExporter {
@@ -108,7 +109,7 @@ class AccountExporter {
         val secret = uri[OTP_SECRET] ?: error("Missing parameter 'secret'")
 
         validateName(name)
-        validateSecret(secret, isBase32)
+        validateSecret(secret)
 
         //
         // Optional fields
@@ -127,7 +128,6 @@ class AccountExporter {
             this.digits = digits
             this.counter = counter
             this.period = period
-            this.isBase32 = isBase32
         }
     }
 
@@ -146,11 +146,11 @@ class AccountExporter {
         return when (protobufVariant) {
             ProtobufVariant.Default -> accounts.map {
                 Payload.Account.newBuilder()
-                    .setSecret(byteString(it.secret))
+                    .setSecret(encodeSecret(it.secret))
                     .setName(it.name)
                     .setIssuer(it.issuer)
                     .setLabel(it.label)
-                    .setType(Payload.OTPType.forNumber(it.type.ordinal))
+                    .setType(encodeOTPType(it.type))
                     .build()
             }.chunked(chunkSize) {
                 it.serializedSize
@@ -169,8 +169,8 @@ class AccountExporter {
                     .setIssuer(it.issuer)
                     .setName(it.path)
                     .setCounter(it.counter)
-                    .setSecret(byteString(it.secret))
-                    .setType(MigrationPayload.OtpType.forNumber(it.type.ordinal))
+                    .setSecret(encodeSecret(it.secret))
+                    .setType(encodeOTPType(it.type))
                     .build()
             }.also {
                 //FIXME: Chunking doesn't work
@@ -210,11 +210,11 @@ class AccountExporter {
                         list.add(
                             Account(
                                 accountMessage.name,
-                                accountMessage.secret.toStringUtf8(),
+                                decodeSecret(accountMessage.secret)
                             ).apply {
-                                issuer = accountMessage.issuer
-                                type = OTPType.values()[accountMessage.typeValue]
                                 label = accountMessage.label
+                                issuer = accountMessage.issuer
+                                type = decodeOTPType(accountMessage.type)
                             }
                         )
                     }
@@ -234,12 +234,12 @@ class AccountExporter {
                         list.add(
                             Account(
                                 path.groupValues[2],
-                                accountMessage.secret.toStringUtf8(),
+                                decodeSecret(accountMessage.secret)
                             ).apply {
                                 label = path.groupValues[1]
                                 issuer = accountMessage.issuer
                                 counter = accountMessage.counter
-                                type = OTPType.values()[accountMessage.typeValue]
+                                type = decodeOTPType(accountMessage.type)
                             }
                         )
                     }
@@ -248,6 +248,18 @@ class AccountExporter {
         }
 
         return list.toList()
+    }
+
+    private fun encodeSecret(secret: String): ByteString {
+        val bytes = Base32().decode(secret)
+
+        return ByteString.copyFrom(bytes)
+    }
+
+    private fun decodeSecret(byteString: ByteString): String {
+        val bytes = Base32().encode(byteString.toByteArray())
+
+        return bytes.toString(Charsets.UTF_8)
     }
 
     private fun encodeMessage(bytes: ByteArray): String {
@@ -261,6 +273,42 @@ class AccountExporter {
         val base64 = Uri.decode(string).toByteArray(Charsets.UTF_8)
 
         return Base64().decode(base64)
+    }
+
+    private inline fun <reified E : Enum<E>> encodeOTPType(otpType: OTPType): E {
+        return when (E::class) {
+            MigrationPayload.OtpType::class -> when (otpType) {
+                OTPType.TOTP -> MigrationPayload.OtpType.OTP_TYPE_TOTP
+                OTPType.HOTP -> MigrationPayload.OtpType.OTP_TYPE_HOTP
+            }
+
+            Payload.OTPType::class -> when (otpType) {
+                OTPType.TOTP -> Payload.OTPType.TOTP
+                OTPType.HOTP -> Payload.OTPType.HOTP
+            }
+
+            else -> error("Unknown OTPType class")
+        } as E
+    }
+
+    private inline fun <reified E : Enum<E>> decodeOTPType(typeValue: E): OTPType {
+        return when (E::class) {
+            MigrationPayload.OtpType::class -> when (typeValue) {
+                MigrationPayload.OtpType.OTP_TYPE_TOTP -> OTPType.TOTP
+                MigrationPayload.OtpType.OTP_TYPE_HOTP -> OTPType.HOTP
+
+                else -> OTPType.TOTP
+            }
+
+            Payload.OTPType::class -> when (typeValue) {
+                Payload.OTPType.TOTP -> OTPType.TOTP
+                Payload.OTPType.HOTP -> OTPType.HOTP
+
+                else -> OTPType.TOTP
+            }
+
+            else -> error("Unknown OTPType class")
+        }
     }
 
     companion object {
@@ -287,12 +335,12 @@ class AccountExporter {
          * Validates the given [Account] fields and throws an exception if any of them doesn't
          * follow the requirements
          */
-        fun validateSecret(secret: String, isBase32: Boolean) {
+        fun validateSecret(secret: String) {
             if (secret.isBlank()) {
                 error("Secret cannot be empty")
             }
 
-            if (isBase32 && !isValidBase32(secret)) {
+            if (!isValidBase32(secret)) {
                 error("Secret key must be a base32 string")
             }
 

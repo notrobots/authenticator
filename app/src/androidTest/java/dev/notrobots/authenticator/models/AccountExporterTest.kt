@@ -52,7 +52,7 @@ class AccountExporterTest {
             val exported = exporter.export(accounts) as String
             val imported = exporter.import(exported)
 
-            assert(accounts.contentEquals(imported) { a, b -> a.id == b.id })
+            assert(accounts.contentEquals(imported) { a, b -> a.id == b.id && a.secret == b.secret })
         }
     }
 

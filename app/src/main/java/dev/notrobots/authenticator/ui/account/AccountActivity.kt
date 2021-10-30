@@ -58,7 +58,6 @@ class AccountActivity : BaseActivity() {
             val issuer = text_account_issuer.text.toString()
             val label = text_account_label.text.toString()
             val secret = text_account_secret.text.toString()
-            val isBase32 = switch_account_base32.isChecked
             val hasError = {
                 layout_account_name.hasErrors
                         || layout_account_label.hasErrors
@@ -85,7 +84,7 @@ class AccountActivity : BaseActivity() {
             }
 
             try {
-                AccountExporter.validateSecret(secret, isBase32)
+                AccountExporter.validateSecret(secret)
             } catch (e: Exception) {
                 layout_account_secret.error = e.message
             }
@@ -100,16 +99,15 @@ class AccountActivity : BaseActivity() {
                     it.type = spinner_account_type.selectedValue as OTPType
                     it.digits = text_account_digits.text.toString().toIntOrNull() ?: 0
                     it.period = text_account_period.text.toString().toLongOrNull() ?: 0
-                    it.isBase32 = isBase32
                     it.algorithm = spinner_account_algorithm.selectedValue as HmacAlgorithm
                 }
 
                 lifecycleScope.launch {
                     try {
                         if (sourceAccount != null) {
-                            val overwrite = sourceAccount!!.name == account.name
-                                    && sourceAccount!!.label == account.label
-                                    && sourceAccount!!.issuer == account.issuer
+                            val overwrite = sourceAccount.name == account.name
+                                    && sourceAccount.label == account.label
+                                    && sourceAccount.issuer == account.issuer
 
                             viewModel.updateAccount(account, overwrite)
                         } else {
@@ -145,7 +143,6 @@ class AccountActivity : BaseActivity() {
         text_account_issuer.setText(account.issuer)
         text_account_digits.setText(account.digits.toString())
         text_account_period.setText(account.period.toString())
-        switch_account_base32.isChecked = account.isBase32
         spinner_account_algorithm.setSelection(account.algorithm)
         text_account_counter_value.setText(account.counter.toString())
         spinner_account_type.setSelection(account.type.toString())

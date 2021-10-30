@@ -19,5 +19,5 @@ fun <T> adapterOf(context: Context, iterable: Iterable<T>): ArrayAdapter<T> {
 }
 
 fun byteString(string: String): ByteString {
-    return ByteString.copyFrom(string.toByteArray())
+    return ByteString.copyFromUtf8(string)
 }

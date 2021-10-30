@@ -110,15 +110,6 @@
                 android:inputType="number" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/switch_account_base32"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:text="Base32 secret" />
-
         <dev.notrobots.authenticator.views.BetterSpinner
             android:id="@+id/spinner_account_algorithm"
             android:layout_width="match_parent"

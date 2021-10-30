@@ -18,11 +18,7 @@ object OTPGenerator {    //FIXME: OTPGenerator
 //    }
 
     fun generate(account: Account): String {
-        val secret = if (account.isBase32) {
-            Base32().decode(account.secret.toByteArray())
-        } else {
-            account.secret.toByteArray()
-        }
+        val secret = Base32().decode(account.secret.toByteArray())
 
         return when (account.type) {
             OTPType.TOTP -> {

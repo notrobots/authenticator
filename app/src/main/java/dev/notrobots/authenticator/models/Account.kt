@@ -56,11 +56,6 @@ class Account(
      */
     var groupId: Long = DEFAULT_GROUP_ID
 
-    /**
-     * Whether or not the secret is a base32 string
-     */
-    var isBase32: Boolean = true
-
     val path
         get() = if (label.isNotEmpty()) "$label:$name" else name
     val displayName
