@@ -15,13 +15,13 @@ import com.google.mlkit.vision.common.InputImage
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.activities.ThemedActivity
 import dev.notrobots.androidstuff.extensions.makeToast
+import dev.notrobots.androidstuff.extensions.setClearErrorOnType
 import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.util.loge
 import dev.notrobots.androidstuff.util.parseEnum
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.db.AccountDao
 import dev.notrobots.authenticator.dialogs.ErrorDialog
-import dev.notrobots.authenticator.extensions.setClearErrorOnType
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.AccountExporter
 import dev.notrobots.authenticator.models.ImportType
@@ -176,7 +176,7 @@ class ImportActivity : ThemedActivity() {
                 makeToast("No accounts to import")
             } else {
                 lifecycleScope.launch {
-                    accountDao.insert(accounts)
+                    accountDao.insert(accounts) //TODO: Let the user choose and tell them which are going to get replaced
 
                     startActivity(AccountListActivity::class) {
                         addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)

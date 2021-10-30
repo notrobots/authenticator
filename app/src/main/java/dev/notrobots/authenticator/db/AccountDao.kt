@@ -13,7 +13,7 @@ interface AccountDao {
     @Query("SELECT * FROM Account WHERE name = :name AND label = :label AND issuer = :issuer")
     suspend fun getAccount(name: String, label: String, issuer: String): Account
 
-    @Query("SELECT COUNT(name) FROM Account WHERE name = :name AND label = :label  AND issuer = :issuer")
+    @Query("SELECT COUNT(name) FROM Account WHERE name = :name AND label = :label AND issuer = :issuer")
     suspend fun getCount(name: String, label: String, issuer: String): Int
 
     @Query("SELECT COALESCE(MAX(`order`), 0) FROM Account")

@@ -112,10 +112,6 @@ class BetterSpinner(
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
     constructor(context: Context) : this(context, null, 0)
 
-    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
-        super.onLayout(changed, left, top, right, bottom)
-    }
-
     fun setItems(vararg entries: Pair<String, Any?>) {
         setItems(
             entries.map { it.first },

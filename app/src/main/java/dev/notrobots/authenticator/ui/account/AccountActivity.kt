@@ -1,34 +1,23 @@
 package dev.notrobots.authenticator.ui.account
 
-import android.app.Activity
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
-import dev.notrobots.androidstuff.activities.ThemedActivity
 import dev.notrobots.androidstuff.extensions.hasErrors
-import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.extensions.setClearErrorOnType
-import dev.notrobots.androidstuff.extensions.setErrorWhen
 import dev.notrobots.androidstuff.util.*
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.BaseActivity
-import dev.notrobots.authenticator.db.AccountDao
-import dev.notrobots.authenticator.db.AccountGroupDao
-import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.AccountExporter
-import dev.notrobots.authenticator.models.AccountGroup
 import dev.notrobots.authenticator.models.OTPType
 import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
-import dev.notrobots.authenticator.util.AuthenticatorException
+import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
 import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class AccountActivity : BaseActivity() {
@@ -45,41 +34,18 @@ class AccountActivity : BaseActivity() {
             account = intent.getSerializableExtra(EXTRA_ACCOUNT) as Account
             sourceAccount = account.clone()
             title = account.displayName
-            text_account_name.setText(account.name)
-            text_account_secret.setText(account.secret)
-            text_account_label.setText(account.label)
-            text_account_issuer.setText(account.issuer)
-            text_account_counter_value.setText(account.counter.toString())
-            spinner_account_type.setSelection(account.type.toString())
         } else {
             account = Account()
             sourceAccount = null
             title = "Add account"
         }
 
-        if (account.type == OTPType.HOTP) {
-            layout_account_counter.visibility = View.VISIBLE
-            img_account_counter_decrement.setOnClickListener {
-                if (account.counter > 0) {
-                    account.counter--
-                    text_account_counter_value.setText(account.counter.toString())
-                }
-            }
-            img_account_counter_increment.setOnClickListener {
-                account.counter++   //FIXME: What's the maximum here??
-                text_account_counter_value.setText(account.counter.toString())
-            }
-            text_account_counter_value.addTextChangedListener {
-                account.counter = it.toString().toLongOrNull() ?: 0
-            }
-        } else {
-            layout_account_counter.visibility = View.GONE
-        }
-
         layout_account_name.setClearErrorOnType()
         layout_account_secret.setClearErrorOnType()
         layout_account_label.setClearErrorOnType()
         layout_account_issuer.setClearErrorOnType()
+        spinner_account_algorithm.setValues<HmacAlgorithm>()
+        spinner_account_type.setValues<OTPType>()
         spinner_account_type.onItemClickListener = { entry, value ->
             if (parseEnum<OTPType>(value.toString()) == OTPType.HOTP) {
                 layout_account_counter.visibility = View.VISIBLE
@@ -92,12 +58,12 @@ class AccountActivity : BaseActivity() {
             val issuer = text_account_issuer.text.toString()
             val label = text_account_label.text.toString()
             val secret = text_account_secret.text.toString()
-            val type = parseEnum<OTPType>(spinner_account_type.selectedValue.toString())!!
+            val isBase32 = switch_account_base32.isChecked
             val hasError = {
                 layout_account_name.hasErrors
-                        && layout_account_label.hasErrors
-                        && layout_account_issuer.hasErrors
-                        && layout_account_secret.hasErrors
+                        || layout_account_label.hasErrors
+                        || layout_account_issuer.hasErrors
+                        || layout_account_secret.hasErrors
             }
 
             try {
@@ -119,13 +85,9 @@ class AccountActivity : BaseActivity() {
             }
 
             try {
-                AccountExporter.validateSecret(secret, true)
+                AccountExporter.validateSecret(secret, isBase32)
             } catch (e: Exception) {
                 layout_account_secret.error = e.message
-            }
-
-            when (type) {
-                //TODO Check the conditions for each of the different extra options
             }
 
             if (!hasError()) {
@@ -135,15 +97,19 @@ class AccountActivity : BaseActivity() {
                     it.issuer = issuer
                     it.label = label
                     it.secret = secret
-                    it.type = type
+                    it.type = spinner_account_type.selectedValue as OTPType
+                    it.digits = text_account_digits.text.toString().toIntOrNull() ?: 0
+                    it.period = text_account_period.text.toString().toLongOrNull() ?: 0
+                    it.isBase32 = isBase32
+                    it.algorithm = spinner_account_algorithm.selectedValue as HmacAlgorithm
                 }
 
                 lifecycleScope.launch {
                     try {
                         if (sourceAccount != null) {
-                            val overwrite = sourceAccount.name == account.name
-                                    && sourceAccount.label == account.label
-                                    && sourceAccount.issuer == account.issuer
+                            val overwrite = sourceAccount!!.name == account.name
+                                    && sourceAccount!!.label == account.label
+                                    && sourceAccount!!.issuer == account.issuer
 
                             viewModel.updateAccount(account, overwrite)
                         } else {
@@ -158,6 +124,31 @@ class AccountActivity : BaseActivity() {
                 }
             }
         }
+        layout_account_counter.visibility = if (account.type == OTPType.HOTP) View.VISIBLE else View.GONE
+        img_account_counter_decrement.setOnClickListener {
+            if (account.counter > 0) {
+                account.counter--
+                text_account_counter_value.setText(account.counter.toString())
+            }
+        }
+        img_account_counter_increment.setOnClickListener {
+            account.counter++   //FIXME: What's the maximum here??
+            text_account_counter_value.setText(account.counter.toString())
+        }
+        text_account_counter_value.addTextChangedListener {
+            account.counter = it.toString().toLongOrNull() ?: 0
+        }
+
+        text_account_name.setText(account.name)
+        text_account_secret.setText(account.secret)
+        text_account_label.setText(account.label)
+        text_account_issuer.setText(account.issuer)
+        text_account_digits.setText(account.digits.toString())
+        text_account_period.setText(account.period.toString())
+        switch_account_base32.isChecked = account.isBase32
+        spinner_account_algorithm.setSelection(account.algorithm)
+        text_account_counter_value.setText(account.counter.toString())
+        spinner_account_type.setSelection(account.type.toString())
 
         viewModel.groups.observe(this) {
             spinner_account_group.entries = it.map { it.name }

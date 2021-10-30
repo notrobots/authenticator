@@ -1,8 +1,6 @@
 package dev.notrobots.authenticator.models
 
-import android.annotation.SuppressLint
 import android.net.Uri
-import com.google.protobuf.MessageLite
 import dev.notrobots.androidstuff.util.error
 import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.logi
@@ -15,7 +13,6 @@ import dev.notrobots.authenticator.util.byteString
 import dev.notrobots.authenticator.util.isValidBase32
 import org.apache.commons.codec.binary.Base64
 
-@SuppressLint("DefaultLocale")
 class AccountExporter {
     var exportFormat: ExportFormat = ExportFormat.Default
     var exportOutput: ExportOutput = ExportOutput.Text
@@ -82,8 +79,25 @@ class AccountExporter {
         }
     }
 
+    fun importOne(text: String): Account {
+        return import(text).first()
+    }
+
+    fun importOne(uri: Uri): Account {
+        return import(uri).first()
+    }
+
     private fun parseAccountUri(uri: Uri): Account {
         val typeError = { error("Type must be one of [${OTPType.values().joinToString()}]") }
+
+        //
+        // Extra optional fields
+        //
+        val algorithm = parseEnum(uri[OTP_ALGORITHM], true) ?: Account.DEFAULT_OTP_ALGORITHM
+        val digits = uri[OTP_DIGITS]?.toIntOrNull() ?: Account.DEFAULT_OTP_DIGITS
+        val counter = uri[OTP_COUNTER]?.toLongOrNull() ?: Account.DEFAULT_OTP_COUNTER
+        val period = uri[OTP_PERIOD]?.toLongOrNull() ?: Account.DEFAULT_OTP_PERIOD
+        val isBase32 = uri.getBooleanQueryParameter(OTP_BASE32, true)
 
         //
         // Required fields
@@ -94,7 +108,7 @@ class AccountExporter {
         val secret = uri[OTP_SECRET] ?: error("Missing parameter 'secret'")
 
         validateName(name)
-        validateSecret(secret)
+        validateSecret(secret, isBase32)
 
         //
         // Optional fields
@@ -105,19 +119,15 @@ class AccountExporter {
         validateLabel(label)
         validateIssuer(issuer)
 
-        //
-        // Extra optional fields
-        //
-//                val algorithm = parseEnum(uri[OTP_ALGORITHM], true) ?: DEFAULT_OTP_ALGORITHM
-//                val digits = uri[OTP_DIGITS]?.toIntOrNull() ?: DEFAULT_OTP_DIGITS
-//                val counter = uri[OTP_COUNTER]?.toIntOrNull() ?: DEFAULT_OTP_COUNTER
-//                val period = uri[OTP_PERIOD]?.toIntOrNull() ?: DEFAULT_OTP_PERIOD
-//                val isBase32 = uri[OTP_BASE32]?.toBoolean() ?: DEFAULT_BASE32
-
         return Account(name, secret).apply {
             this.issuer = issuer
             this.label = label
             this.type = type
+            this.algorithm = algorithm
+            this.digits = digits
+            this.counter = counter
+            this.period = period
+            this.isBase32 = isBase32
         }
     }
 
@@ -271,32 +281,25 @@ class AccountExporter {
         const val OTP_ALGORITHM = "algorithm"
         const val OTP_DIGITS = "digits"
         const val OTP_PERIOD = "period"
-        const val DEFAULT_OTP_DIGITS = 6
-        const val DEFAULT_OTP_PERIOD = 30
-        const val DEFAULT_OTP_COUNTER = 0
-        val DEFAULT_OTP_ALGORITHM = OTPAlgorithm.SHA1
+        const val OTP_BASE32 = "base32"
 
         /**
          * Validates the given [Account] fields and throws an exception if any of them doesn't
          * follow the requirements
          */
-        fun validateSecret(secret: String) {
+        fun validateSecret(secret: String, isBase32: Boolean) {
             if (secret.isBlank()) {
                 error("Secret cannot be empty")
             }
 
-            //TODO: If isBase32Secret is true then check if it's actually a base32 string and pass it to the GoogleAuthenticator
-            // if isBase32Secret is false then pass the string to the TotpGenerator
-
-            //TODO:FEATURE It would be nice to show the users an advanced error and a regular error
-            if (!isValidBase32(secret)) {   //&& isBase32Secret
+            if (isBase32 && !isValidBase32(secret)) {
                 error("Secret key must be a base32 string")
             }
 
             // This check shouldn't be need but you never know
-            if (!OTPProvider.checkSecret(secret)) {
-                error("Invalid secret key")
-            }
+//            if (!OTPGenerator.checkSecret(secret)) {
+//                error("Invalid secret key")
+//            }
         }
 
         fun validateIssuer(issuer: String) {

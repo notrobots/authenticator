@@ -2,8 +2,8 @@ package dev.notrobots.authenticator.models
 
 import androidx.core.net.toUri
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import dev.notrobots.authenticator.extensions.allIndexed
-import dev.notrobots.authenticator.extensions.contentEquals
+import dev.notrobots.androidstuff.extensions.contentEquals
+import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
 import org.junit.Assert
 import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -59,7 +59,7 @@ class AccountExporterTest {
     @Test
     fun testImport() {
         val exporter = AccountExporter()
-        
+
         // Missing secret
         assertThrows<Exception> {
             exporter.import("otpauth://totp/test?issuer=test.com".toUri())
@@ -103,15 +103,27 @@ class AccountExporterTest {
             exporter.import("otpauth://totp/label:name?secret=abcdefghi".toUri())
         }
 
-        // Valid accounts
-        assertDoesNotThrow {
-            exporter.import("otpauth://totp/label:name?secret=22334455".toUri())
+        val account = assertDoesNotThrow {
+            exporter.importOne(
+                "otpauth://totp/label:name" +
+                        "?secret=123456789" +
+                        "&issuer=site.com" +
+                        "&base32=false" +
+                        "&algorithm=sha256" +
+                        "&counter=20" +
+                        "&period=60" +
+                        "&digits=8"
+            )
         }
-        assertDoesNotThrow {
-            exporter.import("otpauth://totp/name?secret=22334455&issuer=site.com".toUri())
-        }
-        assertDoesNotThrow {
-            exporter.import("otpauth://totp/label:name?secret=22334455&issuer=site.com".toUri())
-        }
+
+        assert(account.type == OTPType.TOTP)
+        assert(account.label == "label")
+        assert(account.name == "name")
+        assert(account.secret == "123456789")
+        assert(!account.isBase32)
+        assert(account.algorithm == HmacAlgorithm.SHA256)
+        assert(account.counter == 20L)
+        assert(account.period == 60L)
+        assert(account.digits == 8)
     }
 }
