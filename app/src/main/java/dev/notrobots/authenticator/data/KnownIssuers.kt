@@ -3,12 +3,8 @@ package dev.notrobots.authenticator.data
 import dev.notrobots.authenticator.R
 
 val KnownIssuers = mapOf(
-    Regex(
-        "(https://)?(www.)?github(.com)?",
-        RegexOption.IGNORE_CASE
-    ) to R.drawable.ic_launcher_background,
-    Regex(
-        "(https://)?(www.)?twitter(.com)?",
-        RegexOption.IGNORE_CASE
-    ) to R.drawable.ic_launcher_background
+    "(https://)?(www.)?github(.com)?" to R.drawable.ic_palette,
+    "(https://)?(www.)?twitter(.com)?" to R.drawable.ic_add,
+    "(https://)?(www.)?twitter(.com)?" to R.drawable.ic_delete,
+    ".*" to R.drawable.ic_save
 )

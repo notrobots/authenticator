@@ -21,6 +21,7 @@ import kotlinx.android.synthetic.main.item_account_group.view.text_group_name
 import kotlinx.android.synthetic.main.item_account_hotp.view.*
 import kotlinx.android.synthetic.main.item_account_hotp.view.img_account_edit
 import kotlinx.android.synthetic.main.item_account_totp.view.*
+import kotlinx.android.synthetic.main.item_account_totp.view.img_account_icon
 import kotlinx.android.synthetic.main.item_account_totp.view.img_drag_handle
 import kotlinx.android.synthetic.main.item_account_totp.view.text_account_label
 import kotlinx.android.synthetic.main.item_account_totp.view.text_account_pin
@@ -80,7 +81,11 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
             is AccountViewHolder -> {
                 val account = groupWithAccounts.accounts[position - 1]
                 val id = account.id
-                val icon = KnownIssuers.find { k, _ -> k.matches(account.issuer) }
+                val icon = KnownIssuers.find { k, _ ->
+                    val rgx = Regex(k, RegexOption.IGNORE_CASE)
+
+                    rgx.matches(account.issuer)
+                }!!.value
 
                 view.text_account_pin.visibility = if (showPins) View.VISIBLE else View.INVISIBLE
                 view.text_account_label.text = account.displayName
@@ -94,6 +99,8 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
                 view.img_account_edit.setOnClickListener {
                     listener?.onEdit(account, position, id, this)
                 }
+                view.img_account_icon.visibility = if (editMode != EditMode.Item) View.VISIBLE else View.GONE
+                view.img_account_icon.setImageResource(icon)
                 view.isSelected = account.isSelected
                 view.setOnClickListener {       //FIXME: Selection state should be changed here to improve performance
                     listener?.onClick(account, position, id, this)
