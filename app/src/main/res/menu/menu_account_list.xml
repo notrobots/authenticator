@@ -20,6 +20,11 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/menu_account_list_toggle_icons"
+        android:title="Show/Hide icons"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/menu_account_list_backup"
         android:title="Backup"
         app:showAsAction="ifRoom"/>

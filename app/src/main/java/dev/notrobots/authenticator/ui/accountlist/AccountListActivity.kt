@@ -400,6 +400,7 @@ class AccountListActivity : BaseActivity() {
                 AccountListAdapter(it).apply {
                     touchHelper = this@AccountListActivity.touchHelper
                     showPins = preferences.getBoolean(Preferences.SHOW_PINS, true)
+                    showIcons = preferences.getBoolean(Preferences.SHOW_ICONS, true)
                     setListener(accountListListener)
                 }
             }
@@ -516,6 +517,12 @@ class AccountListActivity : BaseActivity() {
             "Show pins"
         }
 
+        menu.findItem(R.id.menu_account_list_toggle_icons).title = if (adapter.showIcons) {
+            "Hide icons"
+        } else {
+            "Show icons"
+        }
+
         return true
     }
 
@@ -596,6 +603,14 @@ class AccountListActivity : BaseActivity() {
                 adapter.showPins = !showPins
                 preferences.edit {
                     putBoolean(Preferences.SHOW_PINS, !showPins)
+                }
+            }
+            R.id.menu_account_list_toggle_icons -> {
+                val showIcons = preferences.getBoolean(Preferences.SHOW_ICONS, true)
+
+                adapter.showIcons = !showIcons
+                preferences.edit {
+                    putBoolean(Preferences.SHOW_ICONS, !showIcons)
                 }
             }
             R.id.menu_account_list_backup -> {

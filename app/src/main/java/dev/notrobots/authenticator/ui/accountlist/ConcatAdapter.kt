@@ -33,6 +33,15 @@ var ConcatAdapter.showPins
         }
     }
 
+var ConcatAdapter.showIcons
+    get() = if (adapters.isNotEmpty()) (adapters.first() as AccountListAdapter).showIcons else true
+    set(value) {
+        for (adapter in adapters) {
+            adapter as AccountListAdapter
+            adapter.showIcons = value
+        }
+    }
+
 fun ConcatAdapter.clearSelectedAccounts() {
     for (adapter in adapters) {
         adapter as AccountListAdapter

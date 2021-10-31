@@ -38,6 +38,11 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
             field = value
             notifyItemRangeChanged(1, groupWithAccounts.accounts.size + 1)
         }
+    var showIcons: Boolean = true
+        set(value) {
+            field = value
+            notifyItemRangeChanged(1, groupWithAccounts.accounts.size + 1)
+        }
     var isExpanded: Boolean
         get() = groupWithAccounts.group.isExpanded
         set(value) {
@@ -99,7 +104,7 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
                 view.img_account_edit.setOnClickListener {
                     listener?.onEdit(account, position, id, this)
                 }
-                view.img_account_icon.visibility = if (editMode != EditMode.Item) View.VISIBLE else View.GONE
+                view.img_account_icon.visibility = if (editMode != EditMode.Item && showIcons) View.VISIBLE else View.GONE
                 view.img_account_icon.setImageResource(icon)
                 view.isSelected = account.isSelected
                 view.setOnClickListener {       //FIXME: Selection state should be changed here to improve performance
