@@ -15,7 +15,6 @@ class Account(
      */
     var secret: String,
 ) : BaseAccount(name), Serializable, Cloneable {
-
     /**
      * Account issuer, should be the company's website
      */
@@ -78,7 +77,6 @@ class Account(
         uri.appendQueryParameter(AccountExporter.OTP_DIGITS, digits.toString())
         uri.appendQueryParameter(AccountExporter.OTP_PERIOD, period.toString())
         uri.appendQueryParameter(AccountExporter.OTP_ALGORITHM, algorithm.toString().toLowerCase())
-        uri.appendQueryParameter(AccountExporter.OTP_BASE32, algorithm.toString().toLowerCase())
 
         if (issuer.isNotBlank()) {
             uri.appendQueryParameter(AccountExporter.OTP_ISSUER, issuer)

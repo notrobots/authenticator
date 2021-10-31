@@ -4,13 +4,13 @@ option java_package = "dev.notrobots.authenticator.proto";
 /**
  * Migration payload used by the official Google Authenticator
  */
-message MigrationPayload {
+message GoogleMigrationPayload {
   enum Algorithm {
-    UNSPECIFIED = 0;
-    SHA1 = 1;
-    SHA256 = 2;
-    SHA512 = 3;
-    MD5 = 4;
+    ALGORITHM_UNSPECIFIED = 0;
+    ALGORITHM_SHA1 = 1;
+    ALGORITHM_SHA256 = 2;
+    ALGORITHM_SHA512 = 3;
+    ALGORITHM_MD5 = 4;
   }
 
   enum DigitCount {
@@ -19,8 +19,7 @@ message MigrationPayload {
     DIGIT_COUNT_EIGHT = 2;
   }
 
-  //FIXME: Make the names shorter
-  enum OtpType {
+  enum OTPType {
     OTP_TYPE_UNSPECIFIED = 0;
     OTP_TYPE_HOTP = 1;
     OTP_TYPE_TOTP = 2;
@@ -32,11 +31,11 @@ message MigrationPayload {
     string issuer = 3;
     Algorithm algorithm = 4;
     DigitCount digits = 5;
-    OtpType type = 6;
+    OTPType type = 6;
     int64 counter = 7;
   }
 
-  repeated Account account = 1;
+  repeated Account accounts = 1;
   int32 version = 2;
   int32 batch_size = 3;   // Total number of payloads
   int32 batch_index = 4;  // Index of this payload

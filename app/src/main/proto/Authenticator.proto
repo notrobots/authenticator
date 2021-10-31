@@ -4,31 +4,33 @@ option java_package = "dev.notrobots.authenticator.proto";
 /**
  * Migration payload used by this app
  */
-message Payload {
-//  enum Algorithm {
-//    ALGORITHM_UNSPECIFIED = 0;
-//    SHA1 = 1;
-//    SHA256 = 2;
-//    SHA512 = 3;
-//    MD5 = 4;
-//  }
+message MigrationPayload {
+  enum Algorithm {
+    ALGORITHM_UNSPECIFIED = 0;
+    ALGORITHM_SHA1 = 1;
+    ALGORITHM_SHA256 = 2;
+    ALGORITHM_SHA512 = 3;
+    ALGORITHM_MD5 = 4;
+  }
 
   enum OTPType {
-    TYPE_UNSPECIFIED = 0;
-    HOTP = 1;
-    TOTP = 2;
+    OTP_TYPE_UNSPECIFIED = 0;
+    OTP_TYPE_HOTP = 2;
+    OTP_TYPE_TOTP = 3;
   }
 
   message Account {
-    bytes secret = 1;
-    string name = 2;
+    string name = 1;
+    bytes secret = 2;
     string issuer = 3;
     string label = 4;
-//    Algorithm algorithm = 5;
-//    int32 digits = 6;
     OTPType type = 5;
-//    int64 counter = 8;
-//    int64 order = 6;
+    int64 counter = 6;
+    int32 digits = 7;
+    int64 period = 8;
+    Algorithm algorithm = 9;
+    int64 order = 10;
+    int64 groupId = 11;
   }
 
   repeated Account accounts = 1;

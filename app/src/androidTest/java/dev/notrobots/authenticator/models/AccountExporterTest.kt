@@ -13,26 +13,28 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class AccountExporterTest {
-    private val accounts = listOf(
-        Account("max", "22334455").apply {
-            issuer = "google.com"
-            label = "Google"
-            type = OTPType.TOTP
-        },
-        Account("john", "22334455").apply {
-            issuer = "google.com"
-            label = "Google"
-            type = OTPType.HOTP
-        },
-        Account("jane", "22334455").apply {
-            issuer = "google.com"
-            label = "Google"
-            type = OTPType.TOTP
-        }
-    )
-
     @Test
     fun testExport() {
+        val accounts = listOf(
+            Account("max", "22334455").apply {
+                issuer = "google.com"
+                label = "Google"
+                type = OTPType.TOTP
+                algorithm = HmacAlgorithm.SHA1
+            },
+            Account("john", "22334455").apply {
+                issuer = "google.com"
+                label = "Google"
+                type = OTPType.HOTP
+                algorithm = HmacAlgorithm.SHA256
+            },
+            Account("jane", "22334455").apply {
+                issuer = "google.com"
+                label = "Google"
+                type = OTPType.TOTP
+                algorithm = HmacAlgorithm.SHA512
+            }
+        )
         val exporters = listOf(
             AccountExporter().apply {
                 exportFormat = ExportFormat.Default
@@ -106,9 +108,8 @@ class AccountExporterTest {
         val account = assertDoesNotThrow {
             exporter.importOne(
                 "otpauth://totp/label:name" +
-                        "?secret=123456789" +
+                        "?secret=22335544" +
                         "&issuer=site.com" +
-                        "&base32=false" +
                         "&algorithm=sha256" +
                         "&counter=20" +
                         "&period=60" +
@@ -119,8 +120,7 @@ class AccountExporterTest {
         assert(account.type == OTPType.TOTP)
         assert(account.label == "label")
         assert(account.name == "name")
-        assert(account.secret == "123456789")
-        assert(!account.isBase32)
+        assert(account.secret == "22335544")
         assert(account.algorithm == HmacAlgorithm.SHA256)
         assert(account.counter == 20L)
         assert(account.period == 60L)
