@@ -5,6 +5,8 @@ import android.widget.ArrayAdapter
 import com.google.protobuf.ByteString
 import org.apache.commons.codec.binary.Base32
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty
+import kotlin.reflect.jvm.isAccessible
 
 fun isValidBase32(base32: String): Boolean {
     return Base32().isInAlphabet(base32) && base32.length % 8 == 0
@@ -20,4 +22,15 @@ fun <T> adapterOf(context: Context, iterable: Iterable<T>): ArrayAdapter<T> {
 
 fun byteString(string: String): ByteString {
     return ByteString.copyFromUtf8(string)
+}
+
+inline fun <reified T> lazyType(crossinline initializer: T.() -> Unit = {}): Lazy<T> {
+    val type = T::class
+    val emptyConstructor = type.constructors.find { it.parameters.isEmpty() } ?: error("Type $type has no empty constructor")
+
+    emptyConstructor.isAccessible = true
+
+    return lazy {
+        emptyConstructor.call().apply(initializer)
+    }
 }

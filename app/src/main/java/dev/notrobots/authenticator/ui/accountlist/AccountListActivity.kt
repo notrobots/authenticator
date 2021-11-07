@@ -5,25 +5,25 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.TextView
-import androidx.activity.result.contract.ActivityResultContracts.*
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
 import androidx.core.content.edit
 import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
-import androidx.recyclerview.widget.*
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandableItemManager
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.copyToClipboard
 import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.extensions.startActivity
-import dev.notrobots.androidstuff.util.*
+import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.BaseActivity
 import dev.notrobots.authenticator.data.Preferences
 import dev.notrobots.authenticator.dialogs.*
-import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.google.CountdownIndicator
 import dev.notrobots.authenticator.google.TotpClock
 import dev.notrobots.authenticator.google.TotpCountdownTask
@@ -31,29 +31,19 @@ import dev.notrobots.authenticator.google.TotpCounter
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.backup.BackupActivity
-import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import dev.notrobots.authenticator.ui.backupexport.ExportActivity
 import dev.notrobots.authenticator.ui.backupexport.ExportConfigActivity
+import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import kotlinx.android.synthetic.main.activity_account_list.*
-import kotlinx.android.synthetic.main.dialog_account_url.view.*
 import kotlinx.coroutines.launch
-import java.util.*
 import java.util.concurrent.TimeUnit
-import kotlin.collections.ArrayList
 
 @AndroidEntryPoint
 class AccountListActivity : BaseActivity() {
     private val viewModel by viewModels<AccountListViewModel>()
-    private val adapter by lazy {
-        val config = ConcatAdapter.Config.Builder()
-            .setIsolateViewTypes(false)
-            .build()
-
-        ConcatAdapter(config)
-    }
-    private val touchHelper by lazy {
-        ItemTouchHelper(touchHelperCallback)
-    }
+    private val adapter = AccountListAdapter()
+    private lateinit var recyclerViewExpandableItemManager: RecyclerViewExpandableItemManager
+    private lateinit var adapterWrapper: RecyclerView.Adapter<*>
     private val preferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(this)
     }
@@ -91,75 +81,14 @@ class AccountListActivity : BaseActivity() {
             }
         }
     }
-
-    private val touchHelperCallback = object : ItemTouchHelper.Callback() {
-        override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
-            val adapterIndex = adapter.adapters.indexOf(viewHolder.bindingAdapter)
-
-            // Disable movement for the group header if the the group edit mode is not enabled
-            if (viewHolder.bindingAdapterPosition == 0 && adapter.editMode != AccountListAdapter.EditMode.Group) {
-                return 0
-            }
-
-            // Disable movement for the group at the bottom but not for its items
-            if (adapterIndex == adapter.adapters.lastIndex && adapter.editMode == AccountListAdapter.EditMode.Group) {
-                return 0
-            }
-
-            return makeMovementFlags(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0)
-        }
-
-        override fun isItemViewSwipeEnabled(): Boolean {
-            return false
-        }
-
-        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
-
-        override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
-            val sourceAdapter = viewHolder.bindingAdapter as AccountListAdapter
-            val targetAdapter = target.bindingAdapter as AccountListAdapter
-            val targetAdapterIndex = adapter.adapters.indexOf(targetAdapter)
-            val from = viewHolder.bindingAdapterPosition
-            val to = target.bindingAdapterPosition
-
-            // Disable movement if the current group is dragged below the default group,
-            // that is at the bottom of the list
-            if (targetAdapterIndex == adapter.adapters.lastIndex && adapter.editMode == AccountListAdapter.EditMode.Group) {
-                return false
-            }
-
-            // If the current moved view is the header
-            // swap the adapters inside the main ConcatAdapter
-            if (from == 0) {
-                val sourceIndex = adapter.adapters.indexOf(sourceAdapter)
-                val targetIndex = adapter.adapters.indexOf(targetAdapter)
-
-                adapter.swap(sourceIndex, targetIndex)
-            } else {
-                // Items can't be swapped with the header
-                // or dragged to another group
-                if (to == 0 || sourceAdapter != targetAdapter) {
-                    return false
-                }
-
-                sourceAdapter.swap(from, to)
-            }
-
-            return true
-        }
-    }
     private var actionMode: ActionMode? = null
 
-    private val accountListListener = object : AccountListAdapter.Listener {
-        override fun onClick(account: Account, position: Int, id: Long, adapter: AccountListAdapter) {
+    private val accountListAdapterListener = object : AccountListAdapter.Listener {
+        override fun onItemClick(account: Account, id: Long, adapter: AccountListAdapter) {
             if (actionMode != null) {
-                account.toggleSelected()
-
                 if (!account.isSelected && adapter.selectedAccounts.isEmpty()) {
                     actionMode?.finish()
                 }
-
-                adapter.notifyItemChanged(position)
                 actionMode?.title = adapter.selectedAccounts.size.toString()
             } else {
                 copyToClipboard(OTPGenerator.generate(account))
@@ -167,36 +96,36 @@ class AccountListActivity : BaseActivity() {
             }
         }
 
-        override fun onLongClick(account: Account, position: Int, id: Long, adapter: AccountListAdapter): Boolean {
+        override fun onItemLongClick(account: Account, id: Long, adapter: AccountListAdapter): Boolean {
             if (actionMode == null) {
-                account.isSelected = true
-                adapter.notifyItemChanged(position)
                 startSupportActionMode(accountActionMode)
             }
 
             return true
         }
 
-        override fun onEdit(account: Account, position: Int, id: Long, adapter: AccountListAdapter) {
+        override fun onItemEdit(account: Account, id: Long, adapter: AccountListAdapter) {
             startActivity(AccountActivity::class) {
                 putExtra(AccountActivity.EXTRA_ACCOUNT, account)
             }
             actionMode?.finish()
         }
 
-        override fun onClick(group: AccountGroup, position: Int, id: Long, adapter: AccountListAdapter) {
-            if (adapter.editMode == AccountListAdapter.EditMode.Group) {
+        override fun onGroupClick(group: AccountGroup, id: Long, adapter: AccountListAdapter) {
+            if (actionMode != null) {
+                if (!group.isSelected && adapter.selectedGroups.isEmpty()) {
+                    actionMode?.finish()
+                }
+
                 actionMode?.title = this@AccountListActivity.adapter.selectedGroups.size.toString()
             }
         }
 
-        override fun onLongClick(group: AccountGroup, position: Int, id: Long, adapter: AccountListAdapter): Boolean {
-            //TODO: Edit groups
-
+        override fun onGroupLongClick(group: AccountGroup, id: Long, adapter: AccountListAdapter): Boolean {
             return true
         }
 
-        override fun onEdit(group: AccountGroup, position: Int, id: Long, adapter: AccountListAdapter) {
+        override fun onGroupEdit(group: AccountGroup, id: Long, adapter: AccountListAdapter) {
             val dialog = AddAccountGroupDialog()
 
             dialog.text = group.name
@@ -217,19 +146,13 @@ class AccountListActivity : BaseActivity() {
             }
             dialog.show(supportFragmentManager, null)
         }
-
-        override fun onCounterIncrement(view: TextView, account: Account, position: Int, id: Long, adapter: AccountListAdapter) {
-            account.counter++
-            view.text = OTPGenerator.generate(account)
-        }
     }
-
     private val accountActionMode = object : ActionMode.Callback {
         override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
             menuInflater.inflate(R.menu.menu_account_list_item, menu)
             actionMode = mode
             actionMode?.title = adapter.selectedAccounts.size.toString()
-            adapter.setEditMode(AccountListAdapter.EditMode.Item)
+            adapter.editMode = AccountListAdapter.EditMode.Item
             adapter.notifyDataSetChanged()
 
             return true
@@ -260,11 +183,10 @@ class AccountListActivity : BaseActivity() {
                 R.id.menu_account_export -> {
                     if (adapter.selectedAccounts.isNotEmpty()) {
                         val accounts = ArrayList(adapter.selectedAccounts)
-                        val intent = Intent(this@AccountListActivity, ExportActivity::class.java)
 
-                        intent.putExtra(ExportConfigActivity.EXTRA_ACCOUNT_LIST, accounts)
-
-                        startActivity(intent)
+                        startActivity(ExportActivity::class) {
+                            putExtra(ExportConfigActivity.EXTRA_ACCOUNT_LIST, accounts)
+                        }
                         actionMode?.finish()
                     } else {
                         makeToast("No accounts selected")
@@ -272,23 +194,20 @@ class AccountListActivity : BaseActivity() {
                 }
                 R.id.menu_account_selectall -> {
                     if (adapter.accounts.isNotEmpty()) {
-                        for (account in adapter.accounts) {
-                            account.isSelected = true
-                        }
+                        adapter.selectAllAccounts()
                         actionMode?.title = adapter.selectedAccounts.size.toString()
-                        adapter.notifyDataSetChanged()
                     } else {
                         makeToast("Nothing to select")
                     }
                 }
             }
-//
+
             return true
         }
 
         override fun onDestroyActionMode(mode: ActionMode?) {
             actionMode = null
-            adapter.setEditMode(AccountListAdapter.EditMode.Disabled)
+            adapter.editMode = AccountListAdapter.EditMode.Disabled
             adapter.clearSelectedAccounts()
         }
     }
@@ -297,8 +216,10 @@ class AccountListActivity : BaseActivity() {
             menuInflater.inflate(R.menu.menu_account_list_group, menu)
             actionMode = mode
             actionMode?.title = adapter.selectedGroups.size.toString()
-            adapter.setEditMode(AccountListAdapter.EditMode.Group)
-            adapter.notifyAllDataSetChanged()   //FIXME: This or the regular notify??
+            adapter.editMode = AccountListAdapter.EditMode.Group
+            adapter.notifyDataSetChanged()
+
+            collapseGroups()
 
             return true
         }
@@ -310,12 +231,17 @@ class AccountListActivity : BaseActivity() {
         override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
             when (item.itemId) {
                 R.id.menu_group_selectall -> {
-                    adapter.selectAllGroups()
+                    if (adapter.groups.isNotEmpty()) {
+                        adapter.selectAllGroups()
+                        actionMode?.title = adapter.selectedGroups.size.toString()
+                    } else {
+                        makeToast("Nothing to select")
+                    }
                 }
                 R.id.menu_group_remove -> { //TODO: Let the user keep the accounts, either unpack the group (move to default) or move to a specific group
                     val selectedGroups = adapter.selectedGroups
                     val selectedGroupIDs = selectedGroups.map { it.id }
-                    val accounts = adapter.groupsWithAccounts.flatMap { it.accounts.filter { it.groupId in selectedGroupIDs } }
+                    val accounts = adapter.accounts.filter { it.groupId in selectedGroupIDs }
                     val dialog = DeleteGroupDialog(selectedGroups.size, accounts.size)
 
                     dialog.onConfirmListener = {
@@ -336,20 +262,18 @@ class AccountListActivity : BaseActivity() {
 
         override fun onDestroyActionMode(mode: ActionMode?) {
             actionMode = null
-            adapter.setEditMode(AccountListAdapter.EditMode.Disabled)
+            adapter.editMode = AccountListAdapter.EditMode.Disabled
             adapter.clearSelectedGroups()
+
+            resetGroupStates()
         }
     }
-//    private var showPins = true
 
     //region Activity lifecycle
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_account_list)
-
-        list_accounts.adapter = adapter
-        list_accounts.layoutManager = LinearLayoutManager(this)
 
         btn_add_account_qr.setOnClickListener {
             val intent = Intent(this, BarcodeScannerActivity::class.java)
@@ -394,51 +318,67 @@ class AccountListActivity : BaseActivity() {
             btn_add_account.close(true)
         }
 
+        setupListAdapter()
         createDefaultGroup()
+
         viewModel.groupsWithAccount.observe(this) {
-            val adapters = it.map {
-                AccountListAdapter(it).apply {
-                    touchHelper = this@AccountListActivity.touchHelper
-                    showPins = preferences.getBoolean(Preferences.SHOW_PINS, true)
-                    showIcons = preferences.getBoolean(Preferences.SHOW_ICONS, true)
-                    setListener(accountListListener)
-                }
-            }
+            adapter.setItems(it)
 
-            if (adapter.adapters.isEmpty()) {
-                adapter.addAllAdapters(adapters)
-            } else {
-                val result = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
-                    override fun getOldListSize(): Int {
-                        return adapter.adapters.size
-                    }
+//            val animator: GeneralItemAnimator = RefactoredDefaultItemAnimator()
+//            animator.supportsChangeAnimations = false
+//
+//            list_accounts.itemAnimator = animator
 
-                    override fun getNewListSize(): Int {
-                        return adapters.size
-                    }
+//            recyclerViewExpandableItemManager.setOnGroupCollapseListener { groupPosition, fromUser, payload ->
+//
+//            }
+//            recyclerViewExpandableItemManager.setOnGroupExpandListener { groupPosition, fromUser, payload ->
+//
+//            }
+//            adapter.setItems(it)
 
-                    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                        val oldId = (adapter.adapters[oldItemPosition] as AccountListAdapter).groupWithAccounts.group.id
-                        val newId = adapters[newItemPosition].groupWithAccounts.group.id
-
-                        return oldId == newId
-                    }
-
-                    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                        val old = (adapter.adapters[oldItemPosition] as AccountListAdapter).groupWithAccounts
-                        val new = adapters[newItemPosition].groupWithAccounts
-
-                        return old.group == new.group && old.accounts == new.accounts
-                    }
-                })
-                list_accounts.adapter = null
-                adapter.clearAdapters()
-                adapter.addAllAdapters(adapters)
-                list_accounts.adapter = adapter
-                result.dispatchUpdatesTo(adapter)
-            }
+//            val adapters = it.map {
+//                AccountListAdapter(it).apply {
+//                    touchHelper = this@AccountListActivity.touchHelper
+//                    showPins = preferences.getBoolean(Preferences.SHOW_PINS, true)
+//                    showIcons = preferences.getBoolean(Preferences.SHOW_ICONS, true)
+//                    setListener(accountListListener)
+//                }
+//            }
+//
+//            if (adapter.adapters.isEmpty()) {
+//                adapter.addAllAdapters(adapters)
+//            } else {
+//                val result = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+//                    override fun getOldListSize(): Int {
+//                        return adapter.adapters.size
+//                    }
+//
+//                    override fun getNewListSize(): Int {
+//                        return adapters.size
+//                    }
+//
+//                    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+//                        val oldId = (adapter.adapters[oldItemPosition] as AccountListAdapter).groupWithAccounts.group.id
+//                        val newId = adapters[newItemPosition].groupWithAccounts.group.id
+//
+//                        return oldId == newId
+//                    }
+//
+//                    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+//                        val old = (adapter.adapters[oldItemPosition] as AccountListAdapter).groupWithAccounts
+//                        val new = adapters[newItemPosition].groupWithAccounts
+//
+//                        return old.group == new.group && old.accounts == new.accounts
+//                    }
+//                })
+//                list_accounts.adapter = null
+//                adapter.clearAdapters()
+//                adapter.addAllAdapters(adapters)
+//                list_accounts.adapter = adapter
+//                result.dispatchUpdatesTo(adapter)
+//            }
         }
-        touchHelper.attachToRecyclerView(list_accounts)
     }
 
     override fun onStart() {
@@ -536,7 +476,7 @@ class AccountListActivity : BaseActivity() {
                 }
             }
             R.id.menu_refresh -> {
-                adapter.notifyAllDataSetChanged()
+                adapter.notifyDataSetChanged()
             }
             R.id.menu_add_test -> {
                 val groups = listOf(
@@ -573,7 +513,7 @@ class AccountListActivity : BaseActivity() {
                     Account("Max", "22334466").apply { label = "Steam"; groupId = 2 },
                     Account("Max", "22332277").apply { label = "Amazon"; groupId = 2 },
                     Account("Max", "22334455").apply { label = "EGS"; groupId = 2 },
-                    Account("Max", "22444455").apply { label = "Github"},
+                    Account("Max", "22444455").apply { label = "Github" },
                     Account("JohnDoe", "22774477"),
                     Account("MarioRossi", "77334455"),
                     Account("JaneDoe", "22223355")
@@ -593,9 +533,6 @@ class AccountListActivity : BaseActivity() {
             }
             R.id.menu_account_list_edit_group -> {
                 startSupportActionMode(groupActionMode)
-
-                adapter.setEditMode(AccountListAdapter.EditMode.Group)
-                adapter.notifyAllDataSetChanged()
             }
             R.id.menu_account_list_toggle_pins -> {
                 val showPins = preferences.getBoolean(Preferences.SHOW_PINS, true)
@@ -646,6 +583,40 @@ class AccountListActivity : BaseActivity() {
                 logd("Default group added")
             } else {
                 logd("Default group already added")
+            }
+        }
+    }
+
+    private fun setupListAdapter() {
+        recyclerViewExpandableItemManager = RecyclerViewExpandableItemManager(null).apply {
+            attachRecyclerView(list_accounts)
+            setOnGroupCollapseListener { groupPosition, _, _ ->
+                adapter.groups[groupPosition].isExpanded = false
+            }
+            setOnGroupExpandListener { groupPosition, _, _ ->
+                adapter.groups[groupPosition].isExpanded = true
+            }
+        }
+        adapterWrapper = recyclerViewExpandableItemManager.createWrappedAdapter(adapter)
+
+        adapter.setListener(accountListAdapterListener)
+
+        list_accounts.adapter = adapterWrapper
+        list_accounts.layoutManager = LinearLayoutManager(this)
+    }
+
+    private fun collapseGroups() {
+        recyclerViewExpandableItemManager.collapseAll()
+    }
+
+    private fun resetGroupStates() {
+        for ((index, group) in adapter.groups.withIndex()) {
+            val expandState = recyclerViewExpandableItemManager.isGroupExpanded(index)
+
+            if (group.isExpanded && !expandState) {
+                recyclerViewExpandableItemManager.expandGroup(index)
+            } else if (expandState) {
+                recyclerViewExpandableItemManager.collapseGroup(index)
             }
         }
     }

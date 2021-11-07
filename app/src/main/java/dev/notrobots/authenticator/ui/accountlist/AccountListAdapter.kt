@@ -1,256 +1,334 @@
 package dev.notrobots.authenticator.ui.accountlist
 
-import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.TextView
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.RecyclerView
+import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAdapter
+import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder
 import dev.notrobots.androidstuff.extensions.setTint
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.data.KnownIssuers
-import dev.notrobots.authenticator.extensions.*
-import dev.notrobots.androidstuff.util.*
+import dev.notrobots.authenticator.extensions.find
 import dev.notrobots.authenticator.models.*
-import kotlinx.android.synthetic.main.item_account_group.view.text_group_name
+import kotlinx.android.synthetic.main.item_account_group.view.*
+import kotlinx.android.synthetic.main.item_account_group.view.img_account_edit
+import kotlinx.android.synthetic.main.item_account_group.view.img_drag_handle
 import kotlinx.android.synthetic.main.item_account_hotp.view.*
-import kotlinx.android.synthetic.main.item_account_hotp.view.img_account_edit
 import kotlinx.android.synthetic.main.item_account_totp.view.*
 import kotlinx.android.synthetic.main.item_account_totp.view.img_account_icon
-import kotlinx.android.synthetic.main.item_account_totp.view.img_drag_handle
 import kotlinx.android.synthetic.main.item_account_totp.view.text_account_label
 import kotlinx.android.synthetic.main.item_account_totp.view.text_account_pin
-import java.util.*
 
-class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-    private var listener: Listener? = null
-    private val handler = Handler()
-    val selectedAccounts
-        get() = groupWithAccounts.accounts.filter { it.isSelected }
+private typealias ParentViewHolder = AccountListAdapter.GroupViewHolder
+private typealias ChildViewHolder = AccountListAdapter.AccountViewHolder
+
+class AccountListAdapter(
+) : AbstractExpandableItemAdapter<ParentViewHolder, ChildViewHolder>()
+//    ,ExpandableDraggableItemAdapter<ParentViewHolder, ChildViewHolder>
+{
+    private var listener: Listener = object : Listener {}
+    private var items: List<GroupWithAccounts> = emptyList()
+    private val handler = Handler(Looper.getMainLooper())
     var editMode: EditMode = EditMode.Disabled
     var showPins: Boolean = true
         set(value) {
             field = value
-            notifyItemRangeChanged(1, groupWithAccounts.accounts.size + 1)
+            notifyDataSetChanged()  //FIXME: Only notify accounts
         }
     var showIcons: Boolean = true
         set(value) {
             field = value
-            notifyItemRangeChanged(1, groupWithAccounts.accounts.size + 1)
+            notifyDataSetChanged()
         }
-    var isExpanded: Boolean
-        get() = groupWithAccounts.group.isExpanded
-        set(value) {
-            groupWithAccounts.group.isExpanded = value
-            if (value) {
-                notifyItemRangeInserted(1, groupWithAccounts.accounts.size)
-            } else {
-                notifyItemRangeRemoved(1, groupWithAccounts.accounts.size)
-            }
-            notifyItemChanged(0)
-        }
-    var touchHelper: ItemTouchHelper? = null
+    val groups
+        get() = items.map { it.group }
+    val selectedGroups
+        get() = groups.filter { it.isSelected }
+    val accounts
+        get() = items.flatMap { it.accounts }
+    val selectedAccounts
+        get() = accounts.filter { it.isSelected }
 
     init {
         setHasStableIds(true)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        val inflate = { layout: Int ->
-            LayoutInflater.from(parent.context).inflate(
-                layout,
-                parent,
-                false
-            )
-        }
-
-        return when (viewType) {
-            VIEW_TYPE_GROUP -> GroupViewHolder(inflate(R.layout.item_account_group))
-            VIEW_TYPE_ACCOUNT_TOTP -> AccountViewHolder(inflate(R.layout.item_account_totp))
-            VIEW_TYPE_ACCOUNT_HOTP -> AccountViewHolder(inflate(R.layout.item_account_hotp))
-
-            else -> error("Unknown view type")
-        }
+    override fun getGroupCount(): Int {
+        return items.size
     }
 
-    @SuppressLint("ClickableViewAccessibility") //FIXME: bad practice
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val view = holder.itemView
-
-        when (holder) {
-            is AccountViewHolder -> {
-                val account = groupWithAccounts.accounts[position - 1]
-                val id = account.id
-                val icon = KnownIssuers.find { k, _ ->
-                    val rgx = Regex(k, RegexOption.IGNORE_CASE)
-
-                    rgx.matches(account.issuer)
-                }!!.value
-
-                view.text_account_pin.visibility = if (showPins) View.VISIBLE else View.INVISIBLE
-                view.text_account_label.text = account.displayName
-                view.img_drag_handle.visibility = if (editMode == EditMode.Item) View.VISIBLE else View.GONE
-                view.img_drag_handle.setOnTouchListener { v, event ->
-                    touchHelper?.startDrag(holder)
-
-                    true
-                }
-                view.img_account_edit.visibility = if (editMode == EditMode.Item) View.VISIBLE else View.GONE
-                view.img_account_edit.setOnClickListener {
-                    listener?.onEdit(account, position, id, this)
-                }
-                view.img_account_icon.visibility = if (editMode != EditMode.Item && showIcons) View.VISIBLE else View.GONE
-                view.img_account_icon.setImageResource(icon)
-                view.isSelected = account.isSelected
-                view.setOnClickListener {       //FIXME: Selection state should be changed here to improve performance
-                    listener?.onClick(account, position, id, this)
-                }
-                view.setOnLongClickListener {
-                    listener?.onLongClick(account, position, id, this) ?: false
-                }
-
-                when (account.type) {
-                    OTPType.TOTP -> {
-                        view.text_account_pin.text = OTPGenerator.generate(account)
-                        view.pb_phase.visibility = if (editMode == EditMode.Item) View.GONE else View.VISIBLE
-                    }
-                    OTPType.HOTP -> {
-                        //view.text_account_pin.text = "- - - - - -"           // "-".repeat(account.digits)
-                        view.img_account_counter_update.visibility = if (editMode == EditMode.Item) View.GONE else View.VISIBLE
-                        view.img_account_counter_update.setOnClickListener {
-                            it as ImageView
-
-                            listener?.onCounterIncrement(view.text_account_pin, account, position, id, this)
-                            it.isEnabled = false
-                            it.setTint(Color.LTGRAY)    //FIXME: Use the app's colors
-
-                            handler.postDelayed({
-                                it.isEnabled = true
-                                it.setTint(Color.BLUE)
-                            }, Account.HOTP_CODE_INTERVAL)
-                        }
-                    }
-                }
-            }
-            is GroupViewHolder -> {
-                val group = groupWithAccounts.group
-
-                if (!group.isDefault) {
-                    view.isSelected = group.isSelected
-                    view.setOnClickListener {
-                        if (editMode == EditMode.Group) {
-                            group.toggleSelected()
-                            view.isSelected = group.isSelected
-                        }
-
-                        if (editMode == EditMode.Disabled) {
-                            isExpanded = !isExpanded
-                        }
-
-                        listener?.onClick(group, position, group.id, this)
-                    }
-                    view.setOnLongClickListener {
-                        listener?.onLongClick(group, position, group.id, this) ?: false
-                    }
-
-                    view.text_group_name.text = group.name
-                    view.img_account_edit.visibility = if (editMode == EditMode.Group) View.VISIBLE else View.GONE
-                    view.img_account_edit.setOnClickListener {
-                        listener?.onEdit(group, position, group.id, this)
-                    }
-                    view.img_drag_handle.visibility = if (editMode == EditMode.Group) View.VISIBLE else View.GONE
-                    view.img_drag_handle.setOnTouchListener { v, event ->
-                        touchHelper?.startDrag(holder)
-
-                        true
-                    }
-                } else {
-                    view.text_group_name.text = null
-                }
-            }
-        }
+    override fun getChildCount(groupPosition: Int): Int {
+        return items[groupPosition].accounts.size
     }
 
-    override fun getItemId(position: Int): Long {
-        return when (position) {
-            0 -> groupWithAccounts.group.id
-
-            else -> groupWithAccounts.accounts[position].id
-        }
+    override fun getGroupId(groupPosition: Int): Long {
+        return groups[groupPosition].id
     }
 
-    override fun getItemCount(): Int {
-        return when {
-            editMode == EditMode.Group || !isExpanded -> 1
-
-            else -> (groupWithAccounts.accounts.size ?: 0) + 1
-        }
+    override fun getChildId(groupPosition: Int, childPosition: Int): Long {
+        return items[groupPosition].accounts[childPosition].id
     }
 
-    override fun getItemViewType(position: Int): Int {
-        if (position == 0) {
-            return VIEW_TYPE_GROUP
-        }
+    override fun getGroupItemViewType(groupPosition: Int): Int {
+        return VIEW_TYPE_GROUP
+    }
 
-        return when (groupWithAccounts.accounts[position - 1].type) {
+    override fun getChildItemViewType(groupPosition: Int, childPosition: Int): Int {
+        return when (items[groupPosition].accounts[childPosition].type) {
             OTPType.TOTP -> VIEW_TYPE_ACCOUNT_TOTP
             OTPType.HOTP -> VIEW_TYPE_ACCOUNT_HOTP
         }
     }
 
-    fun swap(from: Int, to: Int) {
-        //FIXME: It doesn't swap anything
-        val accounts = groupWithAccounts.accounts
-
-        Collections.swap(groupWithAccounts.accounts, from - 1, to - 1)
-
-        if (from != to) {
-            swap(accounts[from - 1], accounts[to - 1], { it.order }, { t, v -> t.order = v })
-        }
-
-        notifyItemMoved(from, to)
-        notifyItemChanged(from) //TODO: Check if this is needed
-        notifyItemChanged(to)
+    override fun onCreateGroupViewHolder(parent: ViewGroup, viewType: Int): GroupViewHolder {
+        return GroupViewHolder(R.layout.item_account_group, parent)
     }
 
-    fun clearSelected() {
-        selectedAccounts.forEach { it.isSelected = false }
+    override fun onCreateChildViewHolder(parent: ViewGroup, viewType: Int): AccountViewHolder {
+        return when (viewType) {
+            VIEW_TYPE_ACCOUNT_TOTP -> TOTPViewHolder(R.layout.item_account_totp, parent)
+            VIEW_TYPE_ACCOUNT_HOTP -> HOTPViewHolder(R.layout.item_account_hotp, parent)
+
+            else -> error("Unknown view type")
+        }
+    }
+
+    override fun onBindGroupViewHolder(holder: GroupViewHolder, groupPosition: Int, viewType: Int) {
+        val group = groups[groupPosition]
+        val view = holder.itemView
+
+        if (!group.isDefault) {
+            view.isSelected = group.isSelected
+            view.setOnClickListener {
+                if (!group.isDefault) {
+                    if (editMode == EditMode.Group) {
+                        group.toggleSelected()
+                        view.isSelected = group.isSelected
+                    }
+
+                    listener.onGroupClick(group, group.id, this)
+                }
+            }
+            view.setOnLongClickListener {
+                if (!group.isDefault) {
+                    listener.onGroupLongClick(group, group.id, this)
+                } else {
+                    false
+                }
+            }
+
+            view.text_group_name.text = group.name
+            view.img_account_edit.visibility = if (editMode == EditMode.Group) View.VISIBLE else View.GONE
+            view.img_account_edit.setOnClickListener {
+                listener.onGroupEdit(group, group.id, this)
+            }
+            view.img_drag_handle.visibility = if (editMode == EditMode.Group) View.VISIBLE else View.GONE
+            view.img_drag_handle.setOnTouchListener { v, event ->
+//                touchHelper?.startDrag(holder)
+
+                true
+            }
+        } else {
+            view.text_group_name.text = null
+        }
+    }
+
+    override fun onBindChildViewHolder(holder: AccountViewHolder, groupPosition: Int, childPosition: Int, viewType: Int) {
+        val view = holder.itemView
+        val account = items[groupPosition].accounts[childPosition]
+        val id = account.id
+        val icon = KnownIssuers.find { k, _ ->
+            val rgx = Regex(k, RegexOption.IGNORE_CASE)
+
+            rgx.matches(account.issuer)
+        }!!.value
+
+        view.text_account_pin.visibility = if (showPins) View.VISIBLE else View.INVISIBLE
+        view.text_account_label.text = account.displayName
+        view.img_drag_handle.visibility = if (editMode == EditMode.Item) View.VISIBLE else View.GONE
+        view.img_drag_handle.setOnTouchListener { v, event ->
+//            touchHelper?.startDrag(holder)
+
+            true
+        }
+        view.img_account_edit.visibility = if (editMode == EditMode.Item) View.VISIBLE else View.GONE
+        view.img_account_edit.setOnClickListener {
+            listener.onItemEdit(account, id, this)
+        }
+        view.img_account_icon.visibility = if (editMode != EditMode.Item && showIcons) View.VISIBLE else View.GONE
+        view.img_account_icon.setImageResource(icon)
+        view.isSelected = account.isSelected
+        view.setOnClickListener {
+            if (editMode == EditMode.Item) {
+                account.toggleSelected()
+                view.isSelected = account.isSelected
+            }
+
+            listener.onItemClick(account, id, this)
+        }
+        view.setOnLongClickListener {
+            if (editMode == EditMode.Disabled) {
+                account.toggleSelected()
+                view.isSelected = account.isSelected
+            }
+
+            listener.onItemLongClick(account, id, this)
+        }
+
+        when (account.type) {
+            OTPType.TOTP -> {
+                view.text_account_pin.text = OTPGenerator.generate(account)
+                view.pb_phase.visibility = if (editMode == EditMode.Item) View.GONE else View.VISIBLE
+            }
+            OTPType.HOTP -> {
+                //view.text_account_pin.text = "- - - - - -"           // "-".repeat(account.digits)
+                view.img_account_counter_update.visibility = if (editMode == EditMode.Item) View.GONE else View.VISIBLE
+                view.img_account_counter_update.setOnClickListener {
+                    it as ImageView
+
+                    account.counter++
+                    view.text_account_pin.text = OTPGenerator.generate(account)
+                    it.isEnabled = false
+                    it.setTint(Color.LTGRAY)    //FIXME: Use the app's colors
+
+                    handler.postDelayed({
+                        it.isEnabled = true
+                        it.setTint(Color.BLUE)
+                    }, Account.HOTP_CODE_INTERVAL)
+
+                    listener.onItemCounterIncrement(account, id, this)
+                }
+            }
+        }
+    }
+
+    override fun onCheckCanExpandOrCollapseGroup(holder: GroupViewHolder, groupPosition: Int, x: Int, y: Int, expand: Boolean): Boolean {
+        // If the adapter is in Group or Item edit mode,
+        // do no collapse/expand the groups
+        if (editMode != EditMode.Disabled) {
+            return false
+        }
+
+        // The default group cannot expand or collapse
+        if (groups[groupPosition].isDefault) {
+            return false
+        }
+
+        return true
+    }
+
+    override fun getInitialGroupExpandedState(groupPosition: Int): Boolean {
+        val group = groups[groupPosition]
+
+        // If the adapter is in Group edit mode,
+        // collapse the groups so that they're easily movable
+        //
+        // Note: This won't collapse the group when calling notifyDataSetChanged(),
+        // the group expand state must be changed using the RecyclerViewExpandableItemManager
+        if (editMode == EditMode.Group) {
+            return false
+        }
+
+        // The default group is always expanded
+        if (group.isDefault) {
+            return true
+        }
+
+        return group.isExpanded
+    }
+
+
+    //    override fun onCheckGroupCanStartDrag(holder: GroupViewHolder, groupPosition: Int, x: Int, y: Int): Boolean {
+//        return true
+//    }
+//
+//    override fun onCheckChildCanStartDrag(holder: AccountViewHolder, groupPosition: Int, childPosition: Int, x: Int, y: Int): Boolean {
+//        return true
+//    }
+//
+//    override fun onGetGroupItemDraggableRange(holder: GroupViewHolder, groupPosition: Int): ItemDraggableRange? {
+//        return null
+//    }
+//
+//    override fun onGetChildItemDraggableRange(holder: AccountViewHolder, groupPosition: Int, childPosition: Int): ItemDraggableRange? {
+//        return null
+//    }
+//
+//    override fun onMoveGroupItem(fromGroupPosition: Int, toGroupPosition: Int) {
+//
+//    }
+//
+//    override fun onMoveChildItem(fromGroupPosition: Int, fromChildPosition: Int, toGroupPosition: Int, toChildPosition: Int) {
+//
+//    }
+//
+//    override fun onCheckGroupCanDrop(draggingGroupPosition: Int, dropGroupPosition: Int): Boolean {
+//        return true
+//    }
+//
+//    override fun onCheckChildCanDrop(draggingGroupPosition: Int, draggingChildPosition: Int, dropGroupPosition: Int, dropChildPosition: Int): Boolean {
+//        return true
+//    }
+//
+//    override fun onGroupDragStarted(groupPosition: Int) {
+//
+//    }
+//
+//    override fun onChildDragStarted(groupPosition: Int, childPosition: Int) {
+//
+//    }
+//
+//    override fun onGroupDragFinished(fromGroupPosition: Int, toGroupPosition: Int, result: Boolean) {
+//
+//    }
+//
+//    override fun onChildDragFinished(fromGroupPosition: Int, fromChildPosition: Int, toGroupPosition: Int, toChildPosition: Int, result: Boolean) {
+//
+//    }
+
+    fun setItems(items: List<GroupWithAccounts>) {
+        this.items = items
+        notifyDataSetChanged()
+
+        //TODO: Use the DiffUtil
+    }
+
+    fun clearSelectedAccounts() {
+        for (account in selectedAccounts) {
+            account.isSelected = false
+        }
+
         notifyDataSetChanged()
     }
 
-    fun setData(groupWithAccounts: GroupWithAccounts) {
-        if (this.groupWithAccounts.accounts.isEmpty()) {
-            this.groupWithAccounts = groupWithAccounts
-            notifyItemRangeInserted(0, this.groupWithAccounts.accounts.size)
-        } else {
-            val result = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
-                override fun getOldListSize(): Int {
-                    return this@AccountListAdapter.groupWithAccounts.accounts.size
-                }
-
-                override fun getNewListSize(): Int {
-                    return groupWithAccounts.accounts.size
-                }
-
-                override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                    return this@AccountListAdapter.groupWithAccounts.accounts[oldItemPosition].id == groupWithAccounts.accounts[newItemPosition].id
-                }
-
-                override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                    val old = this@AccountListAdapter.groupWithAccounts.accounts[oldItemPosition]
-                    val new = groupWithAccounts.accounts[newItemPosition]
-
-                    return old == new
-                }
-            })
-            this.groupWithAccounts = groupWithAccounts
-            result.dispatchUpdatesTo(this)
+    fun selectAllAccounts() {
+        for (account in accounts) {
+            account.isSelected = true
         }
+
+        notifyDataSetChanged()
+    }
+
+    fun clearSelectedGroups() {
+        for (group in selectedGroups) {
+            group.isSelected = false
+        }
+
+        notifyDataSetChanged()
+    }
+
+    fun selectAllGroups() {
+        for (group in groups) {
+            if (!group.isDefault) {
+                group.isSelected = true
+            }
+        }
+
+        notifyDataSetChanged()
     }
 
     fun setListener(listener: Listener) {
@@ -263,22 +341,48 @@ class AccountListAdapter(var groupWithAccounts: GroupWithAccounts) : RecyclerVie
         private const val VIEW_TYPE_ACCOUNT_HOTP = 2
     }
 
-    interface Listener {
-        fun onClick(account: Account, position: Int, id: Long, adapter: AccountListAdapter)
-        fun onLongClick(account: Account, position: Int, id: Long, adapter: AccountListAdapter): Boolean
-        fun onEdit(account: Account, position: Int, id: Long, adapter: AccountListAdapter)
-        fun onClick(group: AccountGroup, position: Int, id: Long, adapter: AccountListAdapter)
-        fun onLongClick(group: AccountGroup, position: Int, id: Long, adapter: AccountListAdapter): Boolean
-        fun onEdit(group: AccountGroup, position: Int, id: Long, adapter: AccountListAdapter)
-        fun onCounterIncrement(view: TextView, account: Account, position: Int, id: Long, adapter: AccountListAdapter)
-    }
-
     enum class EditMode {
         Disabled,
         Item,
         Group
     }
 
-    class AccountViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
-    class GroupViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+    interface Listener {
+        fun onGroupClick(group: AccountGroup, id: Long, adapter: AccountListAdapter) = Unit
+        fun onGroupLongClick(group: AccountGroup, id: Long, adapter: AccountListAdapter): Boolean = false
+        fun onGroupEdit(group: AccountGroup, id: Long, adapter: AccountListAdapter) = Unit
+
+        fun onItemClick(account: Account, id: Long, adapter: AccountListAdapter) = Unit
+        fun onItemLongClick(account: Account, id: Long, adapter: AccountListAdapter): Boolean = false
+        fun onItemEdit(account: Account, id: Long, adapter: AccountListAdapter) = Unit
+        fun onItemCounterIncrement(account: Account, id: Long, adapter: AccountListAdapter) = Unit
+    }
+
+    //region View holders
+
+    abstract inner class BaseViewHolder<T>(layoutRes: Int, parent: ViewGroup) : AbstractExpandableItemViewHolder(
+        LayoutInflater.from(parent.context).inflate(layoutRes, parent, false)
+    ) {
+        abstract fun bind(item: T)
+    }
+
+    abstract inner class AccountViewHolder(layoutRes: Int, parent: ViewGroup) : BaseViewHolder<Account>(layoutRes, parent)
+
+    inner class TOTPViewHolder(layoutRes: Int, parent: ViewGroup) : AccountViewHolder(layoutRes, parent) {
+        override fun bind(item: Account) {
+        }
+    }
+
+    inner class HOTPViewHolder(layoutRes: Int, parent: ViewGroup) : AccountViewHolder(layoutRes, parent) {
+        override fun bind(item: Account) {
+        }
+    }
+
+    inner class GroupViewHolder(layoutRes: Int, parent: ViewGroup) : BaseViewHolder<AccountGroup>(layoutRes, parent) {
+        override fun bind(item: AccountGroup) {
+
+        }
+    }
+
+    //endregion
 }

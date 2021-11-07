@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class ImportActivity : ThemedActivity() {
+class ImportActivity : ThemedActivity() {   //FIXME: BackupImportActivity
     private val accountExporter = AccountExporter()
     private val barcodeScanner by lazy {
         val scannerOptions = BarcodeScannerOptions.Builder()
