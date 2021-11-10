@@ -17,6 +17,8 @@ import dev.notrobots.androidstuff.extensions.setTint
 import dev.notrobots.androidstuff.util.swap
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.data.KnownIssuers
+import dev.notrobots.authenticator.extensions.absoluteRangeTo
+import dev.notrobots.authenticator.extensions.dropLast
 import dev.notrobots.authenticator.extensions.find
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.util.ViewUtil
@@ -279,19 +281,13 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
     override fun onMoveGroupItem(fromGroupPosition: Int, toGroupPosition: Int) {
         if (fromGroupPosition < toGroupPosition) {
             for (i in fromGroupPosition until toGroupPosition) {
-                val fromGroup = groups[i]
-                val toGroup = groups[i + 1]
-
                 Collections.swap(items, i, i + 1)
-                swap(fromGroup, toGroup, { it.order }, { g, v -> g.order = v })
+                swap(groups[i], groups[i + 1], { it.order }, { g, v -> g.order = v })
             }
         } else {
             for (i in fromGroupPosition downTo toGroupPosition + 1) {
-                val fromGroup = groups[i]
-                val toGroup = groups[i - 1]
-
                 Collections.swap(items, i, i - 1)
-                swap(fromGroup, toGroup, { it.order }, { g, v -> g.order = v })
+                swap(groups[i], groups[i - 1], { it.order }, { g, v -> g.order = v })
             }
         }
 
