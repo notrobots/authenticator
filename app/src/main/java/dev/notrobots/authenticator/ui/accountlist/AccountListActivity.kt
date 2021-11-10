@@ -9,11 +9,13 @@ import androidx.activity.result.contract.ActivityResultContracts.StartActivityFo
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
 import androidx.core.content.edit
+import androidx.core.util.rangeTo
 import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.h6ah4i.android.widget.advrecyclerview.draggable.RecyclerViewDragDropManager
 import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandableItemManager
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.copyToClipboard
@@ -24,6 +26,7 @@ import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.BaseActivity
 import dev.notrobots.authenticator.data.Preferences
 import dev.notrobots.authenticator.dialogs.*
+import dev.notrobots.authenticator.extensions.absoluteRangeTo
 import dev.notrobots.authenticator.google.CountdownIndicator
 import dev.notrobots.authenticator.google.TotpClock
 import dev.notrobots.authenticator.google.TotpCountdownTask
@@ -38,11 +41,13 @@ import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
+
 @AndroidEntryPoint
 class AccountListActivity : BaseActivity() {
     private val viewModel by viewModels<AccountListViewModel>()
-    private val adapter = AccountListAdapter()
+    private lateinit var adapter: AccountListAdapter
     private lateinit var recyclerViewExpandableItemManager: RecyclerViewExpandableItemManager
+    private lateinit var recyclerViewDragDropManager: RecyclerViewDragDropManager
     private lateinit var adapterWrapper: RecyclerView.Adapter<*>
     private val preferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(this)
@@ -111,6 +116,15 @@ class AccountListActivity : BaseActivity() {
             actionMode?.finish()
         }
 
+        override fun onItemMoved(fromGroupPosition: Int, fromChildPosition: Int, toGroupPosition: Int, toChildPosition: Int) {
+//            viewModel.swapAccounts(
+//                adapter.getAccount(fromGroupPosition, fromChildPosition),
+//                adapter.getAccount(toGroupPosition, toChildPosition)
+//            )
+//            recyclerViewExpandableItemManager.notifyChildItemMoved(fromGroupPosition, fromChildPosition, toGroupPosition, toChildPosition)
+//            //FIXME: If you drag to the bottom of another group it crashes
+        }
+
         override fun onGroupClick(group: AccountGroup, id: Long, adapter: AccountListAdapter) {
             if (actionMode != null) {
                 if (!group.isSelected && adapter.selectedGroups.isEmpty()) {
@@ -122,6 +136,10 @@ class AccountListActivity : BaseActivity() {
         }
 
         override fun onGroupLongClick(group: AccountGroup, id: Long, adapter: AccountListAdapter): Boolean {
+            if (actionMode == null) {
+                startSupportActionMode(groupActionMode)
+            }
+
             return true
         }
 
@@ -145,6 +163,14 @@ class AccountListActivity : BaseActivity() {
                 }
             }
             dialog.show(supportFragmentManager, null)
+        }
+
+        override fun onGroupMoved(fromGroupPosition: Int, toGroupPosition: Int) {
+            lifecycleScope.launch {
+                for (i in fromGroupPosition absoluteRangeTo toGroupPosition) {
+                    viewModel.accountGroupDao.update(adapter.groups[i])
+                }
+            }
         }
     }
     private val accountActionMode = object : ActionMode.Callback {
@@ -265,7 +291,7 @@ class AccountListActivity : BaseActivity() {
             adapter.editMode = AccountListAdapter.EditMode.Disabled
             adapter.clearSelectedGroups()
 
-            resetGroupStates()
+            resetGroupsExpandState()
         }
     }
 
@@ -323,61 +349,6 @@ class AccountListActivity : BaseActivity() {
 
         viewModel.groupsWithAccount.observe(this) {
             adapter.setItems(it)
-
-//            val animator: GeneralItemAnimator = RefactoredDefaultItemAnimator()
-//            animator.supportsChangeAnimations = false
-//
-//            list_accounts.itemAnimator = animator
-
-//            recyclerViewExpandableItemManager.setOnGroupCollapseListener { groupPosition, fromUser, payload ->
-//
-//            }
-//            recyclerViewExpandableItemManager.setOnGroupExpandListener { groupPosition, fromUser, payload ->
-//
-//            }
-//            adapter.setItems(it)
-
-//            val adapters = it.map {
-//                AccountListAdapter(it).apply {
-//                    touchHelper = this@AccountListActivity.touchHelper
-//                    showPins = preferences.getBoolean(Preferences.SHOW_PINS, true)
-//                    showIcons = preferences.getBoolean(Preferences.SHOW_ICONS, true)
-//                    setListener(accountListListener)
-//                }
-//            }
-//
-//            if (adapter.adapters.isEmpty()) {
-//                adapter.addAllAdapters(adapters)
-//            } else {
-//                val result = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
-//                    override fun getOldListSize(): Int {
-//                        return adapter.adapters.size
-//                    }
-//
-//                    override fun getNewListSize(): Int {
-//                        return adapters.size
-//                    }
-//
-//                    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-//                        val oldId = (adapter.adapters[oldItemPosition] as AccountListAdapter).groupWithAccounts.group.id
-//                        val newId = adapters[newItemPosition].groupWithAccounts.group.id
-//
-//                        return oldId == newId
-//                    }
-//
-//                    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-//                        val old = (adapter.adapters[oldItemPosition] as AccountListAdapter).groupWithAccounts
-//                        val new = adapters[newItemPosition].groupWithAccounts
-//
-//                        return old.group == new.group && old.accounts == new.accounts
-//                    }
-//                })
-//                list_accounts.adapter = null
-//                adapter.clearAdapters()
-//                adapter.addAllAdapters(adapters)
-//                list_accounts.adapter = adapter
-//                result.dispatchUpdatesTo(adapter)
-//            }
         }
     }
 
@@ -480,40 +451,41 @@ class AccountListActivity : BaseActivity() {
             }
             R.id.menu_add_test -> {
                 val groups = listOf(
-                    AccountGroup("Work").apply { id = 2; order = 0 },
-                    AccountGroup("Personal").apply { id = 3; order = 1 },
-                    AccountGroup("Others").apply { id = 4; order = 2 }
+                    AccountGroup("Group 1").apply { id = 2; order = 0 },
+                    AccountGroup("Group 2").apply { id = 3; order = 1 },
+                    AccountGroup("Group 3").apply { id = 4; order = 2 }
                 )
                 val accounts = listOf(
-                    Account("Max", "22334455").apply { label = "Twitter"; groupId = 3 },
-                    Account("Max", "22334466").apply { label = "Steam"; groupId = 3 },
-                    Account("Max", "22332277").apply { label = "Amazon"; groupId = 3 },
-                    Account("Max", "22334455").apply { label = "EGS"; groupId = 3 },
-                    Account("Max", "22444455").apply { label = "Github"; groupId = 2 },
-                    Account("JohnDoe", "22774477").apply { groupId = 4 },
-                    Account("MarioRossi", "77334455").apply { groupId = 4 },
-                    Account("JaneDoe", "22223355")
+                    Account("Account 1", "22334455").apply { groupId = 2 },
+                    Account("Account 2", "22334466").apply { groupId = 2 },
+                    Account("Account 3", "22332277").apply { groupId = 3 },
+                    Account("Account 4", "22334455").apply { groupId = 3 },
+                    Account("Account 5", "22444455").apply { groupId = 4 },
+                    Account("Account 6", "22774477").apply { groupId = 4 },
+                    Account("Account 7", "77334455").apply { },
+                    Account("Account 8", "22223355").apply { }
                 )
                 lifecycleScope.launch {
                     viewModel.accountDao.deleteAll()
                     viewModel.accountGroupDao.deleteAll()
 
-                    groups.forEach { viewModel.accountGroupDao.insert(it) }
-                    accounts.forEach { viewModel.accountDao.insert(it) }
+                    groups.forEach { viewModel.addGroup(it) }
+                    accounts.forEach { viewModel.addAccount(it) }
 
                     viewModel.accountGroupDao.insert(AccountGroup.DEFAULT_GROUP)
                 }
             }
             R.id.menu_add_test_2 -> {
                 val groups = listOf(
-                    AccountGroup("Work").apply { id = 2; order = 0 }
+                    AccountGroup("Work").apply { id = 2; order = 0 },
+                    AccountGroup("Personal").apply { id = 3; order = 1 }
                 )
                 val accounts = listOf(
                     Account("Max", "22334455").apply { label = "Twitter"; groupId = 2 },
                     Account("Max", "22334466").apply { label = "Steam"; groupId = 2 },
                     Account("Max", "22332277").apply { label = "Amazon"; groupId = 2 },
-                    Account("Max", "22334455").apply { label = "EGS"; groupId = 2 },
-                    Account("Max", "22444455").apply { label = "Github" },
+                    Account("Max", "22334455").apply { label = "EGS"; groupId = 3 },
+                    Account("Max", "22444455").apply { label = "Github"; groupId = 3 },
                     Account("JohnDoe", "22774477"),
                     Account("MarioRossi", "77334455"),
                     Account("JaneDoe", "22223355")
@@ -522,8 +494,8 @@ class AccountListActivity : BaseActivity() {
                     viewModel.accountDao.deleteAll()
                     viewModel.accountGroupDao.deleteAll()
 
-                    groups.forEach { viewModel.accountGroupDao.insert(it) }
-                    accounts.forEach { viewModel.accountDao.insert(it) }
+                    groups.forEach { viewModel.addGroup(it) }
+                    accounts.forEach { viewModel.addAccount(it) }
 
                     viewModel.accountGroupDao.insert(AccountGroup.DEFAULT_GROUP)
                 }
@@ -588,18 +560,24 @@ class AccountListActivity : BaseActivity() {
     }
 
     private fun setupListAdapter() {
-        recyclerViewExpandableItemManager = RecyclerViewExpandableItemManager(null).apply {
-            attachRecyclerView(list_accounts)
-            setOnGroupCollapseListener { groupPosition, _, _ ->
-                adapter.groups[groupPosition].isExpanded = false
-            }
-            setOnGroupExpandListener { groupPosition, _, _ ->
-                adapter.groups[groupPosition].isExpanded = true
-            }
-        }
-        adapterWrapper = recyclerViewExpandableItemManager.createWrappedAdapter(adapter)
-
+        adapter = AccountListAdapter()
         adapter.setListener(accountListAdapterListener)
+
+        recyclerViewDragDropManager = RecyclerViewDragDropManager()
+        recyclerViewDragDropManager.attachRecyclerView(list_accounts)
+        recyclerViewDragDropManager.setInitiateOnTouch(true)
+        recyclerViewDragDropManager.isCheckCanDropEnabled = true
+        recyclerViewExpandableItemManager = RecyclerViewExpandableItemManager(null)
+        recyclerViewExpandableItemManager.setOnGroupCollapseListener { groupPosition, _, _ ->
+            adapter.groups[groupPosition].isExpanded = false
+        }
+        recyclerViewExpandableItemManager.setOnGroupExpandListener { groupPosition, _, _ ->
+            adapter.groups[groupPosition].isExpanded = true
+        }
+        recyclerViewExpandableItemManager.attachRecyclerView(list_accounts)
+
+        adapterWrapper = recyclerViewExpandableItemManager.createWrappedAdapter(adapter)
+        adapterWrapper = recyclerViewDragDropManager.createWrappedAdapter(adapterWrapper)
 
         list_accounts.adapter = adapterWrapper
         list_accounts.layoutManager = LinearLayoutManager(this)
@@ -609,7 +587,7 @@ class AccountListActivity : BaseActivity() {
         recyclerViewExpandableItemManager.collapseAll()
     }
 
-    private fun resetGroupStates() {
+    private fun resetGroupsExpandState() {
         for ((index, group) in adapter.groups.withIndex()) {
             val expandState = recyclerViewExpandableItemManager.isGroupExpanded(index)
 

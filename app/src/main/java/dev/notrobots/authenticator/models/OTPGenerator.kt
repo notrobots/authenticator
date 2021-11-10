@@ -5,7 +5,7 @@ import dev.turingcomplete.kotlinonetimepassword.*
 import org.apache.commons.codec.binary.Base32
 import java.util.concurrent.TimeUnit
 
-object OTPGenerator {    //FIXME: OTPGenerator
+object OTPGenerator {
 
 //    fun checkSecret(secret: String): Boolean {
 //        return try {
