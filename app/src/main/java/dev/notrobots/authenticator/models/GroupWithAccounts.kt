@@ -7,5 +7,5 @@ data class GroupWithAccounts(
     @Embedded
     val group: AccountGroup,
     @Relation(parentColumn = "id", entityColumn = "groupId")
-    val accounts: List<Account>
+    val accounts: MutableList<Account>
 )

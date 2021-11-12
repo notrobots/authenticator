@@ -5,12 +5,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.androidstuff.util.loge
-import dev.notrobots.androidstuff.util.swap
 import dev.notrobots.authenticator.db.AccountDao
 import dev.notrobots.authenticator.db.AccountGroupDao
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.AccountGroup
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -18,9 +16,9 @@ class AccountListViewModel @Inject constructor(
     val accountDao: AccountDao,
     val accountGroupDao: AccountGroupDao
 ) : ViewModel() {
+    val groupsWithAccount = accountGroupDao.getGroupsWithAccounts()
     val accounts = accountDao.getAccounts()
     val groups = accountGroupDao.getGroups()
-    val groupsWithAccount = accountGroupDao.getGroupsWithAccounts()
 
     /**
      * Checks if the given [account] already exists.

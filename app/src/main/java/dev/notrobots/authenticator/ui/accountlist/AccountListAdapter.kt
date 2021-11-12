@@ -145,7 +145,7 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
 
     override fun onBindChildViewHolder(holder: AccountViewHolder, groupPosition: Int, childPosition: Int, viewType: Int) {
         val view = holder.itemView
-        val account = items[groupPosition].accounts[childPosition]
+        val account = getAccount(groupPosition, childPosition)
         val id = account.id
         val icon = KnownIssuers.find { k, _ ->
             val rgx = Regex(k, RegexOption.IGNORE_CASE)
@@ -279,23 +279,48 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
     }
 
     override fun onMoveGroupItem(fromGroupPosition: Int, toGroupPosition: Int) {
-        if (fromGroupPosition < toGroupPosition) {
-            for (i in fromGroupPosition until toGroupPosition) {
-                Collections.swap(items, i, i + 1)
-                swap(groups[i], groups[i + 1], { it.order }, { g, v -> g.order = v })
-            }
+        val range = if (fromGroupPosition < toGroupPosition) {
+            fromGroupPosition until toGroupPosition
         } else {
-            for (i in fromGroupPosition downTo toGroupPosition + 1) {
-                Collections.swap(items, i, i - 1)
-                swap(groups[i], groups[i - 1], { it.order }, { g, v -> g.order = v })
-            }
+            fromGroupPosition downTo toGroupPosition + 1
+        }
+        val next = if (fromGroupPosition < toGroupPosition) 1 else -1
+
+        for (i in range) {
+            Collections.swap(items, i, i +next)
+            swap(groups[i], groups[i +next], { it.order }, { g, v -> g.order = v })
         }
 
         listener.onGroupMoved(fromGroupPosition, toGroupPosition)
     }
 
     override fun onMoveChildItem(fromGroupPosition: Int, fromChildPosition: Int, toGroupPosition: Int, toChildPosition: Int) {
-//        listener.onItemMoved(fromGroupPosition, fromChildPosition, toGroupPosition, toChildPosition)
+        val rows = mutableMapOf<Int, Int>()
+
+        val fromGroup = items[fromGroupPosition]
+        val toGroup = items[toGroupPosition]
+
+        if (fromGroupPosition == toGroupPosition) {
+            val range = if (fromChildPosition < toChildPosition) {
+                fromChildPosition until toChildPosition
+            } else {
+                fromChildPosition downTo toChildPosition + 1
+            }
+            val next = if (fromChildPosition < toChildPosition) 1 else -1
+
+            for (i in range) {
+                Collections.swap(toGroup.accounts, i, i +next)
+                swap(toGroup.accounts[i], toGroup.accounts[i +next], { it.order }, { g, v -> g.order = v })
+            }
+        } else {
+            val item = fromGroup.accounts[fromChildPosition]
+
+            item.groupId = toGroup.group.id
+            fromGroup.accounts.removeAt(fromChildPosition)
+            toGroup.accounts.add(toChildPosition, item)
+        }
+
+        listener.onItemMoved(rows)
     }
 
     override fun onCheckGroupCanDrop(draggingGroupPosition: Int, dropGroupPosition: Int): Boolean {
@@ -420,13 +445,13 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
         fun onItemLongClick(account: Account, id: Long, adapter: AccountListAdapter): Boolean = false
         fun onItemEdit(account: Account, id: Long, adapter: AccountListAdapter) = Unit
         fun onItemCounterIncrement(account: Account, id: Long, adapter: AccountListAdapter) = Unit
-        fun onItemMoved(fromGroupPosition: Int, fromChildPosition: Int, toGroupPosition: Int, toChildPosition: Int) = Unit
+        fun onItemMoved(updatedRows: Map<Int, Int>) = Unit
     }
 
     //region View holders
 
     abstract class BaseViewHolder<T>(layoutRes: Int, parent: ViewGroup) : AbstractExpandableItemViewHolder(
-        LayoutInflater.from(parent.context).inflate(layoutRes, parent, false)
+            LayoutInflater.from(parent.context).inflate(layoutRes, parent, false)
     ), DraggableItemViewHolder {
         private val dragState = DraggableItemState()
         val dragHandle = itemView.img_drag_handle

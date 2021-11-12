@@ -11,6 +11,7 @@ import androidx.appcompat.view.ActionMode
 import androidx.core.content.edit
 import androidx.core.util.rangeTo
 import androidx.core.view.children
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -39,6 +40,7 @@ import dev.notrobots.authenticator.ui.backupexport.ExportConfigActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.coroutines.launch
+import java.util.concurrent.Flow
 import java.util.concurrent.TimeUnit
 
 
@@ -116,13 +118,14 @@ class AccountListActivity : BaseActivity() {
             actionMode?.finish()
         }
 
-        override fun onItemMoved(fromGroupPosition: Int, fromChildPosition: Int, toGroupPosition: Int, toChildPosition: Int) {
-//            viewModel.swapAccounts(
-//                adapter.getAccount(fromGroupPosition, fromChildPosition),
-//                adapter.getAccount(toGroupPosition, toChildPosition)
-//            )
-//            recyclerViewExpandableItemManager.notifyChildItemMoved(fromGroupPosition, fromChildPosition, toGroupPosition, toChildPosition)
-//            //FIXME: If you drag to the bottom of another group it crashes
+        override fun onItemMoved(updatedRows: Map<Int, Int>) {
+            lifecycleScope.launch {
+                viewModel.accountDao.update(adapter.accounts)
+
+//                for (row in updatedRows) {
+//                    viewModel.accountDao.update(adapter.getAccount(row.key, row.value))
+//                }
+            }
         }
 
         override fun onGroupClick(group: AccountGroup, id: Long, adapter: AccountListAdapter) {
@@ -168,7 +171,7 @@ class AccountListActivity : BaseActivity() {
         override fun onGroupMoved(fromGroupPosition: Int, toGroupPosition: Int) {
             lifecycleScope.launch {
                 for (i in fromGroupPosition absoluteRangeTo toGroupPosition) {
-                    viewModel.accountGroupDao.update(adapter.groups[i])
+                    viewModel.accountGroupDao.update(adapter.getGroup(i))
                 }
             }
         }
@@ -348,6 +351,10 @@ class AccountListActivity : BaseActivity() {
         createDefaultGroup()
 
         viewModel.groupsWithAccount.observe(this) {
+            for (groupWithAccount in it) {
+                groupWithAccount.accounts.sortBy { it.order }
+            }
+
             adapter.setItems(it)
         }
     }
