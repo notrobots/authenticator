@@ -106,6 +106,10 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
     override fun onBindGroupViewHolder(holder: GroupViewHolder, groupPosition: Int, viewType: Int) {
         val group = groups[groupPosition]
         val view = holder.itemView
+        val childCount = getChildCount(groupPosition)
+
+        view.text_group_account_count.visibility = if (editMode == EditMode.Disabled) View.VISIBLE else View.GONE
+        view.text_group_account_count.text = if (childCount > 0) childCount.toString() else null
 
         if (!group.isDefault) {
             view.isSelected = group.isSelected
@@ -133,6 +137,8 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
             }
 
             view.text_group_name.text = group.name
+            view.text_group_account_count.visibility = if (editMode == EditMode.Disabled) View.VISIBLE else View.GONE
+            view.text_group_account_count.text = getChildCount(groupPosition).toString()
             view.img_account_edit.visibility = if (editMode == EditMode.Group) View.VISIBLE else View.GONE
             view.img_account_edit.setOnClickListener {
                 listener.onGroupEdit(group, group.id, this)
@@ -207,6 +213,8 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
         }
     }
 
+    //region Expand state
+
     override fun onCheckCanExpandOrCollapseGroup(holder: GroupViewHolder, groupPosition: Int, x: Int, y: Int, expand: Boolean): Boolean {
         // If the adapter is in Group or Item edit mode,
         // do no collapse/expand the groups
@@ -241,6 +249,10 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
 
         return group.isExpanded
     }
+
+    //endregion
+
+    //region Drag&Drop
 
     override fun onCheckGroupCanStartDrag(holder: ParentViewHolder, groupPosition: Int, x: Int, y: Int): Boolean {
         // Item can only be dragged by its drag handle
@@ -349,6 +361,8 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
     override fun onChildDragFinished(fromGroupPosition: Int, fromChildPosition: Int, toGroupPosition: Int, toChildPosition: Int, result: Boolean) {
         notifyDataSetChanged()
     }
+
+    //endregion
 
     fun getGroup(groupPosition: Int): AccountGroup {
         return groups[groupPosition]
