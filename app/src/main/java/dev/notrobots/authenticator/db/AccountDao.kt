@@ -11,6 +11,9 @@ interface AccountDao {
     @Query("SELECT * FROM Account ORDER BY `order`")
     fun getAccounts(): LiveData<List<Account>>
 
+    @Query("SELECT * FROM Account WHERE id = :id")
+    suspend fun getAccount(id: Long): Account
+
     @Query("SELECT * FROM Account WHERE name = :name AND label = :label AND issuer = :issuer")
     suspend fun getAccount(name: String, label: String, issuer: String): Account
 

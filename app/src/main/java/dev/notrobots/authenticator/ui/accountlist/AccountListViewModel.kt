@@ -77,9 +77,14 @@ class AccountListViewModel @Inject constructor(
         if (exists && !overwrite) {
             error("An account with the same name and issuer already exists")
         } else {
-            val last = accountDao.getLargestOrder(account.groupId)
+            val original = accountDao.getAccount(account.id)
 
-            account.order = last + 1
+            if (original.groupId != account.groupId) {
+                val last = accountDao.getLargestOrder(account.groupId)
+
+                account.order = last + 1
+            }
+
             accountDao.update(account)
             logd("Updating account")
         }
