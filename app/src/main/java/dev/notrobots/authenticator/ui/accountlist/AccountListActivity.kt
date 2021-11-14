@@ -43,7 +43,6 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.Flow
 import java.util.concurrent.TimeUnit
 
-
 @AndroidEntryPoint
 class AccountListActivity : BaseActivity() {
     private val viewModel by viewModels<AccountListViewModel>()
@@ -270,7 +269,7 @@ class AccountListActivity : BaseActivity() {
                 R.id.menu_group_remove -> { //TODO: Let the user keep the accounts, either unpack the group (move to default) or move to a specific group
                     val selectedGroups = adapter.selectedGroups
                     val selectedGroupIDs = selectedGroups.map { it.id }
-                    val accounts = adapter.accounts.filter { it.groupId in selectedGroupIDs }
+                    val accounts = adapter.accounts.filter { it.groupId in selectedGroupIDs }   //TODO: Use viewModel
                     val dialog = DeleteGroupDialog(selectedGroups.size, accounts.size)
 
                     dialog.onConfirmListener = {
@@ -396,10 +395,10 @@ class AccountListActivity : BaseActivity() {
     override fun onPause() {
         super.onPause()
 
-        lifecycleScope.launch {
-            viewModel.accountDao.update(adapter.accounts)
-            viewModel.accountGroupDao.update(adapter.groups)
-        }
+//        lifecycleScope.launch {
+//            viewModel.accountDao.update(adapter.accounts)
+//            viewModel.accountGroupDao.update(adapter.groups)
+//        }
     }
 
     override fun onDestroy() {

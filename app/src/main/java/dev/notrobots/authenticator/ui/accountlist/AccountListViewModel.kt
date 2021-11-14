@@ -1,7 +1,6 @@
 package dev.notrobots.authenticator.ui.accountlist
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.androidstuff.util.loge
@@ -58,7 +57,7 @@ class AccountListViewModel @Inject constructor(
             loge("An account with the same name already exists")
             error("An account with the same name already exists")
         } else {
-            val last = accountDao.getLastOrder()
+            val last = accountDao.getLargestOrder(account.groupId)
 
             account.order = last + 1
             accountDao.insert(account)
@@ -78,6 +77,9 @@ class AccountListViewModel @Inject constructor(
         if (exists && !overwrite) {
             error("An account with the same name and issuer already exists")
         } else {
+            val last = accountDao.getLargestOrder(account.groupId)
+
+            account.order = last + 1
             accountDao.update(account)
             logd("Updating account")
         }

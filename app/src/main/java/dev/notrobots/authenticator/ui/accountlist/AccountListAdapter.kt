@@ -287,8 +287,8 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
         val next = if (fromGroupPosition < toGroupPosition) 1 else -1
 
         for (i in range) {
-            Collections.swap(items, i, i +next)
-            swap(groups[i], groups[i +next], { it.order }, { g, v -> g.order = v })
+            Collections.swap(items, i, i + next)
+            swap(groups[i], groups[i + next], { it.order }, { g, v -> g.order = v })
         }
 
         listener.onGroupMoved(fromGroupPosition, toGroupPosition)
@@ -309,15 +309,18 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
             val next = if (fromChildPosition < toChildPosition) 1 else -1
 
             for (i in range) {
-                Collections.swap(toGroup.accounts, i, i +next)
-                swap(toGroup.accounts[i], toGroup.accounts[i +next], { it.order }, { g, v -> g.order = v })
+                Collections.swap(toGroup.accounts, i, i + next)
+                swap(toGroup.accounts[i], toGroup.accounts[i + next], { it.order }, { g, v -> g.order = v })
             }
         } else {
-            val item = fromGroup.accounts[fromChildPosition]
+            val item = fromGroup.accounts.removeAt(fromChildPosition)
 
             item.groupId = toGroup.group.id
-            fromGroup.accounts.removeAt(fromChildPosition)
             toGroup.accounts.add(toChildPosition, item)
+
+            for (i in toChildPosition until toGroup.accounts.size) {
+                toGroup.accounts[i].order = i + 1L
+            }
         }
 
         listener.onItemMoved(rows)
