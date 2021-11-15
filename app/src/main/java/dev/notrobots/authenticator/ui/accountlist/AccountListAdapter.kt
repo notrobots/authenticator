@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.recyclerview.widget.DiffUtil
 import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemState
 import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemViewHolder
 import com.h6ah4i.android.widget.advrecyclerview.draggable.ItemDraggableRange
@@ -22,6 +23,7 @@ import dev.notrobots.authenticator.extensions.dropLast
 import dev.notrobots.authenticator.extensions.find
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.util.ViewUtil
+import dev.notrobots.authenticator.util.adapterOf
 import kotlinx.android.synthetic.main.item_account_group.view.*
 import kotlinx.android.synthetic.main.item_account_group.view.img_account_edit
 import kotlinx.android.synthetic.main.item_account_group.view.img_drag_handle
@@ -380,68 +382,9 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
         return getAccounts(groups.indexOfFirst { it.id == groupId })
     }
 
-    fun removeSelectedAccounts() {
-        for (group in selectedAccounts.groupBy { it.groupId }) {
-            val groupPosition = groups.indexOfFirst { it.id == group.key }
-            val groupWithAccounts = items[groupPosition]
-
-            groupWithAccounts.accounts.removeAll(group.value)
-
-            for ((i, _) in groupWithAccounts.accounts.withIndex()) {
-                groupWithAccounts.accounts[i].order = i + 1L
-            }
-        }
-
-//
-//
-//        for (groupWithAccount in items) {
-//            val selectedAccounts = groupWithAccount.accounts.filter { it.isSelected }
-//
-//            if (selectedAccounts.isNotEmpty()) {
-//                groupWithAccount.accounts.removeAll(selectedAccounts)
-//            }
-//        }
-//
-//
-//        val groupIndex = groups.indexOfFirst { it.id == account.groupId }
-//        val groupWithAccount = items[groupIndex]
-//        val accountIndex = groupWithAccount.accounts.indexOf(account)
-//
-//        groupWithAccount.accounts.remove(account)
-//
-//        for (i in accountIndex until groupWithAccount.accounts.size) {
-//            groupWithAccount.accounts[i].order = i + 1L
-//        }
-    }
-
     fun setItems(items: List<GroupWithAccounts>) {
         this.items = items
         notifyDataSetChanged()
-
-//        if (this.items.isEmpty()) {
-//            this.items = items
-//            notifyDataSetChanged()
-//        } else {
-//            val result = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
-//                override fun getOldListSize(): Int {
-//                    return this@AccountListAdapter.items.size
-//                }
-//
-//                override fun getNewListSize(): Int {
-//                    return items.size
-//                }
-//
-//                override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-//                    TODO("Not yet implemented")
-//                }
-//
-//                override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-//                    TODO("Not yet implemented")
-//                }
-//
-//            })
-//            result.dispatchUpdatesTo(this)
-//        }
     }
 
     fun clearSelectedAccounts() {

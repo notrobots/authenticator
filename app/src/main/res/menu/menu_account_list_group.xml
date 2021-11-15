@@ -3,10 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/menu_group_selectall"
-        android:title="SelectAll"/>
+        android:title="SelectAll"
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/menu_group_unpack"
-        android:title="Unpack"/>
+        android:title="Unpack"
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/menu_group_remove"
         android:icon="@drawable/ic_delete"
