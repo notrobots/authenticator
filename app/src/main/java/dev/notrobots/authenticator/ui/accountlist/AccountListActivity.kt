@@ -9,9 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts.StartActivityFo
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
 import androidx.core.content.edit
-import androidx.core.util.rangeTo
 import androidx.core.view.children
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -40,7 +38,6 @@ import dev.notrobots.authenticator.ui.backupexport.ExportConfigActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.coroutines.launch
-import java.util.concurrent.Flow
 import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
@@ -194,13 +191,10 @@ class AccountListActivity : BaseActivity() {
             when (item?.itemId) {
                 R.id.menu_account_remove -> {
                     if (adapter.selectedAccounts.isNotEmpty()) {
-                        val accounts = adapter.selectedAccounts
-                        val dialog = DeleteAccountDialog(accounts)
+                        val dialog = DeleteAccountDialog(adapter.selectedAccounts)
 
                         dialog.onConfirmListener = {
-                            lifecycleScope.launch {
-                                viewModel.accountDao.delete(accounts)
-                            }
+                            deleteAccounts(adapter.selectedAccounts)
                             actionMode?.finish()
                         }
                         dialog.show(supportFragmentManager, null)
@@ -392,15 +386,6 @@ class AccountListActivity : BaseActivity() {
         totpCountdownTask!!.startAndNotifyListener()
     }
 
-    override fun onPause() {
-        super.onPause()
-
-//        lifecycleScope.launch {
-//            viewModel.accountDao.update(adapter.accounts)
-//            viewModel.accountGroupDao.update(adapter.groups)
-//        }
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         actionMode?.finish()
@@ -462,14 +447,14 @@ class AccountListActivity : BaseActivity() {
                     AccountGroup("Group 3").apply { id = 4; order = 2 }
                 )
                 val accounts = listOf(
-                    Account("Account 1", "22334455").apply { groupId = 2 },
+                    Account("Account 1", "22334455").apply { groupId = 2; type = OTPType.HOTP },
                     Account("Account 2", "22334466").apply { groupId = 2 },
                     Account("Account 3", "22332277").apply { groupId = 3 },
                     Account("Account 4", "22334455").apply { groupId = 3 },
-                    Account("Account 5", "22444455").apply { groupId = 4 },
+                    Account("Account 5", "22444455").apply { groupId = 4; type = OTPType.HOTP },
                     Account("Account 6", "22774477").apply { groupId = 4 },
                     Account("Account 7", "77334455").apply { },
-                    Account("Account 8", "22223355").apply { }
+                    Account("Account 8", "22223355").apply { type = OTPType.HOTP }
                 )
                 lifecycleScope.launch {
                     viewModel.accountDao.deleteAll()
@@ -637,6 +622,28 @@ class AccountListActivity : BaseActivity() {
             else {
                 //TODO: Find out why the exception can be caught here but not if it's thrown directly from the coroutine
                 viewModel.addAccount(account)
+            }
+        }
+    }
+
+    /**
+     * Deletes the given [accounts] and fixes the order of the remaining accounts
+     */
+    private fun deleteAccounts(accounts: List<Account>) {
+        lifecycleScope.launch {
+            val selectedAccounts = accounts.groupBy { it.groupId }
+
+            for (group in selectedAccounts) {
+                val accounts = adapter.getAccounts(group.key)
+
+                accounts.removeAll(group.value)
+
+                for ((i, _) in accounts.withIndex()) {
+                    accounts[i].order = i + 1L
+                }
+
+                viewModel.accountDao.delete(group.value)
+                viewModel.accountDao.update(accounts)
             }
         }
     }

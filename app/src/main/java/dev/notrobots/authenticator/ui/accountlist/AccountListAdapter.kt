@@ -372,6 +372,48 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
         return items[groupPosition].accounts[accountPosition]
     }
 
+    fun getAccounts(groupPosition: Int): MutableList<Account> {
+        return items[groupPosition].accounts
+    }
+
+    fun getAccounts(groupId: Long): MutableList<Account> {
+        return getAccounts(groups.indexOfFirst { it.id == groupId })
+    }
+
+    fun removeSelectedAccounts() {
+        for (group in selectedAccounts.groupBy { it.groupId }) {
+            val groupPosition = groups.indexOfFirst { it.id == group.key }
+            val groupWithAccounts = items[groupPosition]
+
+            groupWithAccounts.accounts.removeAll(group.value)
+
+            for ((i, _) in groupWithAccounts.accounts.withIndex()) {
+                groupWithAccounts.accounts[i].order = i + 1L
+            }
+        }
+
+//
+//
+//        for (groupWithAccount in items) {
+//            val selectedAccounts = groupWithAccount.accounts.filter { it.isSelected }
+//
+//            if (selectedAccounts.isNotEmpty()) {
+//                groupWithAccount.accounts.removeAll(selectedAccounts)
+//            }
+//        }
+//
+//
+//        val groupIndex = groups.indexOfFirst { it.id == account.groupId }
+//        val groupWithAccount = items[groupIndex]
+//        val accountIndex = groupWithAccount.accounts.indexOf(account)
+//
+//        groupWithAccount.accounts.remove(account)
+//
+//        for (i in accountIndex until groupWithAccount.accounts.size) {
+//            groupWithAccount.accounts[i].order = i + 1L
+//        }
+    }
+
     fun setItems(items: List<GroupWithAccounts>) {
         this.items = items
         notifyDataSetChanged()
