@@ -9,6 +9,19 @@
     android:paddingEnd="16dp"
     android:paddingBottom="16dp">
 
+    <ImageView
+        android:id="@+id/img_drag_handle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_reorder"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="-8dp"
+        app:tint="?attr/colorPrimary"
+        tools:visibility="visible" />
+
     <TextView
         android:id="@+id/text_group_name"
         android:layout_width="wrap_content"
@@ -29,19 +42,19 @@
         android:text="0"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/img_account_edit"
+        app:layout_constraintEnd_toStartOf="@+id/img_group_select"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
-        android:id="@+id/img_drag_handle"
+        android:id="@+id/img_group_select"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_reorder"
+        android:layout_marginEnd="16dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/img_account_edit"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginStart="-8dp"
+        app:srcCompat="@drawable/ic_select_all"
         app:tint="?attr/colorPrimary"
         tools:visibility="visible" />
 

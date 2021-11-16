@@ -8,4 +8,7 @@ data class GroupWithAccounts(
     val group: AccountGroup,
     @Relation(parentColumn = "id", entityColumn = "groupId")
     val accounts: MutableList<Account>
-)
+) {
+    val isEmpty
+        get() = accounts.isEmpty()
+}

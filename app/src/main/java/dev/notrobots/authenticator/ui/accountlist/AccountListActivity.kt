@@ -88,7 +88,7 @@ class AccountListActivity : BaseActivity() {
 
     private val accountListAdapterListener = object : AccountListAdapter.Listener {
         override fun onItemClick(account: Account, id: Long, adapter: AccountListAdapter) {
-            if (actionMode != null) {
+            if (actionMode != null) {   //TODO: Handle the selection in the adapter and notify that the item has been selected
                 if (!account.isSelected && adapter.selectedAccounts.isEmpty()) {
                     actionMode?.finish()
                 }
@@ -122,6 +122,11 @@ class AccountListActivity : BaseActivity() {
 //                    viewModel.accountDao.update(adapter.getAccount(row.key, row.value))
 //                }
             }
+        }
+
+        override fun onSelectAllItems(groupPosition: Int) {
+            recyclerViewExpandableItemManager.notifyChildrenOfGroupItemChanged(groupPosition)
+            actionMode?.title = adapter.selectedAccounts.size.toString()
         }
 
         override fun onGroupClick(group: AccountGroup, id: Long, adapter: AccountListAdapter) {
@@ -361,9 +366,9 @@ class AccountListActivity : BaseActivity() {
         }
 
         totpCountdownTask = TotpCountdownTask(
-            totpCounter,
-            totpClock,
-            100
+                totpCounter,
+                totpClock,
+                100
         )
         totpCountdownTask!!.setListener(object : TotpCountdownTask.Listener {
             override fun onTotpCountdown(millisRemaining: Long) {
@@ -442,19 +447,19 @@ class AccountListActivity : BaseActivity() {
             }
             R.id.menu_add_test -> {
                 val groups = listOf(
-                    AccountGroup("Group 1").apply { id = 2; order = 0 },
-                    AccountGroup("Group 2").apply { id = 3; order = 1 },
-                    AccountGroup("Group 3").apply { id = 4; order = 2 }
+                        AccountGroup("Group 1").apply { id = 2; order = 0 },
+                        AccountGroup("Group 2").apply { id = 3; order = 1 },
+                        AccountGroup("Group 3").apply { id = 4; order = 2 }
                 )
                 val accounts = listOf(
-                    Account("Account 1", "22334455").apply { groupId = 2; type = OTPType.HOTP },
-                    Account("Account 2", "22334466").apply { groupId = 2 },
-                    Account("Account 3", "22332277").apply { groupId = 3 },
-                    Account("Account 4", "22334455").apply { groupId = 3 },
-                    Account("Account 5", "22444455").apply { groupId = 4; type = OTPType.HOTP },
-                    Account("Account 6", "22774477").apply { groupId = 4 },
-                    Account("Account 7", "77334455").apply { },
-                    Account("Account 8", "22223355").apply { type = OTPType.HOTP }
+                        Account("Account 1", "22334455").apply { groupId = 2; type = OTPType.HOTP },
+                        Account("Account 2", "22334466").apply { groupId = 2 },
+                        Account("Account 3", "22332277").apply { groupId = 3 },
+                        Account("Account 4", "22334455").apply { groupId = 3 },
+                        Account("Account 5", "22444455").apply { groupId = 4; type = OTPType.HOTP },
+                        Account("Account 6", "22774477").apply { groupId = 4 },
+                        Account("Account 7", "77334455").apply { },
+                        Account("Account 8", "22223355").apply { type = OTPType.HOTP }
                 )
                 lifecycleScope.launch {
                     viewModel.accountDao.deleteAll()
@@ -468,18 +473,18 @@ class AccountListActivity : BaseActivity() {
             }
             R.id.menu_add_test_2 -> {
                 val groups = listOf(
-                    AccountGroup("Work").apply { id = 2; order = 0 },
-                    AccountGroup("Personal").apply { id = 3; order = 1 }
+                        AccountGroup("Work").apply { id = 2; order = 0 },
+                        AccountGroup("Personal").apply { id = 3; order = 1 }
                 )
                 val accounts = listOf(
-                    Account("Max", "22334455").apply { label = "Twitter"; groupId = 2 },
-                    Account("Max", "22334466").apply { label = "Steam"; groupId = 2 },
-                    Account("Max", "22332277").apply { label = "Amazon"; groupId = 2 },
-                    Account("Max", "22334455").apply { label = "EGS"; groupId = 3 },
-                    Account("Max", "22444455").apply { label = "Github"; groupId = 3 },
-                    Account("JohnDoe", "22774477"),
-                    Account("MarioRossi", "77334455"),
-                    Account("JaneDoe", "22223355")
+                        Account("Max", "22334455").apply { label = "Twitter"; groupId = 2 },
+                        Account("Max", "22334466").apply { label = "Steam"; groupId = 2 },
+                        Account("Max", "22332277").apply { label = "Amazon"; groupId = 2 },
+                        Account("Max", "22334455").apply { label = "EGS"; groupId = 3 },
+                        Account("Max", "22444455").apply { label = "Github"; groupId = 3 },
+                        Account("JohnDoe", "22774477"),
+                        Account("MarioRossi", "77334455"),
+                        Account("JaneDoe", "22223355")
                 )
                 lifecycleScope.launch {
                     viewModel.accountDao.deleteAll()

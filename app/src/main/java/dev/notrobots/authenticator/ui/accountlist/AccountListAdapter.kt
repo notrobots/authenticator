@@ -92,12 +92,20 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
     }
 
     override fun onBindGroupViewHolder(holder: GroupViewHolder, groupPosition: Int, viewType: Int) {
+        val groupWithAccounts = items[groupPosition]
         val group = groups[groupPosition]
         val view = holder.itemView
         val childCount = getChildCount(groupPosition)
 
         view.text_group_account_count.visibility = if (editMode == EditMode.Disabled) View.VISIBLE else View.GONE
         view.text_group_account_count.text = if (childCount > 0) childCount.toString() else null
+        view.img_group_select.visibility = if (editMode == EditMode.Item && !groupWithAccounts.isEmpty) View.VISIBLE else View.GONE
+        view.img_group_select.setOnClickListener {
+            for (account in groupWithAccounts.accounts) {
+                account.isSelected = true
+            }
+            listener.onSelectAllItems(groupPosition)
+        }
 
         if (!group.isDefault) {
             view.isSelected = group.isSelected
@@ -125,13 +133,11 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
             }
 
             view.text_group_name.text = group.name
-            view.text_group_account_count.visibility = if (editMode == EditMode.Disabled) View.VISIBLE else View.GONE
-            view.text_group_account_count.text = getChildCount(groupPosition).toString()
+            view.img_drag_handle.visibility = if (editMode == EditMode.Group) View.VISIBLE else View.GONE
             view.img_account_edit.visibility = if (editMode == EditMode.Group) View.VISIBLE else View.GONE
             view.img_account_edit.setOnClickListener {
                 listener.onGroupEdit(group, group.id, this)
             }
-            view.img_drag_handle.visibility = if (editMode == EditMode.Group) View.VISIBLE else View.GONE
         } else {
             view.text_group_name.text = null
         }
@@ -443,6 +449,7 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
         fun onItemEdit(account: Account, id: Long, adapter: AccountListAdapter) = Unit
         fun onItemCounterIncrement(account: Account, id: Long, adapter: AccountListAdapter) = Unit
         fun onItemMoved(updatedRows: Map<Int, Int>) = Unit
+        fun onSelectAllItems(groupPosition: Int) = Unit
     }
 
     //region View holders
