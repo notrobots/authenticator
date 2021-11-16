@@ -279,9 +279,6 @@ class AccountListActivity : BaseActivity() {
                     }
                     dialog.show(supportFragmentManager, null)
                 }
-                R.id.menu_group_unpack -> {
-
-                }
             }
 
             return true

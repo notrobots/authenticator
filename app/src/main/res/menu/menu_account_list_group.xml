@@ -4,10 +4,7 @@
     <item
         android:id="@+id/menu_group_selectall"
         android:title="SelectAll"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/menu_group_unpack"
-        android:title="Unpack"
+        android:icon="@drawable/ic_select_all"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/menu_group_remove"
