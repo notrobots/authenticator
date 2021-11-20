@@ -200,9 +200,9 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
                         it.setTint(Color.LTGRAY)    //FIXME: Use the app's colors
 
                         handler.postDelayed({
-                            it.isEnabled = true
-                            it.setTint(Color.BLUE)
-                        }, Account.HOTP_CODE_INTERVAL)
+                                                it.isEnabled = true
+                                                it.setTint(Color.BLUE)
+                                            }, Account.HOTP_CODE_INTERVAL)
 
                         listener.onItemCounterIncrement(account, id, this)
                     }
@@ -455,7 +455,7 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
     //region View holders
 
     abstract class BaseViewHolder<T>(layoutRes: Int, parent: ViewGroup) : AbstractExpandableItemViewHolder(
-            LayoutInflater.from(parent.context).inflate(layoutRes, parent, false)
+        LayoutInflater.from(parent.context).inflate(layoutRes, parent, false)
     ), DraggableItemViewHolder {
         private val dragState = DraggableItemState()
         val dragHandle = itemView.img_drag_handle

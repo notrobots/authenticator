@@ -5,16 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/btn_export_confirm"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:text="Export"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/spinner_export_output" />
-
     <dev.notrobots.authenticator.views.BetterSpinner
         android:id="@+id/spinner_export_format"
         android:layout_width="0dp"
@@ -38,5 +28,15 @@
         app:layout_constraintStart_toStartOf="@+id/spinner_export_format"
         app:layout_constraintTop_toBottomOf="@+id/spinner_export_format"
         app:spinnerLabel="Export output" />
+
+    <Button
+        android:id="@+id/btn_export_confirm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="18dp"
+        android:layout_marginTop="16dp"
+        android:text="Export"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/spinner_export_output" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

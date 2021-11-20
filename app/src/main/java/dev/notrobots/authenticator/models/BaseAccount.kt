@@ -1,5 +1,6 @@
 package dev.notrobots.authenticator.models
 
+import android.net.Uri
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import java.io.Serializable
@@ -28,6 +29,8 @@ abstract class BaseAccount(
      * The default value is -1, which puts the item at the end of the list
      */
     var order: Long = DEFAULT_ORDER
+
+    abstract fun getUri(): Uri
 
     fun toggleSelected() {
         isSelected = !isSelected

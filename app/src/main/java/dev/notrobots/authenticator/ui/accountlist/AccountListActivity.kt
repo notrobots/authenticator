@@ -34,7 +34,7 @@ import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.backup.BackupActivity
 import dev.notrobots.authenticator.ui.backupexport.ExportActivity
-import dev.notrobots.authenticator.ui.backupexport.ExportConfigActivity
+import dev.notrobots.authenticator.ui.backupexport.ExportResultActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.coroutines.launch
@@ -64,22 +64,21 @@ class AccountListActivity : BaseActivity() {
         if (it.resultCode == Activity.RESULT_OK) {
             if (it.data != null) {
                 val uri = it.data!!.getStringExtra(BarcodeScannerActivity.EXTRA_QR_DATA) ?: ""
-                val accounts = accountExporter.import(uri)  //TODO: Try-catch
 
-                if (accounts.size > 1) {        //TODO: Show a special dialog that tells the user a backup is being imported
-                    logd("Importing backup")
-                }
+                try {
+                    val items = accountExporter.import(uri)
+                    val accounts = items.filterIsInstance<Account>()
+                    val groups = items.filterIsInstance<AccountGroup>()
 
-                for (account in accounts) {
-                    try {
-                        addOrReplaceAccount(account)
-                    } catch (e: Exception) {
-                        //FIXME: This dialog sucks ass
-                        val dialog = ErrorDialog()
+                    //TODO: If you're importing a backup show the import activity where the user can see what they're importing
+                    addOrReplaceAccount(accounts.first())   //FIXME: These two methods should take a list of accounts/groups
+                    //addOrReplaceGroup(groups.first())
+                }catch (e: Exception) {
+                    //FIXME: This dialog sucks ass
+                    val dialog = ErrorDialog()
 
-                        dialog.setErrorMessage(e.message)
-                        dialog.show(supportFragmentManager, null)
-                    }
+                    dialog.setErrorMessage(e.message)
+                    dialog.show(supportFragmentManager, null)
                 }
             }
         }
@@ -208,11 +207,10 @@ class AccountListActivity : BaseActivity() {
                     }
                 }
                 R.id.menu_account_export -> {
-                    if (adapter.selectedAccounts.isNotEmpty()) {
-                        val accounts = ArrayList(adapter.selectedAccounts)
-
+                    if (adapter.selectedGroups.isNotEmpty() || adapter.selectedAccounts.isNotEmpty()) {
                         startActivity(ExportActivity::class) {
-                            putExtra(ExportConfigActivity.EXTRA_ACCOUNT_LIST, accounts)
+                            putExtra(ExportActivity.EXTRA_GROUP_LIST, ArrayList(adapter.selectedGroups))
+                            putExtra(ExportActivity.EXTRA_ACCOUNT_LIST, ArrayList(adapter.selectedAccounts))
                         }
                         actionMode?.finish()
                     } else {
@@ -310,7 +308,12 @@ class AccountListActivity : BaseActivity() {
 
             dialog.onConfirmListener = {
                 try {
-                    addOrReplaceAccount(accountExporter.import(it).first())
+                    val items = accountExporter.import(it)
+                    val accounts = items.filterIsInstance<Account>()
+                    val groups = items.filterIsInstance<AccountGroup>()
+
+                    addOrReplaceAccount(accounts.first())   //FIXME: These two methods should take a list of accounts/groups
+                    //addOrReplaceGroup(groups.first())
                     dialog.dismiss()
                 } catch (e: Exception) {
                     dialog.error = e.message

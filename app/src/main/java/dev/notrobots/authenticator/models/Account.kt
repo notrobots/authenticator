@@ -66,7 +66,7 @@ class Account(
         return super.clone() as Account
     }
 
-    fun getUri(): Uri { //TODO: Add a flag for showing canonical parameters only
+    override fun getUri(): Uri { //TODO: Add a flag for showing canonical parameters only
         val uri = Uri.Builder()
 
         uri.scheme(AccountExporter.OTP_SCHEME)

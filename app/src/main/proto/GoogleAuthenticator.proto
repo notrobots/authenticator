@@ -10,7 +10,7 @@ message GoogleMigrationPayload {
     ALGORITHM_SHA1 = 1;
     ALGORITHM_SHA256 = 2;
     ALGORITHM_SHA512 = 3;
-    ALGORITHM_MD5 = 4;
+//    ALGORITHM_MD5 = 4;
   }
 
   enum DigitCount {

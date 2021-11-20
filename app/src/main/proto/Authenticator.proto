@@ -10,7 +10,7 @@ message MigrationPayload {
     ALGORITHM_SHA1 = 1;
     ALGORITHM_SHA256 = 2;
     ALGORITHM_SHA512 = 3;
-    ALGORITHM_MD5 = 4;
+//    ALGORITHM_MD5 = 4;
   }
 
   enum OTPType {
@@ -30,8 +30,14 @@ message MigrationPayload {
     int64 period = 8;
     Algorithm algorithm = 9;
     int64 order = 10;
-    int64 groupId = 11;
+    int64 group = 11;
+  }
+
+  message Group {
+    string name = 1;
+    int64 order = 2;
   }
 
   repeated Account accounts = 1;
+  repeated Group groups = 2;
 }

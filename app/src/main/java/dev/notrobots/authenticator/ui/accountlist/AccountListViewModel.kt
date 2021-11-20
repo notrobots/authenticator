@@ -52,12 +52,16 @@ class AccountListViewModel @Inject constructor(
      *
      * This method **will not** throw any exceptions.
      */
-    suspend fun addAccount(account: Account) {
-        if (checkIfAccountExists(account)) {
+    suspend fun addAccount(account: Account, forceReplace: Boolean = false) {
+        if (checkIfAccountExists(account) && !forceReplace) {   //TODO: Check should be done outside of here and this should overwrite by default
             loge("An account with the same name already exists")
             error("An account with the same name already exists")
         } else {
             val last = accountDao.getLargestOrder(account.groupId)
+
+            if (accountGroupDao.getGroup(account.groupId) == null) {
+                account.groupId = Account.DEFAULT_GROUP_ID
+            }
 
             account.order = last + 1
             accountDao.insert(account)
@@ -97,8 +101,8 @@ class AccountListViewModel @Inject constructor(
      *
      * If the group already exists an exception is thrown.
      */
-    suspend fun addGroup(group: AccountGroup) {
-        if (checkIfGroupExists(group)) {
+    suspend fun addGroup(group: AccountGroup, forceReplace: Boolean = false) {
+        if (checkIfGroupExists(group) && !forceReplace) {
             loge("A group with the same name already exists")
             error("A group with the same name already exists")
         } else {

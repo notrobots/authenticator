@@ -7,8 +7,9 @@ import dev.notrobots.androidstuff.activities.ThemedActivity
 import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.db.AccountDao
+import dev.notrobots.authenticator.db.AccountGroupDao
 import dev.notrobots.authenticator.ui.backupexport.ExportActivity
-import dev.notrobots.authenticator.ui.backupexport.ExportConfigActivity
+import dev.notrobots.authenticator.ui.backupexport.ExportResultActivity
 import dev.notrobots.authenticator.ui.backupimport.ImportActivity
 import kotlinx.android.synthetic.main.activity_backup.*
 import javax.inject.Inject
@@ -16,7 +17,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class BackupActivity : ThemedActivity() {
     @Inject
-    lateinit var accountDao: AccountDao
+    lateinit var accountGroupDao: AccountGroupDao
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,11 +27,13 @@ class BackupActivity : ThemedActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         btn_backup_export.setOnClickListener {
-            accountDao.getAccounts().observe(this) {
-                val accounts = ArrayList(it)
+            accountGroupDao.getGroupsWithAccounts().observe(this) {
+                val groups = ArrayList(it.map { it.group })
+                val accounts = ArrayList(it.flatMap { it.accounts })
 
                 startActivity(ExportActivity::class) {
-                    putExtra(ExportConfigActivity.EXTRA_ACCOUNT_LIST, accounts)
+                    putExtra(ExportActivity.EXTRA_GROUP_LIST, groups)
+                    putExtra(ExportActivity.EXTRA_ACCOUNT_LIST, accounts)
                 }
             }
         }

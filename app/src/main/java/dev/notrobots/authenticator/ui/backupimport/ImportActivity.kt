@@ -7,6 +7,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.ArrayAdapter
 import androidx.activity.result.contract.ActivityResultContracts.*
+import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.mlkit.vision.barcode.Barcode
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
@@ -21,11 +22,11 @@ import dev.notrobots.androidstuff.util.loge
 import dev.notrobots.androidstuff.util.parseEnum
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.db.AccountDao
+import dev.notrobots.authenticator.db.AccountGroupDao
 import dev.notrobots.authenticator.dialogs.ErrorDialog
-import dev.notrobots.authenticator.models.Account
-import dev.notrobots.authenticator.models.AccountExporter
-import dev.notrobots.authenticator.models.ImportType
+import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.accountlist.AccountListActivity
+import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import kotlinx.android.synthetic.main.activity_import.*
 import kotlinx.coroutines.launch
@@ -94,10 +95,8 @@ class ImportActivity : ThemedActivity() {   //FIXME: BackupImportActivity
                 loge("Error: $it")
             }
     }
-    private var accounts = listOf<Account>()
-
-    @Inject
-    lateinit var accountDao: AccountDao
+    private var items = listOf<BaseAccount>()
+    private val viewModel by viewModels<AccountListViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -172,11 +171,18 @@ class ImportActivity : ThemedActivity() {   //FIXME: BackupImportActivity
             }
         }
         btn_import_confirm.setOnClickListener {
-            if (accounts.isEmpty()) {
+            if (items.isEmpty()) {
                 makeToast("No accounts to import")
             } else {
                 lifecycleScope.launch {
-                    accountDao.insert(accounts) //TODO: Let the user choose and tell them which are going to get replaced
+                    //TODO: Let the user choose and tell them which are going to get replaced, because in this way they get replaced
+
+                    items.filterIsInstance<AccountGroup>().forEach {
+                        viewModel.addGroup(it, true)
+                    }
+                    items.filterIsInstance<Account>().forEach {
+                        viewModel.addAccount(it, true)
+                    }
 
                     startActivity(AccountListActivity::class) {
                         addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -197,14 +203,14 @@ class ImportActivity : ThemedActivity() {   //FIXME: BackupImportActivity
         }
     }
 
-    private fun setImportResult(accounts: List<Account>) {
+    private fun setImportResult(items: List<BaseAccount>) {
         val adapter = ArrayAdapter(
             this,
             android.R.layout.simple_list_item_1,
-            accounts.map { it.displayName }
+            items.map { it.name }
         )
 
         txt_import_output.adapter = adapter
-        this.accounts = accounts
+        this.items = items
     }
 }

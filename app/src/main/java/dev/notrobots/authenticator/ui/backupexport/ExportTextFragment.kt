@@ -49,6 +49,9 @@ class ExportTextFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            android.R.id.home -> {
+                requireActivity().onBackPressed()
+            }
             R.id.menu_export_copy -> {
                 requireContext().copyToClipboard(text)
                 requireContext().makeToast("Copied to clipboard")

@@ -1,13 +1,13 @@
 package dev.notrobots.authenticator.ui.backupexport
 
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.fragment.app.commit
 import dev.notrobots.androidstuff.activities.ThemedActivity
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.models.*
 
-class ExportConfigActivity : ThemedActivity() {
-    private var accounts: List<Account>? = null
+class ExportResultActivity : ThemedActivity() {
     private val exporter by lazy {
         AccountExporter().apply {
             exportOutput = intent.getSerializableExtra(EXTRA_EXPORT_OUTPUT) as ExportOutput
@@ -19,18 +19,19 @@ class ExportConfigActivity : ThemedActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_export_detail)
 
+        val groups = intent.getSerializableExtra(ExportActivity.EXTRA_GROUP_LIST) as List<AccountGroup>
+        val accounts = intent.getSerializableExtra(ExportActivity.EXTRA_ACCOUNT_LIST) as List<Account>
+
         title = null
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.elevation = 0F
-        accounts = intent.getSerializableExtra(EXTRA_ACCOUNT_LIST) as List<Account>
 
-        val export = exporter.export(accounts!!)
         val fragment = when (exporter.exportOutput) {
             ExportOutput.Text -> ExportTextFragment().apply {
-                text = export as String
+                text = exporter.exportText(accounts, groups)
             }
             ExportOutput.QR -> ExportQRFragment().apply {
-                qrCodes = export as List<QRCode>
+                qrCodes = exporter.exportQR(accounts, groups)
             }
         }
 
@@ -39,14 +40,8 @@ class ExportConfigActivity : ThemedActivity() {
         }
     }
 
-    override fun onSupportNavigateUp(): Boolean {   //FIXME: This doesn't work!
-        onBackPressed()
-        return true
-    }
-
     companion object {
-        const val EXTRA_EXPORT_FORMAT = "ExportConfigActivity.EXPORT_FORMAT"
-        const val EXTRA_EXPORT_OUTPUT = "ExportConfigActivity.EXPORT_OUTPUT"
-        const val EXTRA_ACCOUNT_LIST = "ExportConfigActivity.ACCOUNT_LIST"
+        const val EXTRA_EXPORT_FORMAT = "ExportResultActivity.EXPORT_FORMAT"
+        const val EXTRA_EXPORT_OUTPUT = "ExportResultActivity.EXPORT_OUTPUT"
     }
 }

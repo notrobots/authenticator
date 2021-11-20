@@ -2,9 +2,9 @@ package dev.notrobots.authenticator.models
 
 import android.net.Uri
 import com.google.protobuf.ByteString
+import com.google.protobuf.MessageLite
 import dev.notrobots.androidstuff.util.error
-import dev.notrobots.androidstuff.extensions.*
-import dev.notrobots.androidstuff.util.logi
+import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.androidstuff.util.parseEnum
 import dev.notrobots.authenticator.extensions.get
 import dev.notrobots.authenticator.extensions.isOnlySpaces
@@ -15,44 +15,157 @@ import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
 import org.apache.commons.codec.binary.Base32
 import org.apache.commons.codec.binary.Base64
 
+/**
+ * # Account & Groups exporter
+ *
+ * This utility handles the exporting and importing of Accounts and Groups to and from different formats
+ *
+ * ### Default format
+ * ```
+ * Account: otpauth://(hotp|totp)/lablel:name
+ *      ?secret={base32}
+ *      &issuer=issuer.com
+ *      &counter={int}
+ *      &digits={int}
+ *      &period={int}
+ *      &algorithm=(sha1|sha256|sha512)
+ *      &order={int}
+ *      &group={int}
+ * ```
+ * `Group: otpauth://group/name?order={int}`
+ *
+ * ### Default protocol buffer
+ *
+ * ### Google Authenticator protocol buffer
+ */
 class AccountExporter {
     var exportFormat: ExportFormat = ExportFormat.Default
+
+    @Deprecated("Use exportText or exportQR")
     var exportOutput: ExportOutput = ExportOutput.Text
-    val maxBytes
-        get() = if (exportOutput == ExportOutput.QR) QR_MAX_BYTES else -1
 
-    /**
-     * Exports the given account list based on this exporter's configuration
-     *
-     * The return type can be one of the following:
-     * + [String]
-     * + List of [QRCode]
-     */
-    fun export(accounts: List<Account>): Any {
-        val content = when (exportFormat) {
-            ExportFormat.Default -> accounts.map { it.getUri() }
-            ExportFormat.Protobuf -> encodeProtobuf(accounts, ProtobufVariant.Default, maxBytes)
-            ExportFormat.GoogleProtobuf -> encodeProtobuf(accounts, ProtobufVariant.GoogleAuthenticator, maxBytes)
-            ExportFormat.Encrypted -> accounts.map { it.getUri() }
-        }
-
-        return when (exportOutput) {
-            ExportOutput.Text -> content.joinToString("\n")
-            ExportOutput.QR -> content.map { QRCode(it.toString(), QR_BITMAP_SIZE) }
-        }
+    fun exportText(accounts: List<Account>, groups: List<AccountGroup>): String {
+        return export(accounts, groups, exportFormat, 0).joinToString("\n")
     }
 
-    fun export(account: Account): Any {
-        return export(account).let {
-            if (it is List<*>) {
-                it.first() ?: error("List is empty")
-            } else {
-                it
+    fun exportQR(accounts: List<Account>, groups: List<AccountGroup>): List<QRCode> {
+        return export(accounts, groups, exportFormat, QR_MAX_BYTES).map { QRCode(it.toString(), QR_BITMAP_SIZE) }
+    }
+
+    fun export(accounts: List<Account>, groups: List<AccountGroup>, exportFormat: ExportFormat, maxBytes: Int): List<Uri> {
+        return when (exportFormat) {
+            ExportFormat.Default -> {
+                val accounts = accounts.map { it.getUri() }
+                val groups = groups.map { it.getUri() }
+
+                mutableListOf<Uri>().apply {
+                    addAll(groups)
+                    addAll(accounts)
+                }
+            }
+            ExportFormat.Protobuf -> {
+                val chunk = mutableSetOf<MessageLite>()
+                var chunkSize = 0
+                val uris = mutableListOf<Uri>()
+                val groupIds = accounts.map { it.groupId }.distinct()
+                val emptyGroups = groups.filter { it.id !in groupIds }
+                val serializeAccount = { it: Account ->
+                    MigrationPayload.Account.newBuilder()
+                        .setSecret(encodeSecret(it.secret))
+                        .setName(it.name)
+                        .setIssuer(it.issuer)
+                        .setLabel(it.label)
+                        .setAlgorithm(encodeAlgorithm(it.algorithm))
+                        .setType(encodeOTPType(it.type))
+                        .build()
+                        .also { s ->
+                            logd("Serializing group#${it.id}: ${getMessageLength(s)}")
+                        }
+                }
+                val serializeGroup = { it: AccountGroup ->
+                    MigrationPayload.Group.newBuilder()
+                        .setName(it.name)
+                        .setOrder(it.order)
+                        .build()
+                        .also { s ->
+                            logd("Serializing account#${it.id}: ${getMessageLength(s)}")
+                        }
+                }
+                val serializeChunk = {
+                    val payload = MigrationPayload.newBuilder()
+
+                    for (message in chunk) {
+                        when (message) {
+                            is MigrationPayload.Account -> payload.addAccounts(message)
+                            is MigrationPayload.Group -> payload.addGroups(message)
+                        }
+                    }
+
+                    uris += Uri.Builder()
+                        .scheme(EXPORT_OTP_SCHEME)
+                        .authority(EXPORT_OTP_AUTHORITY)
+                        .appendQueryParameter(EXPORT_OTP_DATA, encodeMessage(payload.build().toByteArray()))
+                        .build()
+                }
+
+                if (maxBytes <= 0) {
+                    for (group in groups) {
+                        chunk.add(serializeGroup(group))
+                    }
+                    for (account in accounts) {
+                        chunk.add(serializeAccount(account))
+                    }
+                    serializeChunk()
+                } else {
+                    for (cursor in accounts.indices) {
+                        val groupId = accounts[cursor].groupId
+                        val account = serializeAccount(accounts[cursor])
+                        val group = groups.find { it.id == groupId }?.let {
+                            serializeGroup(it)
+                        }
+                        var tmpSize = getMessageLength(account)
+
+                        if (group != null) {
+                            tmpSize += getMessageLength(group)
+                        }
+
+                        if (tmpSize + chunkSize > maxBytes) {
+                            serializeChunk()
+                            chunk.clear()
+                            chunkSize = 0
+                        }
+
+                        if (group != null) {
+                            chunk.add(group)
+                            chunkSize += getMessageLength(group)
+                        }
+
+                        chunk.add(account)
+                        chunkSize += getMessageLength(account)
+                    }
+
+                    for (group in emptyGroups) {
+                        val g = serializeGroup(group)
+
+                        if (chunkSize + getMessageLength(g) > maxBytes) {
+                            serializeChunk()
+                            chunk.clear()
+                            chunkSize = 0
+                        }
+
+                        chunk.add(g)
+                        chunkSize += getMessageLength(g)
+                    }
+
+                    serializeChunk()
+                }
+
+                uris
             }
         }
     }
 
-    fun import(text: String): List<Account> {
+    fun import(text: String): List<BaseAccount> {
         val uris = text.split("\n").map {
             Uri.parse(it)
         }
@@ -60,33 +173,93 @@ class AccountExporter {
         return import(uris)
     }
 
-    fun import(uris: List<Uri>): List<Account> {
+    fun import(uris: List<Uri>): List<BaseAccount> {
         return uris.flatMap { import(it) }
     }
 
-    fun import(uri: Uri): List<Account> {
-        return when (uri.scheme) {
-            EXPORT_OTP_SCHEME_GOOGLE -> decodeProtobuf(uri, ProtobufVariant.GoogleAuthenticator)
-            OTP_SCHEME -> {
-                if (uri.authority == EXPORT_OTP_AUTHORITY) {
-                    decodeProtobuf(uri, ProtobufVariant.Default)
-                } else {
-                    listOf(parseAccountUri(uri))
+    fun import(uri: Uri): List<BaseAccount> {
+        val items = mutableListOf<BaseAccount>()
+
+        when (uri.scheme) {
+            //
+            // Google Authenticator's export scheme
+            //
+//            EXPORT_OTP_SCHEME_GOOGLE -> decodeProtobuf(uri, ProtobufVariant.GoogleAuthenticator)
+
+            //
+            // Standard OTP scheme
+            //
+            OTP_SCHEME -> when (uri.authority) {
+                //
+                // Protobuf Uri
+                //
+                EXPORT_OTP_AUTHORITY -> {
+                    val data = uri.getQueryParameter(EXPORT_OTP_DATA)
+
+                    if (data.isNullOrEmpty()) {
+                        error("Data parameter is empty")
+                    } else {
+                        val payload = MigrationPayload.parseFrom(decodeMessage(data))
+
+                        for (group in payload.groupsList) {
+                            items.add(
+                                AccountGroup(
+                                    group.name
+                                ).apply {
+                                    order = group.order
+                                }
+                            )
+                        }
+
+                        for (account in payload.accountsList) {
+                            items.add(
+                                Account(
+                                    account.name,
+                                    decodeSecret(account.secret)
+                                ).apply {
+                                    label = account.label
+                                    issuer = account.issuer
+                                    type = decodeOTPType(account.type)
+                                    algorithm = decodeAlgorithm(account.algorithm)
+                                    period = account.period
+                                    counter = account.counter
+                                    digits = account.digits
+                                    groupId = account.group
+                                }
+                            )
+                        }
+                    }
                 }
+
+                //
+                // Group Uri
+                //
+                OTP_GROUP_AUTHORITY -> items.add(parseGroupUri(uri))
+
+                //
+                // Account Uri
+                //
+                else -> items.add(parseAccountUri(uri))
             }
 
             else -> {
                 error("Unknown scheme ${uri.scheme}")
             }
         }
+
+        return items
     }
 
-    fun importOne(text: String): Account {
-        return import(text).first()
-    }
+//    fun importOne(text: String): Account {
+//        return import(text).first()
+//    }
+//
+//    fun importOne(uri: Uri): Account {
+//        return import(uri).first()
+//    }
 
-    fun importOne(uri: Uri): Account {
-        return import(uri).first()
+    private fun getMessageLength(messageLite: MessageLite): Int {
+        return 4 * (messageLite.serializedSize / 3)
     }
 
     private fun parseAccountUri(uri: Uri): Account {
@@ -142,75 +315,189 @@ class AccountExporter {
         return Regex("^(?:(.+):)?(.+)$").find(path) ?: pathError()
     }
 
-    private fun encodeProtobuf(accounts: List<Account>, protobufVariant: ProtobufVariant, chunkSize: Int): List<Uri> {
-        return when (protobufVariant) {
-            ProtobufVariant.Default -> accounts.map {
-                MigrationPayload.Account.newBuilder()
-                    .setSecret(encodeSecret(it.secret))
-                    .setName(it.name)
-                    .setIssuer(it.issuer)
-                    .setLabel(it.label)
-                    .setAlgorithm(encodeAlgorithm(it.algorithm))
-                    .setType(encodeOTPType(it.type))
-                    .build()
-            }.chunked(chunkSize) {
-                it.serializedSize
-            }.map {
-                val payloadMessage = MigrationPayload.newBuilder()
-                    .addAllAccounts(it)
-                    .build()
-                val encoded = encodeMessage(payloadMessage.toByteArray())
+    private fun parseGroupUri(uri: Uri): AccountGroup {
+        val typeError = { error("Uri authority must be '${OTP_GROUP_AUTHORITY}'") }
+        val type = uri.authority?.toLowerCase() ?: typeError()
+        val name = uri.path ?: error("Path malformed, must be /name")
+        val order = uri[OTP_ORDER]?.toLongOrNull() ?: 0L //TODO: If the order is <0 or it already exists assign it the latest order
 
-                Uri.Builder()
-                    .scheme(EXPORT_OTP_SCHEME)
-                    .authority(EXPORT_OTP_AUTHORITY)
-                    .appendQueryParameter(EXPORT_OTP_DATA, encoded)
-                    .build()
-            }
-            ProtobufVariant.GoogleAuthenticator -> accounts.map {
-                GoogleMigrationPayload.Account.newBuilder()
-                    .setAlgorithm(encodeAlgorithm(it.algorithm))
-                    .setDigits(
-                        when (it.digits) {
-                            6 -> GoogleMigrationPayload.DigitCount.DIGIT_COUNT_SIX
-                            8 -> GoogleMigrationPayload.DigitCount.DIGIT_COUNT_EIGHT
+        if (type != OTP_GROUP_AUTHORITY) {
+            typeError()
+        }
 
-                            else -> GoogleMigrationPayload.DigitCount.DIGIT_COUNT_SIX
-                        }
-                    )
-                    .setIssuer(it.issuer)
-                    .setName(it.path)
-                    .setCounter(it.counter)
-                    .setSecret(encodeSecret(it.secret))
-                    .setType(encodeOTPType(it.type))
-                    .build()
-            }.also {
-                //FIXME: Chunking doesn't work
-                // The chunks appear to be really small (23-24 bytes) instead of their regula size
-                // This also block is just for debugging, get rid of it
-                logi(it.joinToString { it.serializedSize.toString() })
-            }.chunked(chunkSize) {
-                it.serializedSize
-            }.map {
-                val payloadMessage = GoogleMigrationPayload.newBuilder()
-                    .setBatchId(681385) //TODO: Random ID
-                    .setBatchIndex(0)
-                    .setBatchSize(1)    //FIXME: Dynamic values
-                    .setVersion(1)
-                    .addAllAccounts(it)
-                    .build()
-                val encoded = encodeMessage(payloadMessage.toByteArray())
+        if (name.isBlank()) {
+            error("Path malformed, must be /name")
+        }
 
-                Uri.Builder()
-                    .scheme(EXPORT_OTP_SCHEME_GOOGLE)
-                    .authority(EXPORT_OTP_AUTHORITY_GOOGLE)
-                    .appendQueryParameter(EXPORT_OTP_DATA_GOOGLE, encoded)
-                    .build()
-            }
+        return AccountGroup(name).apply {
+            this.order = order
         }
     }
 
-    private fun decodeProtobuf(uri: Uri, protobufVariant: ProtobufVariant): List<Account> {
+//    private fun encodeProtobuf(accounts: List<Account>, groups: List<AccountGroup>, protobufVariant: ProtobufVariant, chunkSize: Int): List<Uri> {
+//        val accounts = accounts.toMutableList()
+//        val groups = groups.toMutableList()
+//
+//        return when (protobufVariant) {
+//            ProtobufVariant.Default -> {
+//
+//
+//                return mutableListOf<Uri>().apply {
+//                    for (gwa in groupsWithAccounts) {
+//                        val group = MigrationPayload.Group.newBuilder()
+//                            .setName(gwa.group.name)
+//                            .setOrder(gwa.group.order)
+//                            .build()
+//                        val accounts = gwa.accounts.map {
+//                            MigrationPayload.Account.newBuilder()
+//                                .setSecret(encodeSecret(it.secret))
+//                                .setName(it.name)
+//                                .setIssuer(it.issuer)
+//                                .setLabel(it.label)
+//                                .setAlgorithm(encodeAlgorithm(it.algorithm))
+//                                .setType(encodeOTPType(it.type))
+//                                .build()
+//                        }.chunked(chunkSize - group.serializedSize) {
+//                            it.serializedSize
+//                        }
+//
+//                        accounts.map {
+//                            val payload = MigrationPayload.newBuilder()
+//                                .addGroups(group)
+//                                .addAllAccounts(it)
+//                                .build()
+//                            val encoded = encodeMessage(payload.toByteArray())
+//
+//                            this += Uri.Builder()
+//                                .scheme(EXPORT_OTP_SCHEME)
+//                                .authority(EXPORT_OTP_AUTHORITY)
+//                                .appendQueryParameter(EXPORT_OTP_DATA, encoded)
+//                                .build()
+//                        }
+//                    }
+//                }
+//            }
+////            ProtobufVariant.GoogleAuthenticator -> accounts.map {
+////                GoogleMigrationPayload.Account.newBuilder()
+////                    .setAlgorithm(encodeAlgorithm(it.algorithm))
+////                    .setDigits(
+////                        when (it.digits) {
+////                            6 -> GoogleMigrationPayload.DigitCount.DIGIT_COUNT_SIX
+////                            8 -> GoogleMigrationPayload.DigitCount.DIGIT_COUNT_EIGHT
+////
+////                            else -> GoogleMigrationPayload.DigitCount.DIGIT_COUNT_SIX
+////                        }
+////                    )
+////                    .setIssuer(it.issuer)
+////                    .setName(it.path)
+////                    .setCounter(it.counter)
+////                    .setSecret(encodeSecret(it.secret))
+////                    .setType(encodeOTPType(it.type))
+////                    .build()
+////            }.chunked(chunkSize) {
+////                it.serializedSize
+////            }.map {
+////                val payloadMessage = GoogleMigrationPayload.newBuilder()
+////                    .setBatchId(681385) //TODO: Random ID
+////                    .setBatchIndex(0)
+////                    .setBatchSize(1)    //FIXME: Dynamic values
+////                    .setVersion(1)
+////                    .addAllAccounts(it)
+////                    .build()
+////                val encoded = encodeMessage(payloadMessage.toByteArray())
+////
+////                Uri.Builder()
+////                    .scheme(EXPORT_OTP_SCHEME_GOOGLE)
+////                    .authority(EXPORT_OTP_AUTHORITY_GOOGLE)
+////                    .appendQueryParameter(EXPORT_OTP_DATA_GOOGLE, encoded)
+////                    .build()
+////            }
+//        }
+//    }
+
+//    private fun encodeProtobuf(accounts: List<Account>, groups: List<AccountGroup>, protobufVariant: ProtobufVariant, chunkSize: Int): List<Uri> {
+//        return when (protobufVariant) {
+//            ProtobufVariant.Default -> {
+//                val payloadAccounts = accounts.map {
+//                    MigrationPayload.Account.newBuilder()
+//                        .setSecret(encodeSecret(it.secret))
+//                        .setName(it.name)
+//                        .setIssuer(it.issuer)
+//                        .setLabel(it.label)
+//                        .setAlgorithm(encodeAlgorithm(it.algorithm))
+//                        .setType(encodeOTPType(it.type))
+//                        .build()
+//                }
+//                val payloadGroups = groups.map {
+//                    MigrationPayload.Group.newBuilder()
+//                        .setName(it.name)
+//                        .setOrder(it.order)
+//                        .build()
+//                }
+//
+//                return mutableListOf<Uri>().apply {
+//                    for ((i, group) in payloadGroups.withIndex()) {
+//                        val groupAccounts = payloadAccounts.filter { it.group == groups[i].id }
+//                        val chunk = groupAccounts.chunked(chunkSize - group.serializedSize) {
+//                            it.serializedSize
+//                        }
+//
+//                        for (accounts in chunk) {
+//                            val payload = MigrationPayload.newBuilder()
+//                                .addGroups(group)
+//                                .addAllAccounts(accounts)
+//                                .build()
+//                            val encoded = encodeMessage(payload.toByteArray())
+//                            val uri = Uri.Builder()
+//                                .scheme(EXPORT_OTP_SCHEME)
+//                                .authority(EXPORT_OTP_AUTHORITY)
+//                                .appendQueryParameter(EXPORT_OTP_DATA, encoded)
+//                                .build()
+//
+//                            add(uri)
+//                        }
+//                    }
+//                }
+//            }
+//            ProtobufVariant.GoogleAuthenticator -> accounts.map {
+//                GoogleMigrationPayload.Account.newBuilder()
+//                    .setAlgorithm(encodeAlgorithm(it.algorithm))
+//                    .setDigits(
+//                        when (it.digits) {
+//                            6 -> GoogleMigrationPayload.DigitCount.DIGIT_COUNT_SIX
+//                            8 -> GoogleMigrationPayload.DigitCount.DIGIT_COUNT_EIGHT
+//
+//                            else -> GoogleMigrationPayload.DigitCount.DIGIT_COUNT_SIX
+//                        }
+//                    )
+//                    .setIssuer(it.issuer)
+//                    .setName(it.path)
+//                    .setCounter(it.counter)
+//                    .setSecret(encodeSecret(it.secret))
+//                    .setType(encodeOTPType(it.type))
+//                    .build()
+//            }.chunked(chunkSize) {
+//                it.serializedSize
+//            }.map {
+//                val payloadMessage = GoogleMigrationPayload.newBuilder()
+//                    .setBatchId(681385) //TODO: Random ID
+//                    .setBatchIndex(0)
+//                    .setBatchSize(1)    //FIXME: Dynamic values
+//                    .setVersion(1)
+//                    .addAllAccounts(it)
+//                    .build()
+//                val encoded = encodeMessage(payloadMessage.toByteArray())
+//
+//                Uri.Builder()
+//                    .scheme(EXPORT_OTP_SCHEME_GOOGLE)
+//                    .authority(EXPORT_OTP_AUTHORITY_GOOGLE)
+//                    .appendQueryParameter(EXPORT_OTP_DATA_GOOGLE, encoded)
+//                    .build()
+//            }
+//        }
+//    }
+
+    private fun deserializeProtobuf(uri: Uri, protobufVariant: ProtobufVariant): List<Account> {
         val list = mutableListOf<Account>()
 
         when (protobufVariant) {
@@ -236,31 +523,31 @@ class AccountExporter {
                     }
                 }
             }
-            ProtobufVariant.GoogleAuthenticator -> {
-                val data = uri.getQueryParameter(EXPORT_OTP_DATA_GOOGLE)
-
-                if (data.isNullOrEmpty()) {
-                    error("Data parameter is empty")
-                } else {
-                    val messagePayload = GoogleMigrationPayload.parseFrom(decodeMessage(data))
-
-                    for (accountMessage in messagePayload.accountsList) {
-                        val path = parseAccountName(accountMessage.name)
-
-                        list.add(
-                            Account(
-                                path.groupValues[2],
-                                decodeSecret(accountMessage.secret)
-                            ).apply {
-                                label = path.groupValues[1]
-                                issuer = accountMessage.issuer
-                                counter = accountMessage.counter
-                                type = decodeOTPType(accountMessage.type)
-                            }
-                        )
-                    }
-                }
-            }
+//            ProtobufVariant.GoogleAuthenticator -> {
+//                val data = uri.getQueryParameter(EXPORT_OTP_DATA_GOOGLE)
+//
+//                if (data.isNullOrEmpty()) {
+//                    error("Data parameter is empty")
+//                } else {
+//                    val messagePayload = GoogleMigrationPayload.parseFrom(decodeMessage(data))
+//
+//                    for (accountMessage in messagePayload.accountsList) {
+//                        val path = parseAccountName(accountMessage.name)
+//
+//                        list.add(
+//                            Account(
+//                                path.groupValues[2],
+//                                decodeSecret(accountMessage.secret)
+//                            ).apply {
+//                                label = path.groupValues[1]
+//                                issuer = accountMessage.issuer
+//                                counter = accountMessage.counter
+//                                type = decodeOTPType(accountMessage.type)
+//                            }
+//                        )
+//                    }
+//                }
+//            }
         }
 
         return list.toList()
@@ -372,14 +659,18 @@ class AccountExporter {
     }
 
     companion object {
+        //TODO: Let the user chose the resolution 264, 512, 1024, 2048
         const val QR_BITMAP_SIZE = 512
-        const val QR_MAX_BYTES = 512       // 2953
+
+        //TODO: There should be a list of sizes: 64, 128, 256, 512
+        const val QR_MAX_BYTES = 512       // Max: 2953
         const val EXPORT_OTP_SCHEME = "otpauth"
         const val EXPORT_OTP_AUTHORITY = "offline"
         const val EXPORT_OTP_DATA = "data"
         const val EXPORT_OTP_SCHEME_GOOGLE = "otpauth-migration"
         const val EXPORT_OTP_AUTHORITY_GOOGLE = "offline"
         const val EXPORT_OTP_DATA_GOOGLE = "data"
+        const val OTP_GROUP_AUTHORITY = "group"
         const val OTP_SCHEME = "otpauth"
         const val OTP_SECRET = "secret"
         const val OTP_ISSUER = "issuer"
@@ -387,6 +678,7 @@ class AccountExporter {
         const val OTP_ALGORITHM = "algorithm"
         const val OTP_DIGITS = "digits"
         const val OTP_PERIOD = "period"
+        const val OTP_ORDER = "order"
 
         /**
          * Validates the given [Account] fields and throws an exception if any of them doesn't

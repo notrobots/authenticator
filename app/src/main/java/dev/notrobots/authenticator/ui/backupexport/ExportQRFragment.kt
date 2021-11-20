@@ -108,6 +108,9 @@ class ExportQRFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            android.R.id.home -> {
+                requireActivity().onBackPressed()
+            }
             R.id.menu_export_copy_current -> {
                 requireContext().copyToClipboard(qrCodes[currentQRCode])
                 requireContext().makeToast("Copied to clipboard")

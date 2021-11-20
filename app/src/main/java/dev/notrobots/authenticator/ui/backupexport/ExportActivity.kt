@@ -24,10 +24,10 @@ class ExportActivity : ThemedActivity() {
             btn_export_confirm.setOnClickListener {
                 val exportFormat = spinner_export_format.selectedValue as ExportFormat
                 val exportOutput = spinner_export_output.selectedValue as ExportOutput
-                val intent = Intent(this, ExportConfigActivity::class.java)
+                val intent = Intent(this, ExportResultActivity::class.java)
 
-                intent.putExtra(ExportConfigActivity.EXTRA_EXPORT_FORMAT, exportFormat)
-                intent.putExtra(ExportConfigActivity.EXTRA_EXPORT_OUTPUT, exportOutput)
+                intent.putExtra(ExportResultActivity.EXTRA_EXPORT_FORMAT, exportFormat)
+                intent.putExtra(ExportResultActivity.EXTRA_EXPORT_OUTPUT, exportOutput)
                 intent.putExtras(this.intent.extras!!)
                 startActivity(intent)
             }
@@ -40,5 +40,10 @@ class ExportActivity : ThemedActivity() {
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
         return true
+    }
+
+    companion object {
+        const val EXTRA_ACCOUNT_LIST = "ExportActivity.ACCOUNT_LIST"
+        const val EXTRA_GROUP_LIST = "ExportActivity.GROUP_LIST"
     }
 }
