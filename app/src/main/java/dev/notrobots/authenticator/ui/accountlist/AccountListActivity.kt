@@ -17,12 +17,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.h6ah4i.android.widget.advrecyclerview.draggable.RecyclerViewDragDropManager
 import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandableItemManager
 import dagger.hilt.android.AndroidEntryPoint
+import dev.notrobots.androidstuff.activities.BaseActivity
 import dev.notrobots.androidstuff.extensions.copyToClipboard
 import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.authenticator.R
-import dev.notrobots.authenticator.activities.BaseActivity
 import dev.notrobots.authenticator.data.Preferences
 import dev.notrobots.authenticator.dialogs.*
 import dev.notrobots.authenticator.extensions.absoluteRangeTo
@@ -296,6 +296,7 @@ class AccountListActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_account_list)
+        doubleBackPressToExitEnabled = true
 
         btn_add_account_qr.setOnClickListener {
             val intent = Intent(this, BarcodeScannerActivity::class.java)
@@ -397,10 +398,6 @@ class AccountListActivity : BaseActivity() {
     }
 
     //endregion
-
-    override fun isDoubleBackPressToExitEnabled(): Boolean {
-        return true
-    }
 
     override fun onBackPressed() {
         if (actionMode != null) {

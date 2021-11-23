@@ -6,11 +6,12 @@ import androidx.activity.viewModels
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import dev.notrobots.androidstuff.activities.BaseActivity
+import dev.notrobots.androidstuff.activities.ThemedActivity
 import dev.notrobots.androidstuff.extensions.hasErrors
 import dev.notrobots.androidstuff.extensions.setClearErrorOnType
 import dev.notrobots.androidstuff.util.*
 import dev.notrobots.authenticator.R
-import dev.notrobots.authenticator.activities.BaseActivity
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.AccountExporter
 import dev.notrobots.authenticator.models.OTPType
@@ -20,7 +21,7 @@ import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class AccountActivity : BaseActivity() {
+class AccountActivity : ThemedActivity() {
     private val viewModel by viewModels<AccountListViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
