@@ -40,10 +40,19 @@ interface AccountGroupDao {
     suspend fun update(groups: List<AccountGroup>): Int
 
     @Delete
-    suspend fun delete(group: AccountGroup) //FIXME: Fix the return parameters, they may be useful in the future
+    suspend fun delete(group: AccountGroup)
 
     @Delete
     suspend fun delete(groups: List<AccountGroup>) //FIXME: Fix the return parameters, they may be useful in the future
+
+    @Transaction
+    suspend fun deleteGroupWithAccounts(group: AccountGroup) {
+        deleteAccounts(group.id)
+        delete(group)
+    }
+
+    @Query("DELETE FROM Account WHERE groupId = :groupId")
+    suspend fun deleteAccounts(groupId: Long)
 
     @Query("DELETE FROM AccountGroup")
     suspend fun deleteAll()

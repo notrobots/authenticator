@@ -35,14 +35,14 @@ interface AccountDao {
     @Update
     suspend fun update(accounts: List<Account>)
 
-//    @Query("UPDATE Account SET `order` = :order WHERE id = :id")
-//    suspend fun updateOrder(id: Long, order: Long)
-
     @Delete
     suspend fun delete(account: Account)
 
     @Delete
     suspend fun delete(accounts: List<Account>)
+
+    @Query("DELETE FROM Account WHERE groupId = :groupId")
+    suspend fun delete(groupId: Long)
 
     @Query("DELETE FROM Account")
     suspend fun deleteAll()

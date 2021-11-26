@@ -1,3 +1,25 @@
 <resources>
     <string name="app_name">Authenticator</string>
+
+    <plurals name="label_quantity_group">
+        <item quantity="one">%d group</item>
+        <item quantity="other">%d groups</item>
+    </plurals>
+    <plurals name="label_quantity_account">
+        <item quantity="one">%d account</item>
+        <item quantity="other">%d accounts</item>
+    </plurals>
+    <plurals name="label_delete_group_1">
+        <item quantity="one">Remove group</item>
+        <item quantity="other">Remove groups</item>
+    </plurals>
+    <string name="label_delete_group_2"><![CDATA[You are about to <b>permanently delete %s and %s</b><br/><br/>Deleting an account from the authenticator won\'t disable the 2 factor authentication.<br/><br/><b>Make sure to disable the 2FA on the website/service the account is tied to.</b>]]></string>
+    <plurals name="label_delete_account_1">
+        <item quantity="one">Remove account</item>
+        <item quantity="other">Remove accounts</item>
+    </plurals>
+    <plurals name="label_delete_account_2">
+        <item quantity="one"><![CDATA[You\'re about to <b>permanently delete</b> %d account<br/><br/>Deleting an account from the authenticator won\'t disable the 2 factor authentication.<br/><br/><b>Make sure to disable the 2FA on the website/service the account is tied to.</b>]]></item>
+        <item quantity="other"><![CDATA[You\'re about to <b>permanently delete</b> %d accounts<br/><br/>Deleting an account from the authenticator won\'t disable the 2 factor authentication.<br/><br/><b>Make sure to disable the 2FA on the website/service the account is tied to.</b>]]></item>
+    </plurals>
 </resources>

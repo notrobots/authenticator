@@ -55,6 +55,9 @@ android {
         exclude 'META-INF/LICENSE.md'
         exclude("META-INF/*.kotlin_module")
     }
+    buildFeatures {
+        viewBinding = true
+    }
 }
 
 protobuf {

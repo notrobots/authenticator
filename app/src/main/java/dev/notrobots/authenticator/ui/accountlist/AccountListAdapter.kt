@@ -31,8 +31,9 @@ private typealias ChildViewHolder = AccountListAdapter.AccountViewHolder
 
 class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, ChildViewHolder>(), ExpandableDraggableItemAdapter<ParentViewHolder, ChildViewHolder> {
     private var listener: Listener = object : Listener {}
-    private var items = listOf<GroupWithAccounts>()
     private val handler = Handler(Looper.getMainLooper())
+    var items = mutableListOf<GroupWithAccounts>()
+        private set
     var editMode: EditMode = EditMode.Disabled
     var showPins: Boolean = true
         set(value) {
@@ -48,10 +49,14 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
         get() = items.map { it.group }
     val selectedGroups
         get() = groups.filter { it.isSelected }
+    val selectedGroupCount
+        get() = groups.count { it.isSelected }
     val accounts
         get() = items.flatMap { it.accounts }
     val selectedAccounts
         get() = accounts.filter { it.isSelected }
+    val selectedAccountCount
+        get() = accounts.count { it.isSelected }
 
     init {
         setHasStableIds(true)
@@ -368,6 +373,26 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
 
     //endregion
 
+    fun removeGroup(group: AccountGroup): Boolean {
+        val groupWithAccounts = items.find { it.group == group }
+
+        if (groupWithAccounts != null) {
+            groupWithAccounts.accounts.clear()
+
+            return items.remove(groupWithAccounts)
+        }
+
+        return false
+    }
+
+    fun getGroupWithAccounts(position: Int): GroupWithAccounts {
+        return items[position]
+    }
+
+    fun getGroupWithAccounts(groupId: Long): GroupWithAccounts {
+        return items.find { it.group.id == groupId } ?: throw Exception("Cannot with group with given id")
+    }
+
     fun getGroup(groupPosition: Int): AccountGroup {
         return groups[groupPosition]
     }
@@ -385,7 +410,7 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
     }
 
     fun setItems(items: List<GroupWithAccounts>) {
-        this.items = items
+        this.items = items.toMutableList()
         notifyDataSetChanged()
     }
 

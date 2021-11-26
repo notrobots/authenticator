@@ -1,33 +1,25 @@
 package dev.notrobots.authenticator.dialogs
 
 import android.app.Dialog
-import android.os.Build
 import android.os.Bundle
-import android.text.Html
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
-import dev.notrobots.authenticator.models.Account
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dev.notrobots.authenticator.R
+import dev.notrobots.authenticator.extensions.getQuantityText
 
 class DeleteAccountDialog(
-    private val accounts: List<Account>,
+    private val accountCount: Int,
+    private val onConfirm: () -> Unit
 ) : DialogFragment() {
-    var onConfirmListener: () -> Unit = {}
-
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val itemNames = accounts.joinToString("<br/>") { "• ${it.displayName}" }
-        val message = "You're about to remove the following accounts:<br/><br/>$itemNames<br/><br/><b>Deleting an account from the authenticator won't disable the 2FA, before deleting an account make sure to disable the 2FA on the website/service the account is tied to</b>".let {
-            if (Build.VERSION.SDK_INT >= 24) {
-                Html.fromHtml(it, Html.FROM_HTML_MODE_LEGACY)
-            } else {
-                Html.fromHtml(it)
-            }
-        }
+        val title = resources.getQuantityText(R.plurals.label_delete_account_1, accountCount, accountCount)
+        val message = resources.getQuantityText(R.plurals.label_delete_account_2, accountCount, accountCount)
 
-        return AlertDialog.Builder(requireContext())
-            .setTitle("Remove account(s)")
+        return MaterialAlertDialogBuilder(requireContext())
+            .setTitle(title)
             .setMessage(message)
             .setNegativeButton("Cancel", null)
-            .setPositiveButton("Remove account(s)") { _, _ -> onConfirmListener() }
+            .setPositiveButton(title) { _, _ -> onConfirm() }
             .create()
     }
 }
