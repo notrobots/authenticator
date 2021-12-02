@@ -4,8 +4,8 @@ import android.net.Uri
 import com.google.protobuf.ByteString
 import com.google.protobuf.MessageLite
 import dev.notrobots.androidstuff.util.error
-import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.androidstuff.util.parseEnum
+import dev.notrobots.authenticator.extensions.contains
 import dev.notrobots.authenticator.extensions.get
 import dev.notrobots.authenticator.extensions.isOnlySpaces
 import dev.notrobots.authenticator.proto.Authenticator.*
@@ -14,30 +14,8 @@ import dev.notrobots.authenticator.util.isValidBase32
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
 import org.apache.commons.codec.binary.Base32
 import org.apache.commons.codec.binary.Base64
+import java.util.*
 
-/**
- * # Account & Groups exporter
- *
- * This utility handles the exporting and importing of Accounts and Groups to and from different formats
- *
- * ### Default format
- * ```
- * Account: otpauth://(hotp|totp)/lablel:name
- *      ?secret={base32}
- *      &issuer=issuer.com
- *      &counter={int}
- *      &digits={int}
- *      &period={int}
- *      &algorithm=(sha1|sha256|sha512)
- *      &order={int}
- *      &group={int}
- * ```
- * `Group: otpauth://group/name?order={int}`
- *
- * ### Default protocol buffer
- *
- * ### Google Authenticator protocol buffer
- */
 class AccountExporter {
     var exportFormat: ExportFormat = ExportFormat.Default
 
@@ -53,15 +31,12 @@ class AccountExporter {
     }
 
     fun export(accounts: List<Account>, groups: List<AccountGroup>, exportFormat: ExportFormat, maxBytes: Int): List<Uri> {
-        return when (exportFormat) {
+        when (exportFormat) {
             ExportFormat.Default -> {
-                val accounts = accounts.map { it.getUri() }
-                val groups = groups.map { it.getUri() }
+                val accounts = accounts.map(::parseUri)
+                val groups = groups.map(::parseUri)
 
-                mutableListOf<Uri>().apply {
-                    addAll(groups)
-                    addAll(accounts)
-                }
+                return accounts + groups
             }
             ExportFormat.Protobuf -> {
                 val chunk = mutableSetOf<MessageLite>()
@@ -71,25 +46,24 @@ class AccountExporter {
                 val emptyGroups = groups.filter { it.id !in groupIds }
                 val serializeAccount = { it: Account ->
                     MigrationPayload.Account.newBuilder()
-                        .setSecret(encodeSecret(it.secret))
                         .setName(it.name)
+                        .setOrder(it.order)
+                        .setSecret(encodeSecret(it.secret))
                         .setIssuer(it.issuer)
                         .setLabel(it.label)
-                        .setAlgorithm(encodeAlgorithm(it.algorithm))
                         .setType(encodeOTPType(it.type))
+                        .setCounter(it.counter)
+                        .setDigits(it.digits)
+                        .setPeriod(it.period)
+                        .setAlgorithm(encodeAlgorithm(it.algorithm))
+                        .setGroup(it.groupId)
                         .build()
-                        .also { s ->
-                            logd("Serializing group#${it.id}: ${getMessageLength(s)}")
-                        }
                 }
                 val serializeGroup = { it: AccountGroup ->
                     MigrationPayload.Group.newBuilder()
                         .setName(it.name)
                         .setOrder(it.order)
                         .build()
-                        .also { s ->
-                            logd("Serializing account#${it.id}: ${getMessageLength(s)}")
-                        }
                 }
                 val serializeChunk = {
                     val payload = MigrationPayload.newBuilder()
@@ -160,7 +134,7 @@ class AccountExporter {
                     serializeChunk()
                 }
 
-                uris
+                return uris
             }
         }
     }
@@ -217,13 +191,14 @@ class AccountExporter {
                                     account.name,
                                     decodeSecret(account.secret)
                                 ).apply {
-                                    label = account.label
+                                    order = account.order
                                     issuer = account.issuer
+                                    label = account.label
                                     type = decodeOTPType(account.type)
-                                    algorithm = decodeAlgorithm(account.algorithm)
-                                    period = account.period
                                     counter = account.counter
                                     digits = account.digits
+                                    period = account.period
+                                    algorithm = decodeAlgorithm(account.algorithm)
                                     groupId = account.group
                                 }
                             )
@@ -234,12 +209,12 @@ class AccountExporter {
                 //
                 // Group Uri
                 //
-                OTP_GROUP_AUTHORITY -> items.add(parseGroupUri(uri))
+                OTP_GROUP_AUTHORITY -> items.add(parseGroup(uri))
 
                 //
                 // Account Uri
                 //
-                else -> items.add(parseAccountUri(uri))
+                else -> items.add(parseAccount(uri))
             }
 
             else -> {
@@ -250,88 +225,8 @@ class AccountExporter {
         return items
     }
 
-//    fun importOne(text: String): Account {
-//        return import(text).first()
-//    }
-//
-//    fun importOne(uri: Uri): Account {
-//        return import(uri).first()
-//    }
-
     private fun getMessageLength(messageLite: MessageLite): Int {
         return 4 * (messageLite.serializedSize / 3)
-    }
-
-    private fun parseAccountUri(uri: Uri): Account {
-        val typeError = { error("Type must be one of [${OTPType.values().joinToString()}]") }
-
-        //
-        // Extra optional fields
-        //
-        val algorithm = parseEnum(uri[OTP_ALGORITHM], true) ?: Account.DEFAULT_OTP_ALGORITHM
-        val digits = uri[OTP_DIGITS]?.toIntOrNull() ?: Account.DEFAULT_OTP_DIGITS
-        val counter = uri[OTP_COUNTER]?.toLongOrNull() ?: Account.DEFAULT_OTP_COUNTER
-        val period = uri[OTP_PERIOD]?.toLongOrNull() ?: Account.DEFAULT_OTP_PERIOD
-
-        //
-        // Required fields
-        //
-        val type = parseEnum<OTPType>(uri.authority?.toUpperCase()) ?: typeError()
-        val path = parseAccountName(uri.path ?: error("Path malformed, must be /label:name or /name"))
-        val name = path.groupValues[2]
-        val secret = uri[OTP_SECRET] ?: error("Missing parameter 'secret'")
-
-        validateName(name)
-        validateSecret(secret)
-
-        //
-        // Optional fields
-        //
-        val label = path.groupValues[1]
-        val issuer = uri[OTP_ISSUER] ?: ""
-
-        validateLabel(label)
-        validateIssuer(issuer)
-
-        return Account(name, secret).apply {
-            this.issuer = issuer
-            this.label = label
-            this.type = type
-            this.algorithm = algorithm
-            this.digits = digits
-            this.counter = counter
-            this.period = period
-        }
-    }
-
-    private fun parseAccountName(name: String): MatchResult {
-        val pathError = { error("Path malformed, must be /label:name or /name") }
-        val path = name.removePrefix("/")
-
-        if (path.isBlank()) {
-            pathError()
-        }
-
-        return Regex("^(?:(.+):)?(.+)$").find(path) ?: pathError()
-    }
-
-    private fun parseGroupUri(uri: Uri): AccountGroup {
-        val typeError = { error("Uri authority must be '${OTP_GROUP_AUTHORITY}'") }
-        val type = uri.authority?.toLowerCase() ?: typeError()
-        val name = uri.path ?: error("Path malformed, must be /name")
-        val order = uri[OTP_ORDER]?.toLongOrNull() ?: 0L //TODO: If the order is <0 or it already exists assign it the latest order
-
-        if (type != OTP_GROUP_AUTHORITY) {
-            typeError()
-        }
-
-        if (name.isBlank()) {
-            error("Path malformed, must be /name")
-        }
-
-        return AccountGroup(name).apply {
-            this.order = order
-        }
     }
 
 //    private fun encodeProtobuf(accounts: List<Account>, groups: List<AccountGroup>, protobufVariant: ProtobufVariant, chunkSize: Int): List<Uri> {
@@ -672,13 +567,140 @@ class AccountExporter {
         const val EXPORT_OTP_DATA_GOOGLE = "data"
         const val OTP_GROUP_AUTHORITY = "group"
         const val OTP_SCHEME = "otpauth"
-        const val OTP_SECRET = "secret"
+        const val OTP_SECRET = "secret" //TODO: Rename to ACCOUNT_SECRET and GROUP_XXXX
         const val OTP_ISSUER = "issuer"
         const val OTP_COUNTER = "counter"
         const val OTP_ALGORITHM = "algorithm"
         const val OTP_DIGITS = "digits"
         const val OTP_PERIOD = "period"
         const val OTP_ORDER = "order"
+        const val OTP_GROUP = "group"
+
+        fun parseGroup(uri: Uri): AccountGroup {
+            val pathError = { error("Path malformed, must be /name") }
+            val typeError = { error("Uri authority must be '${OTP_GROUP_AUTHORITY}'") }
+            val type = uri.authority?.toLowerCase(Locale.getDefault()) ?: typeError()
+            val name = uri.path?.removePrefix("/") ?: pathError()
+            val order = uri[OTP_ORDER]?.toLongOrNull() ?: 0L //TODO: If the order is <0 or it already exists assign it the latest order
+
+            if (type != OTP_GROUP_AUTHORITY) {
+                typeError()
+            }
+
+            if (name.isBlank()) {
+                pathError()
+            }
+
+            return AccountGroup(name).apply {
+                this.order = order
+            }
+        }
+
+        fun parseAccount(uri: Uri): Account {
+            val pathError = { error("Path malformed, must be /label:name or /name") }
+            val typeError = { error("Type must be one of [${OTPType.values().joinToString()}]") }
+
+            //
+            // Optional fields
+            //
+            val algorithm = if (OTP_ALGORITHM in uri) {
+                parseEnum(uri[OTP_ALGORITHM], true) ?: error("Unknown algorithm")
+            } else {
+                Account.DEFAULT_ALGORITHM
+            }
+            val digits = if (OTP_DIGITS in uri) {
+                uri[OTP_DIGITS]?.toIntOrNull() ?: error("Digits number must be an integer")
+            }    //TODO: Between x and y
+            else {
+                Account.DEFAULT_DIGITS
+            }
+            val counter = if (OTP_COUNTER in uri) {
+                uri[OTP_COUNTER]?.toLongOrNull() ?: error("Counter value must be an integer")
+            } else {
+                Account.DEFAULT_COUNTER
+            }
+            val period = if (OTP_PERIOD in uri) {
+                uri[OTP_PERIOD]?.toLongOrNull() ?: error("Period must be an integer")
+            } else {
+                Account.DEFAULT_PERIOD
+            }
+            val group = if (OTP_GROUP in uri) {
+                uri[OTP_GROUP]?.toLongOrNull() ?: error("Group ID must be an integer")
+            } else {
+                Account.DEFAULT_GROUP_ID
+            }
+            val issuer = if (OTP_ISSUER in uri) uri[OTP_ISSUER]!! else ""
+
+            //
+            // Required fields
+            //
+            val type = parseEnum<OTPType>(uri.authority?.toUpperCase(Locale.getDefault())) ?: typeError()
+            val path = uri.path?.removePrefix("/").let {
+                if (it == null || it.isBlank()) {
+                    pathError()
+                }
+
+                Regex("^(?:(.+):)?(.+)$").find(it) ?: pathError()
+            }
+            val name = path.groupValues[2]
+            val label = path.groupValues[1]
+            val secret = uri[OTP_SECRET] ?: error("Missing parameter 'secret'")
+
+            if (name.isBlank()) {
+                error("Name cannot be empty")
+            }
+
+            if (label.isOnlySpaces()) {
+                error("Label cannot be blank")
+            }
+
+            if (issuer.isOnlySpaces()) {
+                error("Issuer cannot be blank")
+            }
+
+            validateSecret(secret)
+
+            return Account(name, secret).apply {
+                this.issuer = issuer
+                this.label = label
+                this.type = type
+                this.algorithm = algorithm
+                this.digits = digits
+                this.counter = counter
+                this.period = period
+                this.groupId = group
+            }
+        }
+
+        fun parseUri(group: AccountGroup): Uri {
+            return Uri.Builder()
+                .scheme(OTP_SCHEME)
+                .authority(OTP_GROUP_AUTHORITY)
+                .path(group.name)
+                .appendQueryParameter(OTP_ORDER, group.order.toString())
+                .build()
+        }
+
+        fun parseUri(account: Account): Uri {
+            val uri = Uri.Builder()
+
+            uri.scheme(OTP_SCHEME)
+            uri.authority(account.type.toString().toLowerCase(Locale.getDefault()))
+            uri.path(account.path)
+            uri.appendQueryParameter(OTP_SECRET, account.secret)
+
+            if (account.issuer.isNotBlank()) {
+                uri.appendQueryParameter(OTP_ISSUER, account.issuer)
+            }
+
+            uri.appendQueryParameter(OTP_COUNTER, account.counter.toString())
+            uri.appendQueryParameter(OTP_DIGITS, account.digits.toString())
+            uri.appendQueryParameter(OTP_PERIOD, account.period.toString())
+            uri.appendQueryParameter(OTP_ALGORITHM, account.algorithm.toString().toLowerCase(Locale.getDefault()))
+            uri.appendQueryParameter(OTP_GROUP, account.groupId.toString())
+
+            return uri.build()
+        }
 
         /**
          * Validates the given [Account] fields and throws an exception if any of them doesn't
@@ -697,24 +719,6 @@ class AccountExporter {
 //            if (!OTPGenerator.checkSecret(secret)) {
 //                error("Invalid secret key")
 //            }
-        }
-
-        fun validateIssuer(issuer: String) {
-            if (issuer.isOnlySpaces()) {
-                error("Issuer cannot be blank")
-            }
-        }
-
-        fun validateLabel(label: String) {
-            if (label.isOnlySpaces()) {
-                error("Label cannot be blank")
-            }
-        }
-
-        fun validateName(name: String) {
-            if (name.isBlank()) {
-                error("Name cannot be empty")
-            }
         }
     }
 }
