@@ -30,8 +30,6 @@ abstract class BaseAccount(
      */
     var order: Long = DEFAULT_ORDER
 
-    abstract fun getUri(): Uri
-
     fun toggleSelected() {
         isSelected = !isSelected
     }

@@ -6,12 +6,12 @@ import androidx.activity.viewModels
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
-import dev.notrobots.androidstuff.activities.BaseActivity
 import dev.notrobots.androidstuff.activities.ThemedActivity
 import dev.notrobots.androidstuff.extensions.hasErrors
 import dev.notrobots.androidstuff.extensions.setClearErrorOnType
 import dev.notrobots.androidstuff.util.*
 import dev.notrobots.authenticator.R
+import dev.notrobots.authenticator.extensions.isOnlySpaces
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.AccountExporter
 import dev.notrobots.authenticator.models.OTPType
@@ -66,22 +66,16 @@ class AccountActivity : ThemedActivity() {
                         || layout_account_secret.hasErrors
             }
 
-            try {
-                AccountExporter.validateName(name)
-            } catch (e: Exception) {
-                layout_account_name.error = e.message
+            if (name.isBlank()) {
+                layout_account_name.error = "Name cannot be empty"
             }
 
-            try {
-                AccountExporter.validateLabel(label)
-            } catch (e: Exception) {
-                layout_account_label.error = e.message
+            if (label.isOnlySpaces()) {
+                layout_account_label.error = "Label cannot be blank"
             }
 
-            try {
-                AccountExporter.validateIssuer(issuer)
-            } catch (e: Exception) {
-                layout_account_issuer.error = e.message
+            if (issuer.isOnlySpaces()) {
+                layout_account_issuer.error = "Issuer cannot be blank"
             }
 
             try {

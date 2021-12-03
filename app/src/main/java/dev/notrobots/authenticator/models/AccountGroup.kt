@@ -1,6 +1,5 @@
 package dev.notrobots.authenticator.models
 
-import android.net.Uri
 import androidx.room.Entity
 import androidx.room.Index
 import java.io.Serializable
@@ -21,15 +20,6 @@ class AccountGroup(
      * only one default group which is also automatically created
      */
     var isDefault: Boolean = false
-
-    override fun getUri(): Uri {
-        return Uri.Builder()
-            .scheme(AccountExporter.OTP_SCHEME)
-            .authority(AccountExporter.OTP_GROUP_AUTHORITY)
-            .path(name)
-            .appendQueryParameter(AccountExporter.OTP_ORDER, order.toString())
-            .build()
-    }
 
     companion object {
         val DEFAULT_GROUP = AccountGroup("").apply {

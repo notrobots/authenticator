@@ -86,10 +86,10 @@ class AccountListActivity : BaseActivity() {
     private val accountListAdapterListener = object : AccountListAdapter.Listener {
         override fun onItemClick(account: Account, id: Long, adapter: AccountListAdapter) {
             if (actionMode != null) {   //TODO: Handle the selection in the adapter and notify that the item has been selected
-                if (!account.isSelected && adapter.selectedAccounts.isEmpty()) {
+                if (!account.isSelected && adapter.selectedItemCount == 0) {
                     actionMode?.finish()
                 }
-                actionMode?.title = adapter.selectedAccounts.size.toString()
+                actionMode?.title = adapter.selectedItemCount.toString()
             } else {
                 copyToClipboard(OTPGenerator.generate(account))
                 makeToast("Copied!")
@@ -115,30 +115,32 @@ class AccountListActivity : BaseActivity() {
             lifecycleScope.launch {
                 viewModel.accountDao.update(adapter.accounts)
 
-//                for (row in updatedRows) {
+//                for (row in updatedRows) {    //TODO: Do this
 //                    viewModel.accountDao.update(adapter.getAccount(row.key, row.value))
 //                }
             }
         }
 
-        override fun onSelectAllItems(groupPosition: Int) {
-            recyclerViewExpandableItemManager.notifyChildrenOfGroupItemChanged(groupPosition)
-            actionMode?.title = adapter.selectedAccounts.size.toString()
+        override fun onItemSelected(account: Account, groupPosition: Int, childPosition: Int) {
+            val packedPosition = RecyclerViewExpandableItemManager.getPackedPositionForChild(groupPosition, childPosition)
+            val flatPosition = recyclerViewExpandableItemManager.getFlatPosition(packedPosition)
+            val viewHolder = list_accounts.findViewHolderForAdapterPosition(flatPosition)
+
+            viewHolder?.itemView?.isSelected = account.isSelected
         }
 
         override fun onGroupClick(group: AccountGroup, id: Long, adapter: AccountListAdapter) {
             if (actionMode != null) {
-                if (!group.isSelected && adapter.selectedGroups.isEmpty()) {
+                if (!group.isSelected && adapter.selectedItemCount == 0) {
                     actionMode?.finish()
                 }
-
-                actionMode?.title = this@AccountListActivity.adapter.selectedGroups.size.toString()
+                actionMode?.title = this@AccountListActivity.adapter.selectedItemCount.toString()
             }
         }
 
         override fun onGroupLongClick(group: AccountGroup, id: Long, adapter: AccountListAdapter): Boolean {
             if (actionMode == null) {
-                startSupportActionMode(groupActionMode)
+                startSupportActionMode(accountActionMode)
             }
 
             return true
@@ -178,9 +180,10 @@ class AccountListActivity : BaseActivity() {
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
             menuInflater.inflate(R.menu.menu_account_list_item, menu)   //TODO: Merge the two menus in one single xml file
             actionMode = mode
-            actionMode?.title = adapter.selectedAccounts.size.toString()
+            actionMode?.title = adapter.selectedItemCount.toString()
             adapter.editMode = AccountListAdapter.EditMode.Item
             adapter.notifyDataSetChanged()
+            recyclerViewExpandableItemManager.expandAll()
 
             return true
         }
@@ -192,20 +195,21 @@ class AccountListActivity : BaseActivity() {
         override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
             when (item.itemId) {
                 R.id.menu_account_remove -> {
-                    if (adapter.selectedAccountCount > 0) {
-                        val dialog = DeleteAccountDialog(adapter.selectedAccountCount) {
+                    if (adapter.selectedItemCount > 0) {
+                        val dialog = DeleteGroupDialog(adapter.selectedGroupCount, adapter.selectedAccountCount) {
+                            deleteGroups(adapter.selectedGroups)
                             deleteAccounts(adapter.selectedAccounts)
                             actionMode?.finish()
                         }
                         dialog.show(supportFragmentManager, null)
                     } else {
-                        makeToast("No accounts selected")
+                        makeToast("No items selected")
                     }
                 }
                 R.id.menu_account_selectall -> {
-                    if (adapter.accounts.isNotEmpty()) {
-                        adapter.selectAllAccounts()
-                        actionMode?.title = adapter.selectedAccountCount.toString()
+                    if (adapter.hasSelectableItems) {
+                        adapter.selectAll()
+                        actionMode?.title = adapter.selectedItemCount.toString()
                     } else {
                         makeToast("Nothing to select")
                     }
@@ -218,59 +222,8 @@ class AccountListActivity : BaseActivity() {
         override fun onDestroyActionMode(mode: ActionMode?) {
             actionMode = null
             adapter.editMode = AccountListAdapter.EditMode.Disabled
-            adapter.clearSelectedAccounts()
-        }
-    }
-    private val groupActionMode = object : ActionMode.Callback {
-        override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-            menuInflater.inflate(R.menu.menu_account_list_group, menu)
-            actionMode = mode
-            actionMode?.title = adapter.selectedGroups.size.toString()
-            adapter.editMode = AccountListAdapter.EditMode.Group
-            adapter.notifyDataSetChanged()
-            collapseGroups()
-
-            return true
-        }
-
-        override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
-            return false
-        }
-
-        override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
-            when (item.itemId) {
-                R.id.menu_group_selectall -> {
-                    if (adapter.groups.isNotEmpty()) {
-                        adapter.selectAllGroups()
-                        actionMode?.title = adapter.selectedGroups.size.toString()
-                    } else {
-                        makeToast("Nothing to select")
-                    }
-                }
-                R.id.menu_group_remove -> {
-                    if (adapter.selectedGroupCount > 0) {
-                        val accounts = adapter.selectedGroups.flatMap { adapter.getAccounts(it.id) }
-                        val dialog = DeleteGroupDialog(adapter.selectedGroupCount, accounts.size) {
-                            deleteGroups(adapter.selectedGroups) {
-                                actionMode?.finish()
-                            }
-                        }
-                        dialog.show(supportFragmentManager, null)
-                    } else {
-                        makeToast("No groups selected")
-                    }
-                }
-            }
-
-            return true
-        }
-
-        override fun onDestroyActionMode(mode: ActionMode) {
-            actionMode = null
-            adapter.editMode = AccountListAdapter.EditMode.Disabled
-            adapter.clearSelectedGroups()
-
-            resetGroupsExpandState()
+            adapter.clearSelected()
+            restoreGroupsExpandState()
         }
     }
 
@@ -479,9 +432,6 @@ class AccountListActivity : BaseActivity() {
             R.id.menu_account_list_edit -> {
                 startSupportActionMode(accountActionMode)
             }
-            R.id.menu_account_list_edit_group -> {
-                startSupportActionMode(groupActionMode)
-            }
             R.id.menu_account_list_toggle_pins -> {
                 val showPins = preferences.getBoolean(Preferences.SHOW_PINS, true)
 
@@ -559,17 +509,14 @@ class AccountListActivity : BaseActivity() {
         list_accounts.layoutManager = LinearLayoutManager(this)
     }
 
-    private fun collapseGroups() {
-        recyclerViewExpandableItemManager.collapseAll()
-    }
-
-    private fun resetGroupsExpandState() {
+    /**
+     * Restores the expand states of each group
+     */
+    private fun restoreGroupsExpandState() {
         for ((index, group) in adapter.groups.withIndex()) {
-            val expandState = recyclerViewExpandableItemManager.isGroupExpanded(index)
-
-            if (group.isExpanded && !expandState) {
+            if (group.isExpanded) {
                 recyclerViewExpandableItemManager.expandGroup(index)
-            } else if (expandState) {
+            } else {
                 recyclerViewExpandableItemManager.collapseGroup(index)
             }
         }
@@ -611,50 +558,36 @@ class AccountListActivity : BaseActivity() {
         }
     }
 
-    private fun deleteGroups(deleteGroups: List<AccountGroup>, onDelete: () -> Unit = {}) {
+    /**
+     * Deletes the given [groups] and its related accounts
+     */
+    private fun deleteGroups(groups: List<AccountGroup>) {
         lifecycleScope.launch {
-            for (group in deleteGroups) {
-                val item = adapter.getGroupWithAccounts(group.id)
-                val itemIndex = adapter.items.indexOf(item)
-                val childCount = item.accounts.size
-
-                item.accounts.clear()
-                adapter.items.remove(item)
-                viewModel.accountGroupDao.deleteGroupWithAccounts(item.group)
-                recyclerViewExpandableItemManager.notifyGroupItemRemoved(itemIndex)
-                recyclerViewExpandableItemManager.notifyChildItemRangeRemoved(itemIndex, 0, childCount)
-            }
-
-            for ((i, group) in adapter.groups.withIndex()) {
-                if (group.order > 0) {
-                    group.order = i + 1L
-                }
-            }
-
+            adapter.removeGroups(groups)
+            adapter.reorderGroups()
+            adapter.notifyDataSetChanged()
+            viewModel.accountGroupDao.deleteGroupWithAccounts(groups)
             viewModel.accountGroupDao.update(adapter.groups)
-            onDelete()
         }
     }
 
     /**
-     * Deletes the given [deleteAccounts] and fixes the order of the remaining accounts
+     * Deletes the given [accounts]
      */
-    private fun deleteAccounts(deleteAccounts: List<Account>) {
+    private fun deleteAccounts(accounts: List<Account>) {
         lifecycleScope.launch {
-            val selectedAccounts = deleteAccounts.groupBy { it.groupId }
+            val groupedAccounts = accounts.groupBy { it.groupId }
 
-            for (group in selectedAccounts) {
-                val accounts = adapter.getAccounts(group.key)
+            for (group in groupedAccounts) {
+                val groupPosition = adapter.getGroupPosition(group.key)
 
-                accounts.removeAll(group.value)
-
-                for (i in accounts.indices) {
-                    accounts[i].order = i + 1L
-                }
-
-                viewModel.accountDao.delete(group.value)
-                viewModel.accountDao.update(accounts)
+                adapter.removeAccounts(groupPosition, group.value)
+                adapter.reorderAccounts(groupPosition)
             }
+
+            adapter.notifyDataSetChanged()
+            viewModel.accountDao.delete(accounts)
+            viewModel.accountDao.update(adapter.accounts)
         }
     }
 }

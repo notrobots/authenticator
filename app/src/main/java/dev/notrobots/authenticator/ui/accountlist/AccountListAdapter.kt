@@ -57,6 +57,10 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
         get() = accounts.filter { it.isSelected }
     val selectedAccountCount
         get() = accounts.count { it.isSelected }
+    val selectedItemCount
+        get() = selectedGroupCount + selectedAccountCount
+    val hasSelectableItems
+        get() = items.size > 1
 
     init {
         setHasStableIds(true)
@@ -104,42 +108,39 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
 
         view.text_group_account_count.visibility = if (editMode == EditMode.Disabled) View.VISIBLE else View.GONE
         view.text_group_account_count.text = if (childCount > 0) childCount.toString() else null
-        view.img_group_select.visibility = if (editMode == EditMode.Item && !groupWithAccounts.isEmpty) View.VISIBLE else View.GONE
-        view.img_group_select.setOnClickListener {
-            for (account in groupWithAccounts.accounts) {
-                account.isSelected = true
-            }
-            listener.onSelectAllItems(groupPosition)
-        }
 
         if (!group.isDefault) {
             view.isSelected = group.isSelected
             view.setOnClickListener {
-                if (!group.isDefault) {
-                    if (editMode == EditMode.Group) {
-                        group.toggleSelected()
-                        view.isSelected = group.isSelected
-                    }
-
-                    listener.onGroupClick(group, group.id, this)
+                if (group.isDefault) {
+                    return@setOnClickListener
                 }
+
+                if (editMode == EditMode.Item) {
+                    group.toggleSelected()
+                    view.isSelected = group.isSelected
+                    selectAccounts(groupPosition, group.isSelected)
+                }
+
+                listener.onGroupClick(group, group.id, this)
             }
             view.setOnLongClickListener {
-                if (!group.isDefault) {
-                    if (editMode == EditMode.Disabled) {
-                        group.toggleSelected()
-                        view.isSelected = group.isSelected
-                    }
-
-                    listener.onGroupLongClick(group, group.id, this)
-                } else {
-                    false
+                if (group.isDefault) {
+                    return@setOnLongClickListener false
                 }
+
+                if (editMode == EditMode.Disabled) {
+                    group.toggleSelected()
+                    view.isSelected = group.isSelected
+                    selectAccounts(groupPosition, group.isSelected)
+                }
+
+                listener.onGroupLongClick(group, group.id, this)
             }
 
             view.text_group_name.text = group.name
-            view.img_drag_handle.visibility = if (editMode == EditMode.Group) View.VISIBLE else View.GONE
-            view.img_account_edit.visibility = if (editMode == EditMode.Group) View.VISIBLE else View.GONE
+            view.img_drag_handle.visibility = if (editMode == EditMode.Item) View.VISIBLE else View.GONE
+            view.img_account_edit.visibility = if (editMode == EditMode.Item) View.VISIBLE else View.GONE
             view.img_account_edit.setOnClickListener {
                 listener.onGroupEdit(group, group.id, this)
             }
@@ -165,8 +166,12 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
         view.isSelected = account.isSelected
         view.setOnClickListener {
             if (editMode == EditMode.Item) {
-                account.toggleSelected()
-                view.isSelected = account.isSelected
+                val group = groups.find { it.id == account.groupId }
+
+                if (!group!!.isSelected) {
+                    account.toggleSelected()
+                    view.isSelected = account.isSelected
+                }
             }
 
             listener.onItemClick(account, id, this)
@@ -247,9 +252,9 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
         //
         // Note: This won't collapse the group when calling notifyDataSetChanged(),
         // the group expand state must be changed using the RecyclerViewExpandableItemManager
-        if (editMode == EditMode.Group) {
-            return false
-        }
+//        if (editMode == EditMode.Group) {
+//            return false
+//        }
 
         // The default group is always expanded
         if (group.isDefault) {
@@ -270,9 +275,9 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
         }
 
         // Item can only be dragged if the adapter is in Group edit mode
-        if (editMode != EditMode.Group) {
-            return false
-        }
+//        if (editMode != EditMode.Group) {
+//            return false
+//        }
 
         return true
     }
@@ -373,6 +378,20 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
 
     //endregion
 
+    fun removeAccounts(groupPosition: Int, accounts: List<Account>): Boolean {
+        return items[groupPosition].accounts.removeAll(accounts)
+    }
+
+    fun removeAccount(groupPosition: Int, account: Account): Boolean {
+        return items[groupPosition].accounts.remove(account)
+    }
+
+    fun removeGroups(groups: List<AccountGroup>) {
+        for (group in groups) {
+            removeGroup(group)
+        }
+    }
+
     fun removeGroup(group: AccountGroup): Boolean {
         val groupWithAccounts = items.find { it.group == group }
 
@@ -385,12 +404,8 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
         return false
     }
 
-    fun getGroupWithAccounts(position: Int): GroupWithAccounts {
-        return items[position]
-    }
-
-    fun getGroupWithAccounts(groupId: Long): GroupWithAccounts {
-        return items.find { it.group.id == groupId } ?: throw Exception("Cannot with group with given id")
+    fun getGroupPosition(groupId: Long): Int {
+        return items.indexOfFirst { it.group.id == groupId }
     }
 
     fun getGroup(groupPosition: Int): AccountGroup {
@@ -414,42 +429,65 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
         notifyDataSetChanged()
     }
 
-    fun clearSelectedAccounts() {
-        for (account in selectedAccounts) {
-            account.isSelected = false
-        }
+    fun selectAll() {
+        for (item in items) {
+            if (!item.group.isDefault) {
+                item.group.isSelected = true
+            }
 
-        notifyDataSetChanged()
-    }
-
-    fun selectAllAccounts() {
-        for (account in accounts) {
-            account.isSelected = true
-        }
-
-        notifyDataSetChanged()
-    }
-
-    fun clearSelectedGroups() {
-        for (group in selectedGroups) {
-            group.isSelected = false
-        }
-
-        notifyDataSetChanged()
-    }
-
-    fun selectAllGroups() {
-        for (group in groups) {
-            if (!group.isDefault) {
-                group.isSelected = true
+            for (account in item.accounts) {
+                account.isSelected = true
             }
         }
 
         notifyDataSetChanged()
     }
 
+    fun clearSelected() {
+        for (item in items) {
+            if (!item.group.isDefault) {
+                item.group.isSelected = false
+            }
+
+            for (account in item.accounts) {
+                account.isSelected = false
+            }
+        }
+
+        notifyDataSetChanged()
+    }
+
+    fun selectAccounts(groupPosition: Int, selected: Boolean) {
+        for ((index, account) in items[groupPosition].accounts.withIndex()) {
+            account.isSelected = selected
+            listener.onItemSelected(account, groupPosition, index)
+        }
+    }
+
     fun setListener(listener: Listener) {
         this.listener = listener
+    }
+
+    fun reorderAccounts(groupId: Long) {
+        val group = items.find { it.group.id == groupId }
+
+        for ((i, account) in group!!.accounts.withIndex()) {
+            account.order = i + 1L
+        }
+    }
+
+    fun reorderAccounts(groupPosition: Int) {
+        for ((i, account) in items[groupPosition].accounts.withIndex()) {
+            account.order = i + 1L
+        }
+    }
+
+    fun reorderGroups() {
+        for ((i, group) in groups.withIndex()) {
+            if (group.order > 0) {
+                group.order = i + 1L
+            }
+        }
     }
 
     companion object {
@@ -460,7 +498,7 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
     enum class EditMode {
         Disabled,
         Item,
-        Group
+//        Group
     }
 
     interface Listener {
@@ -475,6 +513,12 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
         fun onItemCounterIncrement(account: Account, id: Long, adapter: AccountListAdapter) = Unit
         fun onItemMoved(updatedRows: Map<Int, Int>) = Unit
         fun onSelectAllItems(groupPosition: Int) = Unit
+
+        fun onGroupSelected(group: AccountGroup, groupPosition: Int) = Unit
+        fun onItemSelected(account: Account, groupPosition: Int, childPosition: Int) = Unit
+
+        fun onItemRemoved(account: Account, groupPosition: Int, childPosition: Int) = Unit
+        fun onGroupRemoved(group: AccountGroup, groupPosition: Int) = Unit
     }
 
     //region View holders

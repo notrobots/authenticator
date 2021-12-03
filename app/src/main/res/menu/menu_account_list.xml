@@ -9,12 +9,6 @@
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/menu_account_list_edit_group"
-        android:icon="@drawable/ic_edit"
-        android:title="Edit groups"
-        app:showAsAction="ifRoom" />
-
-    <item
         android:id="@+id/menu_account_list_toggle_pins"
         android:title="Show/Hide pins"
         app:showAsAction="ifRoom" />

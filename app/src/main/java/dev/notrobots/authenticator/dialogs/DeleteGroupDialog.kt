@@ -13,14 +13,30 @@ class DeleteGroupDialog(
     private val onConfirm: () -> Unit
 ) : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val message = resources.getText(
-            R.string.label_delete_group_2,
-            resources.getQuantityString(R.plurals.label_quantity_group, groupCount, groupCount),
-            resources.getQuantityString(R.plurals.label_quantity_account, accountCount, accountCount)
-        )
+        val message = when {
+            groupCount == 0 -> {
+                resources.getText(
+                    R.string.label_delete_group_desc,
+                    args = arrayOf(resources.getQuantityString(R.plurals.label_quantity_account, accountCount, accountCount))
+                )
+            }
+            accountCount == 0 -> {
+                resources.getText(
+                    R.string.label_delete_group_desc,
+                    args = arrayOf(resources.getQuantityString(R.plurals.label_quantity_group, groupCount, groupCount))
+                )
+            }
+            else -> {
+                resources.getText(
+                    R.string.label_delete_group_and_accounts_desc,
+                    resources.getQuantityString(R.plurals.label_quantity_group, groupCount, groupCount),
+                    resources.getQuantityString(R.plurals.label_quantity_account, accountCount, accountCount)
+                )
+            }
+        }
 
         return MaterialAlertDialogBuilder(requireContext())
-            .setTitle(resources.getQuantityString(R.plurals.label_delete_group_1, groupCount, groupCount))
+            .setTitle(resources.getQuantityString(R.plurals.label_delete_group_title, groupCount, groupCount))
             .setMessage(message)
             .setNegativeButton("Cancel", null)
             .setPositiveButton("Remove") { _, _ -> onConfirm() }

@@ -12,8 +12,8 @@ class DeleteAccountDialog(
     private val onConfirm: () -> Unit
 ) : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val title = resources.getQuantityText(R.plurals.label_delete_account_1, accountCount, accountCount)
-        val message = resources.getQuantityText(R.plurals.label_delete_account_2, accountCount, accountCount)
+        val title = resources.getQuantityText(R.plurals.label_delete_account_title, accountCount, accountCount)
+        val message = resources.getQuantityText(R.plurals.label_delete_account_desc, accountCount, accountCount)
 
         return MaterialAlertDialogBuilder(requireContext())
             .setTitle(title)

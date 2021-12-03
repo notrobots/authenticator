@@ -1,6 +1,5 @@
 package dev.notrobots.authenticator.models
 
-import android.net.Uri
 import androidx.room.Entity
 import androidx.room.Index
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
@@ -28,27 +27,27 @@ class Account(
     /**
      * OTP type
      */
-    var type: OTPType = OTPType.TOTP
+    var type: OTPType = DEFAULT_TYPE
 
     /**
      * Counter used by the HOTP
      */
-    var counter: Long = DEFAULT_OTP_COUNTER
+    var counter: Long = DEFAULT_COUNTER
 
     /**
      * Length of the generated OTP pin
      */
-    var digits: Int = DEFAULT_OTP_DIGITS
+    var digits: Int = DEFAULT_DIGITS
 
     /**
      * Time after the pin is generated for this account
      */
-    var period: Long = DEFAULT_OTP_PERIOD
+    var period: Long = DEFAULT_PERIOD
 
     /**
      * Algorithm used to generate the pin
      */
-    var algorithm: HmacAlgorithm = DEFAULT_OTP_ALGORITHM
+    var algorithm: HmacAlgorithm = DEFAULT_ALGORITHM
 
     /**
      * ID of the group this account belongs to
@@ -66,30 +65,12 @@ class Account(
         return super.clone() as Account
     }
 
-    override fun getUri(): Uri { //TODO: Add a flag for showing canonical parameters only
-        val uri = Uri.Builder()
-
-        uri.scheme(AccountExporter.OTP_SCHEME)
-        uri.authority(type.toString().toLowerCase())
-        uri.path(path)
-        uri.appendQueryParameter(AccountExporter.OTP_SECRET, secret)
-        uri.appendQueryParameter(AccountExporter.OTP_COUNTER, counter.toString())
-        uri.appendQueryParameter(AccountExporter.OTP_DIGITS, digits.toString())
-        uri.appendQueryParameter(AccountExporter.OTP_PERIOD, period.toString())
-        uri.appendQueryParameter(AccountExporter.OTP_ALGORITHM, algorithm.toString().toLowerCase())
-
-        if (issuer.isNotBlank()) {
-            uri.appendQueryParameter(AccountExporter.OTP_ISSUER, issuer)
-        }
-
-        return uri.build()
-    }
-
     companion object {
-        const val DEFAULT_OTP_DIGITS = 6
-        const val DEFAULT_OTP_PERIOD = 30L
-        const val DEFAULT_OTP_COUNTER = 0L
-        val DEFAULT_OTP_ALGORITHM = HmacAlgorithm.SHA1  //TODO: Use more values
+        val DEFAULT_TYPE = OTPType.TOTP
+        const val DEFAULT_DIGITS = 6
+        const val DEFAULT_PERIOD = 30L
+        const val DEFAULT_COUNTER = 0L
+        val DEFAULT_ALGORITHM = HmacAlgorithm.SHA1
         const val DEFAULT_GROUP_ID = 1L
         val HOTP_CODE_INTERVAL = TimeUnit.SECONDS.toMillis(10)
     }
