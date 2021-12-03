@@ -1,6 +1,7 @@
 package dev.notrobots.authenticator.ui.account
 
 import android.os.Bundle
+import android.view.MenuItem
 import android.view.View
 import androidx.activity.viewModels
 import androidx.core.widget.addTextChangedListener
@@ -27,6 +28,8 @@ class AccountActivity : ThemedActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_account)
+
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val account: Account
         val sourceAccount: Account?
@@ -60,10 +63,10 @@ class AccountActivity : ThemedActivity() {
             val label = text_account_label.text.toString()
             val secret = text_account_secret.text.toString()
             val hasError = {
-                layout_account_name.hasErrors
-                        || layout_account_label.hasErrors
-                        || layout_account_issuer.hasErrors
-                        || layout_account_secret.hasErrors
+                layout_account_name.hasErrors ||
+                layout_account_label.hasErrors ||
+                layout_account_issuer.hasErrors ||
+                layout_account_secret.hasErrors
             }
 
             if (name.isBlank()) {
@@ -100,9 +103,9 @@ class AccountActivity : ThemedActivity() {
                 lifecycleScope.launch {
                     try {
                         if (sourceAccount != null) {
-                            val overwrite = sourceAccount.name == account.name
-                                    && sourceAccount.label == account.label
-                                    && sourceAccount.issuer == account.issuer
+                            val overwrite = sourceAccount.name == account.name &&
+                                            sourceAccount.label == account.label &&
+                                            sourceAccount.issuer == account.issuer
 
                             viewModel.updateAccount(account, overwrite)
                         } else {
@@ -147,6 +150,15 @@ class AccountActivity : ThemedActivity() {
             spinner_account_group.values = it.map { it.id }
             spinner_account_group.setSelection(account.groupId)
         }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) {
+            finish()
+            return true
+        }
+
+        return false
     }
 
     companion object {
