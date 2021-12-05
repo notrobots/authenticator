@@ -103,9 +103,7 @@ class AccountActivity : ThemedActivity() {
                 lifecycleScope.launch {
                     try {
                         if (sourceAccount != null) {
-                            val overwrite = sourceAccount.name == account.name &&
-                                            sourceAccount.label == account.label &&
-                                            sourceAccount.issuer == account.issuer
+                            val overwrite = sourceAccount.name == account.name && sourceAccount.label == account.label && sourceAccount.issuer == account.issuer
 
                             viewModel.updateAccount(account, overwrite)
                         } else {
