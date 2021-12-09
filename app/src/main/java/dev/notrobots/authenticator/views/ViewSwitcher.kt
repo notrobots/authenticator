@@ -6,7 +6,6 @@ import android.view.View
 import android.widget.FrameLayout
 import androidx.annotation.IdRes
 import androidx.core.view.children
-import dev.notrobots.androidstuff.util.logd
 
 class ViewSwitcher(
     context: Context,
@@ -28,32 +27,29 @@ class ViewSwitcher(
         for (view in views) {
             view.visibility = View.INVISIBLE
         }
+
+        //TODO: Let devs choose whether to show the first view by default or not
+        if (views.size > 0) {
+            showViewAt(0)
+        }
     }
 
-    fun getView(@IdRes id: Int): View? {
-        return views.find { it.id == id }
+    fun getView(@IdRes id: Int): View {
+        return views.find { it.id == id } ?: throw Exception("Cannot find view with id: $id")
     }
 
-    fun getViewAt(position: Int): View? {
-        return views.getOrNull(position)
+    fun getViewAt(position: Int): View {
+        return views.getOrNull(position) ?: throw Exception("Cannot find view at position: $position")
     }
 
     //TODO: addView, removeView, clearViews
 
     fun showView(@IdRes id: Int) {
-        val view = getView(id)
-
-        requireNotNull(view) { "Cannot find view with id: $id" }
-
-        showView(view)
+        showView(getView(id))
     }
 
     fun showViewAt(position: Int) {
-        val view = getViewAt(position)
-
-        requireNotNull(view) { "Cannot find view at position: $position" }
-
-        showView(view)
+        showView(getViewAt(position))
     }
 
     fun hideAll() {

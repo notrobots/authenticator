@@ -658,7 +658,13 @@ class AccountExporter {
                 error("Issuer cannot be blank")
             }
 
-            validateSecret(secret)
+            if (secret.isBlank()) {
+                error("Secret cannot be empty")
+            }
+
+            if (!isValidBase32(secret)) {
+                error("Secret key must be a base32 string")
+            }
 
             return Account(name, secret).apply {
                 this.issuer = issuer
@@ -700,25 +706,6 @@ class AccountExporter {
             uri.appendQueryParameter(OTP_GROUP, account.groupId.toString())
 
             return uri.build()
-        }
-
-        /**
-         * Validates the given [Account] fields and throws an exception if any of them doesn't
-         * follow the requirements
-         */
-        fun validateSecret(secret: String) {
-            if (secret.isBlank()) {
-                error("Secret cannot be empty")
-            }
-
-            if (!isValidBase32(secret)) {
-                error("Secret key must be a base32 string")
-            }
-
-            // This check shouldn't be need but you never know
-//            if (!OTPGenerator.checkSecret(secret)) {
-//                error("Invalid secret key")
-//            }
         }
     }
 }

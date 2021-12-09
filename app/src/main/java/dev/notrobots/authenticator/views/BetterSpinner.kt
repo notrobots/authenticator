@@ -79,7 +79,16 @@ class BetterSpinner(
      */
     val selectedItem: Item
         get() = Item(selectedEntry!!, selectedValue)
-    var onItemClickListener: (entry: String, value: Any?) -> Unit = { _, _ -> }
+
+    /**
+     * Invoked when an item is selected by the user
+     */
+    var onItemSelectedListener: (value: Any?, spinner: BetterSpinner) -> Unit = { _, _ -> }
+
+    /**
+     * Invoked when the current selection changes
+     */
+    var onSelectionChanged: (value: Any?, spinner: BetterSpinner) -> Unit = { _, _ -> }
 
     init {
         inflate(context, R.layout.view_betterspinner, this)
@@ -91,7 +100,7 @@ class BetterSpinner(
         textView!!.setAdapter(adapter)
         textView!!.setOnItemClickListener { _, _, position, _ ->
             setSelection(position)
-            onItemClickListener(entries[position], values[position])
+            onItemSelectedListener(selectedValue, this)
         }
 
         with(context.obtainStyledAttributes(attrs, R.styleable.BetterSpinner, defStyleAttr, 0)) {
@@ -144,6 +153,7 @@ class BetterSpinner(
     fun setSelection(index: Int) {
         selectedPosition = if (index >= 0) index else 0
         textView?.setText(selectedEntry, false)
+        onSelectionChanged(selectedValue, this)
     }
 
     private fun resetAdapter() {

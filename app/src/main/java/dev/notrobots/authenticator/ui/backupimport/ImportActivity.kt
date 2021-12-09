@@ -21,8 +21,6 @@ import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.util.loge
 import dev.notrobots.androidstuff.util.parseEnum
 import dev.notrobots.authenticator.R
-import dev.notrobots.authenticator.db.AccountDao
-import dev.notrobots.authenticator.db.AccountGroupDao
 import dev.notrobots.authenticator.dialogs.ErrorDialog
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.accountlist.AccountListActivity
@@ -30,7 +28,6 @@ import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import kotlinx.android.synthetic.main.activity_import.*
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ImportActivity : ThemedActivity() {   //FIXME: BackupImportActivity
@@ -112,7 +109,7 @@ class ImportActivity : ThemedActivity() {   //FIXME: BackupImportActivity
             }
 
         spinner_import_type.values = types
-        spinner_import_type.onItemClickListener = { entry, value ->
+        spinner_import_type.onItemSelectedListener = { entry, value ->
             val type = parseEnum<ImportType>(value as String)
 
             when (type) {

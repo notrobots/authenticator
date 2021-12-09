@@ -34,3 +34,9 @@ inline fun <reified T> lazyType(crossinline initializer: T.() -> Unit = {}): Laz
         emptyConstructor.call().apply(initializer)
     }
 }
+
+inline fun <reified T : ViewBinding> viewBindings(activity: Activity): Lazy<T> {
+    return lazy {
+        activity.bindView()
+    }
+}
