@@ -397,6 +397,13 @@ class AccountExporter {
         }
 
         /**
+         * Parses the given [uriString] into a [AccountGroup]
+         */
+        fun parseGroup(uriString: String): AccountGroup {
+            return parseGroup(Uri.parse(uriString))
+        }
+
+        /**
          * Parses the given [group] into an [Uri]
          */
         fun parseUri(group: AccountGroup): Uri {
@@ -406,6 +413,13 @@ class AccountExporter {
                 .path(group.name)
                 .appendQueryParameter(OTP_ORDER, group.order.toString())
                 .build()
+        }
+
+        /**
+         * Parses the given [uriString] into an [Account]
+         */
+        fun parseAccount(uriString: String): Account {
+            return parseAccount(Uri.parse(uriString))
         }
 
         /**

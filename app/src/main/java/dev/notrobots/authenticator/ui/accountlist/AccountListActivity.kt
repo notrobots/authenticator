@@ -23,6 +23,7 @@ import dev.notrobots.androidstuff.extensions.copyToClipboard
 import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.util.logd
+import dev.notrobots.androidstuff.util.showInfo
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.data.Preferences
 import dev.notrobots.authenticator.dialogs.*
@@ -65,26 +66,20 @@ class AccountListActivity : BaseActivity() {
             if (it.data != null) {
                 val uri = Uri.parse(it.data!!.getStringExtra(BarcodeScannerActivity.EXTRA_QR_DATA) ?: "")
 
-                if (AccountExporter.isBackup(uri)) {
-                    val data = AccountExporter().import(uri)
+                try {
+                    if (AccountExporter.isBackup(uri)) {
+                        val data = AccountExporter().import(uri)    //FIXME: This throws an unreadable exception for the final user
 
-                    startActivity(ImportResultActivity::class) {
-                        putExtra(ImportResultActivity.EXTRA_DATA, data)
-                    }
-                } else {
-                    try {
+                        startActivity(ImportResultActivity::class) {
+                            putExtra(ImportResultActivity.EXTRA_DATA, data)
+                        }
+                    } else {
                         val account = AccountExporter.parseAccount(uri)
 
                         addOrReplaceAccount(account)
-                    } catch (e: Exception) {
-                        //FIXME: This dialog sucks ass
-                        val dialog = ErrorDialog()
-
-                        dialog.setErrorMessage(e.message)
-                        dialog.show(supportFragmentManager, null)
-
-                        // showInfo("Error", e.message)
                     }
+                } catch (e: Exception) {
+                    showInfo(this, "Error", e.message)
                 }
             }
         }
@@ -252,19 +247,22 @@ class AccountListActivity : BaseActivity() {
             val dialog = AccountURLDialog()
 
             dialog.onConfirmListener = {
-
-
                 try {
-//                    val items = accountExporter.import(it)
-//                    val accounts = items.filterIsInstance<Account>()
-//                    val groups = items.filterIsInstance<AccountGroup>()
-//
-//                    addOrReplaceAccount(accounts.first())   //FIXME: These two methods should take a list of accounts/groups
-//                    //addOrReplaceGroup(groups.first())
-                    dialog.dismiss()
+                    if (AccountExporter.isBackup(it)) {
+                        val data = AccountExporter().import(it)
+
+                        startActivity(ImportResultActivity::class) {
+                            putExtra(ImportResultActivity.EXTRA_DATA, data)
+                        }
+                    } else {
+                        val account = AccountExporter.parseAccount(it)  //TODO: Single Group import?
+
+                        addOrReplaceAccount(account)
+                    }
                 } catch (e: Exception) {
-                    dialog.error = e.message
+                    showInfo(this, "Error", e.message)
                 }
+                dialog.dismiss()
             }
             dialog.show(supportFragmentManager, null)
             btn_add_account.close(true)
@@ -399,7 +397,7 @@ class AccountListActivity : BaseActivity() {
                     Account("Account 2", "22334466").apply { groupId = 2 },
                     Account("Account 3", "22332277").apply { groupId = 3 },
                     Account("Account 4", "22334455").apply { groupId = 3 },
-                    Account("Account 5", "22444455").apply {  },
+                    Account("Account 5", "22444455").apply { },
                     Account("Account 6", "22774477").apply { }
                 )
                 lifecycleScope.launch {
