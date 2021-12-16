@@ -12,6 +12,7 @@ import dev.notrobots.androidstuff.extensions.hasErrors
 import dev.notrobots.androidstuff.extensions.setClearErrorOnType
 import dev.notrobots.androidstuff.extensions.setError
 import dev.notrobots.androidstuff.extensions.setErrorWhen
+import dev.notrobots.androidstuff.util.viewBindings
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ActivityAccountBinding
 import dev.notrobots.authenticator.extensions.isOnlySpaces
@@ -20,7 +21,6 @@ import dev.notrobots.authenticator.models.AccountExporter
 import dev.notrobots.authenticator.models.OTPType
 import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
 import dev.notrobots.authenticator.util.isValidBase32
-import dev.notrobots.authenticator.util.viewBindings
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
 import kotlinx.android.synthetic.main.activity_account.*
 import kotlinx.coroutines.launch

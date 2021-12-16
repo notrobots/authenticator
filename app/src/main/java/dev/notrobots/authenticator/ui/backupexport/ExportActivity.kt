@@ -5,8 +5,8 @@ import android.os.Bundle
 import dev.notrobots.androidstuff.activities.ThemedActivity
 import dev.notrobots.androidstuff.util.loge
 import dev.notrobots.authenticator.R
-import dev.notrobots.authenticator.models.ExportFormat
-import dev.notrobots.authenticator.models.ExportOutput
+import dev.notrobots.authenticator.models.BackupFormat
+import dev.notrobots.authenticator.models.BackupOutput
 import kotlinx.android.synthetic.main.activity_export.*
 
 class ExportActivity : ThemedActivity() {
@@ -18,12 +18,12 @@ class ExportActivity : ThemedActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         if (intent.extras != null) {
-            spinner_export_format.values = ExportFormat.values().toList()
-            spinner_export_output.values = ExportOutput.values().toList()
+            spinner_export_format.values = BackupFormat.values().toList()
+            spinner_export_output.values = BackupOutput.values().toList()
 
             btn_export_confirm.setOnClickListener {
-                val exportFormat = spinner_export_format.selectedValue as ExportFormat
-                val exportOutput = spinner_export_output.selectedValue as ExportOutput
+                val exportFormat = spinner_export_format.selectedValue as BackupFormat
+                val exportOutput = spinner_export_output.selectedValue as BackupOutput
                 val intent = Intent(this, ExportResultActivity::class.java)
 
                 intent.putExtra(ExportResultActivity.EXTRA_EXPORT_FORMAT, exportFormat)

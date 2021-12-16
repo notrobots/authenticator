@@ -48,9 +48,9 @@ class ImportActivity : ThemedActivity() {   //FIXME: BackupImportActivity
                 val uri = it.data!!.getStringExtra(BarcodeScannerActivity.EXTRA_QR_DATA) ?: ""
 
                 try {
-                    val accounts = accountExporter.import(uri)
-
-                    setImportResult(accounts)
+//                    val accounts = accountExporter.import(uri)
+//
+//                    setImportResult(accounts)
                 } catch (e: Exception) {
                     val dialog = ErrorDialog()
 
@@ -64,9 +64,9 @@ class ImportActivity : ThemedActivity() {   //FIXME: BackupImportActivity
         layout_import_text_value.editText?.setText(it.toString())
         contentResolver.openInputStream(it)?.let {
             val content = it.reader().readText()
-            val accounts = accountExporter.import(content)
-
-            setImportResult(accounts)
+//            val accounts = accountExporter.import(content)
+//
+//            setImportResult(accounts)
         }
     }
     private val imageFilePicker = registerForActivityResult(OpenDocument()) {
@@ -78,9 +78,9 @@ class ImportActivity : ThemedActivity() {   //FIXME: BackupImportActivity
                 val content = it.first().rawValue
 
                 try {
-                    val accounts = accountExporter.import(content!!)
-
-                    setImportResult(accounts)
+//                    val accounts = accountExporter.import(content!!)
+//
+//                    setImportResult(accounts)
                 }catch (e: Exception) {
                     val dialog = ErrorDialog()
 
@@ -153,9 +153,9 @@ class ImportActivity : ThemedActivity() {   //FIXME: BackupImportActivity
                         }
 
                         try {
-                            val accounts = accountExporter.import(text)
-
-                            setImportResult(accounts)
+//                            val accounts = accountExporter.import(text)
+//
+//                            setImportResult(accounts)
                         } catch (e: Exception) {
                             val dialog = ErrorDialog()
 

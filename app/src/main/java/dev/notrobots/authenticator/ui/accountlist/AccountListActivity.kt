@@ -2,6 +2,7 @@ package dev.notrobots.authenticator.ui.accountlist
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -33,7 +34,9 @@ import dev.notrobots.authenticator.google.TotpCounter
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.backup.BackupActivity
+import dev.notrobots.authenticator.ui.backupimport.ImportActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
+import dev.notrobots.authenticator.ui.importresult.ImportResultActivity
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
@@ -49,7 +52,6 @@ class AccountListActivity : BaseActivity() {
         PreferenceManager.getDefaultSharedPreferences(this)
     }
     private var totpCountdownTask: TotpCountdownTask? = null
-    private val accountExporter = AccountExporter()
 
     /** Counter used for generating TOTP verification codes.  */
     private val totpCounter: TotpCounter = TotpCounter(30)
@@ -61,22 +63,28 @@ class AccountListActivity : BaseActivity() {
     private val scanBarcode = registerForActivityResult(StartActivityForResult()) {
         if (it.resultCode == Activity.RESULT_OK) {
             if (it.data != null) {
-                val uri = it.data!!.getStringExtra(BarcodeScannerActivity.EXTRA_QR_DATA) ?: ""
+                val uri = Uri.parse(it.data!!.getStringExtra(BarcodeScannerActivity.EXTRA_QR_DATA) ?: "")
 
-                try {
-                    val items = accountExporter.import(uri)
-                    val accounts = items.filterIsInstance<Account>()
-                    val groups = items.filterIsInstance<AccountGroup>()
+                if (AccountExporter.isBackup(uri)) {
+                    val data = AccountExporter().import(uri)
 
-                    //TODO: If you're importing a backup show the import activity where the user can see what they're importing
-                    addOrReplaceAccount(accounts.first())   //FIXME: These two methods should take a list of accounts/groups
-                    //addOrReplaceGroup(groups.first())
-                } catch (e: Exception) {
-                    //FIXME: This dialog sucks ass
-                    val dialog = ErrorDialog()
+                    startActivity(ImportResultActivity::class) {
+                        putExtra(ImportResultActivity.EXTRA_DATA, data)
+                    }
+                } else {
+                    try {
+                        val account = AccountExporter.parseAccount(uri)
 
-                    dialog.setErrorMessage(e.message)
-                    dialog.show(supportFragmentManager, null)
+                        addOrReplaceAccount(account)
+                    } catch (e: Exception) {
+                        //FIXME: This dialog sucks ass
+                        val dialog = ErrorDialog()
+
+                        dialog.setErrorMessage(e.message)
+                        dialog.show(supportFragmentManager, null)
+
+                        // showInfo("Error", e.message)
+                    }
                 }
             }
         }
@@ -244,13 +252,15 @@ class AccountListActivity : BaseActivity() {
             val dialog = AccountURLDialog()
 
             dialog.onConfirmListener = {
-                try {
-                    val items = accountExporter.import(it)
-                    val accounts = items.filterIsInstance<Account>()
-                    val groups = items.filterIsInstance<AccountGroup>()
 
-                    addOrReplaceAccount(accounts.first())   //FIXME: These two methods should take a list of accounts/groups
-                    //addOrReplaceGroup(groups.first())
+
+                try {
+//                    val items = accountExporter.import(it)
+//                    val accounts = items.filterIsInstance<Account>()
+//                    val groups = items.filterIsInstance<AccountGroup>()
+//
+//                    addOrReplaceAccount(accounts.first())   //FIXME: These two methods should take a list of accounts/groups
+//                    //addOrReplaceGroup(groups.first())
                     dialog.dismiss()
                 } catch (e: Exception) {
                     dialog.error = e.message
@@ -385,14 +395,12 @@ class AccountListActivity : BaseActivity() {
                     AccountGroup("Group 3").apply { id = 4; order = 2 }
                 )
                 val accounts = listOf(
-                    Account("Account 1", "22334455").apply { groupId = 2; type = OTPType.HOTP },
+                    Account("Account 1", "22334455").apply { groupId = 2 },
                     Account("Account 2", "22334466").apply { groupId = 2 },
                     Account("Account 3", "22332277").apply { groupId = 3 },
                     Account("Account 4", "22334455").apply { groupId = 3 },
-                    Account("Account 5", "22444455").apply { groupId = 4; type = OTPType.HOTP },
-                    Account("Account 6", "22774477").apply { groupId = 4 },
-                    Account("Account 7", "77334455").apply { },
-                    Account("Account 8", "22223355").apply { type = OTPType.HOTP }
+                    Account("Account 5", "22444455").apply {  },
+                    Account("Account 6", "22774477").apply { }
                 )
                 lifecycleScope.launch {
                     viewModel.accountDao.deleteAll()
@@ -552,7 +560,6 @@ class AccountListActivity : BaseActivity() {
             // No account with the same name and issuer was found in the database,
             // insert the given account
             else {
-                //TODO: Find out why the exception can be caught here but not if it's thrown directly from the coroutine
                 viewModel.addAccount(account)
             }
         }

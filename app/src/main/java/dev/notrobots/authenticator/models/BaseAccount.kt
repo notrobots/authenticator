@@ -1,6 +1,5 @@
 package dev.notrobots.authenticator.models
 
-import android.net.Uri
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import java.io.Serializable

@@ -45,17 +45,12 @@ class AccountListViewModel @Inject constructor(
     }
 
     /**
-     * Inserts the given [account] into the database and takes care of the group ordering.
-     *
-     * In case the account (name & issuer) already exists, the user is prompt with a
-     * dialog asking them if they want to overwrite the existing account.
-     *
-     * This method **will not** throw any exceptions.
+     * Inserts the given [account] into the database and takes care of the group ordering and groupId
      */
     suspend fun addAccount(account: Account, forceReplace: Boolean = false) {
         if (checkIfAccountExists(account) && !forceReplace) {   //TODO: Check should be done outside of here and this should overwrite by default
             loge("An account with the same name already exists")
-            error("An account with the same name already exists")
+            throw Exception("An account with the same name already exists")
         } else {
             val last = accountDao.getLargestOrder(account.groupId)
 
@@ -69,6 +64,29 @@ class AccountListViewModel @Inject constructor(
         }
     }
 
+    suspend fun updateAccount(account: Account) {
+        val original = accountDao.getAccount(account.name, account.label, account.issuer)
+
+        if (original != null) {
+            if (accountGroupDao.getGroup(account.groupId) == null) {
+                account.groupId = Account.DEFAULT_GROUP_ID
+            }
+
+            if (original.groupId != account.groupId) {
+                val last = accountDao.getLargestOrder(account.groupId)
+
+                account.order = last + 1
+            }
+
+            account.id = original.id
+
+            accountDao.update(account)
+            logd("Updating account")
+        } else {
+            logd("Cannot update account: Not found")
+        }
+    }
+
     /**
      * Checks if the given [account] exists and throws an exception if an account with the same
      * name, label and issuer is found.
@@ -76,10 +94,10 @@ class AccountListViewModel @Inject constructor(
      * If [overwrite] is true it will update the existing account
      */
     suspend fun updateAccount(account: Account, overwrite: Boolean) {
-        val exists = accountDao.getCount(account.name, account.label, account.issuer) > 0
+        val exists = accountDao.getCount(account.name, account.label, account.issuer) > 0   //FIXME: Do not check for existence here
 
         if (exists && !overwrite) {
-            error("An account with the same name and issuer already exists")
+            throw Exception("An account with the same name and issuer already exists")
         } else {
             val original = accountDao.getAccount(account.id)
 
@@ -104,13 +122,25 @@ class AccountListViewModel @Inject constructor(
     suspend fun addGroup(group: AccountGroup, forceReplace: Boolean = false) {
         if (checkIfGroupExists(group) && !forceReplace) {
             loge("A group with the same name already exists")
-            error("A group with the same name already exists")
+            throw Exception("A group with the same name already exists")
         } else {
             val last = accountGroupDao.getLastOrder()
 
             group.order = last + 1
             accountGroupDao.insert(group)
             logd("Adding new group")
+        }
+    }
+
+    suspend fun updateGroup(group: AccountGroup) {
+        val original = accountGroupDao.getGroup(group.name)
+
+        if (original != null) {
+            group.id = original.id
+            accountGroupDao.update(group)
+            logd("Updating group")
+        } else {
+            logd("Cannot update group: Not found")
         }
     }
 }

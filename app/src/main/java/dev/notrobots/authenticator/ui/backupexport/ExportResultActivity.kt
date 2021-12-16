@@ -1,37 +1,37 @@
 package dev.notrobots.authenticator.ui.backupexport
 
 import android.os.Bundle
-import androidx.activity.viewModels
 import androidx.fragment.app.commit
 import dev.notrobots.androidstuff.activities.ThemedActivity
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.models.*
 
 class ExportResultActivity : ThemedActivity() {
-    private val exporter by lazy {
-        AccountExporter().apply {
-            exportOutput = intent.getSerializableExtra(EXTRA_EXPORT_OUTPUT) as ExportOutput
-            exportFormat = intent.getSerializableExtra(EXTRA_EXPORT_FORMAT) as ExportFormat
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_export_detail)
 
+        val exportOutput = intent.getSerializableExtra(EXTRA_EXPORT_OUTPUT) as BackupOutput
+        val exportFormat = intent.getSerializableExtra(EXTRA_EXPORT_FORMAT) as BackupFormat
         val groups = intent.getSerializableExtra(ExportActivity.EXTRA_GROUP_LIST) as List<AccountGroup>
         val accounts = intent.getSerializableExtra(ExportActivity.EXTRA_ACCOUNT_LIST) as List<Account>
+        val exporter = AccountExporter()    //TODO: AccountExporter could have static methods
+        val exportData = AccountExporter.Data()
+
+        exportData.groups.addAll(groups)
+        exportData.accounts.addAll(accounts)
+        exportData.format = exportFormat
 
         title = null
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.elevation = 0F
 
-        val fragment = when (exporter.exportOutput) {
-            ExportOutput.Text -> ExportTextFragment().apply {
-                text = exporter.exportText(accounts, groups)
+        val fragment = when (exportOutput) {
+            BackupOutput.Text -> ExportTextFragment().apply {
+                text = exporter.exportText(exportData)
             }
-            ExportOutput.QR -> ExportQRFragment().apply {
-                qrCodes = exporter.exportQR(accounts, groups)
+            BackupOutput.QR -> ExportQRFragment().apply {
+                qrCodes = exporter.exportQR(exportData)
             }
         }
 

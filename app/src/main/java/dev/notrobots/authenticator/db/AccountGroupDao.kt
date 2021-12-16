@@ -24,6 +24,16 @@ interface AccountGroupDao {
     @Query("SELECT COUNT(id) FROM AccountGroup WHERE name = :name")
     suspend fun getCount(name: String): Int
 
+    @Transaction
+    suspend fun exists(name: String): Boolean {
+        return getCount(name) > 0
+    }
+
+    @Transaction
+    suspend fun exists(group: AccountGroup): Boolean {
+        return getCount(group.name) > 0
+    }
+
     @Query("SELECT COALESCE(MAX(`order`), 0) FROM AccountGroup")
     suspend fun getLastOrder(): Long
 

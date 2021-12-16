@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menu_strategy_skip"
+        android:icon="@drawable/ic_skip"
+        android:title="Skip" />
+
+    <item
+        android:id="@+id/menu_strategy_replace"
+        android:icon="@drawable/ic_replace"
+        android:title="Replace" />
+
+<!--    <item-->
+<!--        android:id="@+id/menu_strategy_keep_both"-->
+<!--        android:icon="@drawable/ic_copy"-->
+<!--        android:title="Keep both" />-->
+
+</menu>

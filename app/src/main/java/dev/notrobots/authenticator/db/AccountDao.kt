@@ -3,8 +3,6 @@ package dev.notrobots.authenticator.db
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import dev.notrobots.authenticator.models.Account
-import dev.notrobots.authenticator.models.AccountGroup
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AccountDao {
@@ -19,6 +17,16 @@ interface AccountDao {
 
     @Query("SELECT COUNT(name) FROM Account WHERE name = :name AND label = :label AND issuer = :issuer")
     suspend fun getCount(name: String, label: String, issuer: String): Int
+
+    @Transaction
+    suspend fun exists(name: String, label: String, issuer: String): Boolean {
+        return getCount(name, label, issuer) > 0
+    }
+
+    @Transaction
+    suspend fun exists(account: Account): Boolean {
+        return getCount(account.name, account.label, account.issuer) > 0
+    }
 
     @Query("SELECT COALESCE(MAX(`order`), 0) FROM Account WHERE groupId = :groupId")
     suspend fun getLargestOrder(groupId: Long = Account.DEFAULT_GROUP_ID): Long

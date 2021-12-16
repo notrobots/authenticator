@@ -1,9 +1,8 @@
-package dev.notrobots.authenticator.models
+ package dev.notrobots.authenticator.models
 
 import android.net.Uri
 import com.google.protobuf.ByteString
 import com.google.protobuf.MessageLite
-import dev.notrobots.androidstuff.util.error
 import dev.notrobots.androidstuff.util.parseEnum
 import dev.notrobots.authenticator.extensions.contains
 import dev.notrobots.authenticator.extensions.get
@@ -14,37 +13,35 @@ import dev.notrobots.authenticator.util.isValidBase32
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
 import org.apache.commons.codec.binary.Base32
 import org.apache.commons.codec.binary.Base64
+import java.io.Serializable
 import java.util.*
 
 class AccountExporter {
-    var exportFormat: ExportFormat = ExportFormat.Default
-
-    @Deprecated("Use exportText or exportQR")
-    var exportOutput: ExportOutput = ExportOutput.Text
-
-    fun exportText(accounts: List<Account>, groups: List<AccountGroup>): String {
-        return export(accounts, groups, exportFormat, 0).joinToString("\n")
+    fun exportText(exportData: Data): String {
+        return export(exportData, 0).joinToString("\n")
     }
 
-    fun exportQR(accounts: List<Account>, groups: List<AccountGroup>): List<QRCode> {
-        return export(accounts, groups, exportFormat, QR_MAX_BYTES).map { QRCode(it.toString(), QR_BITMAP_SIZE) }
+    fun exportQR(exportData: Data): List<QRCode> {
+        return export(exportData, QR_MAX_BYTES).map { QRCode(it.toString(), QR_BITMAP_SIZE) }
     }
 
-    fun export(accounts: List<Account>, groups: List<AccountGroup>, exportFormat: ExportFormat, maxBytes: Int): List<Uri> {
-        when (exportFormat) {
-            ExportFormat.Default -> {
-                val accounts = accounts.map(::parseUri)
-                val groups = groups.map(::parseUri)
+    fun export(exportData: Data, maxBytes: Int): List<Uri> {
+        when (exportData.format) {
+            BackupFormat.Plain -> {
+                val groups = exportData.groups.map(::parseUri)
+                val accounts = exportData.accounts.map(::parseUri)
 
                 return accounts + groups
             }
-            ExportFormat.Protobuf -> {
+            BackupFormat.Default -> {
                 val chunk = mutableSetOf<MessageLite>()
                 var chunkSize = 0
                 val uris = mutableListOf<Uri>()
-                val groupIds = accounts.map { it.groupId }.distinct()
-                val emptyGroups = groups.filter { it.id !in groupIds }
+                val groupIds = exportData.accounts.map { it.groupId }.distinct()
+                val emptyGroups = exportData.groups.filter { it.id !in groupIds }
                 val serializeAccount = { it: Account ->
+                    val groupName = exportData.groups.find { g -> it.groupId == g.id }?.name
+
                     MigrationPayload.Account.newBuilder()
                         .setName(it.name)
                         .setOrder(it.order)
@@ -56,7 +53,7 @@ class AccountExporter {
                         .setDigits(it.digits)
                         .setPeriod(it.period)
                         .setAlgorithm(encodeAlgorithm(it.algorithm))
-                        .setGroup(it.groupId)
+                        .setGroup(groupName)
                         .build()
                 }
                 val serializeGroup = { it: AccountGroup ->
@@ -78,23 +75,23 @@ class AccountExporter {
                     uris += Uri.Builder()
                         .scheme(EXPORT_OTP_SCHEME)
                         .authority(EXPORT_OTP_AUTHORITY)
-                        .appendQueryParameter(EXPORT_OTP_DATA, encodeMessage(payload.build().toByteArray()))
+                        .appendQueryParameter(EXPORT_OTP_DATA, encodeMessage(payload.build()))
                         .build()
                 }
 
                 if (maxBytes <= 0) {
-                    for (group in groups) {
+                    for (group in exportData.groups) {
                         chunk.add(serializeGroup(group))
                     }
-                    for (account in accounts) {
+                    for (account in exportData.accounts) {
                         chunk.add(serializeAccount(account))
                     }
                     serializeChunk()
                 } else {
-                    for (cursor in accounts.indices) {
-                        val groupId = accounts[cursor].groupId
-                        val account = serializeAccount(accounts[cursor])
-                        val group = groups.find { it.id == groupId }?.let {
+                    for (cursor in exportData.accounts.indices) {
+                        val groupId = exportData.accounts[cursor].groupId
+                        val account = serializeAccount(exportData.accounts[cursor])
+                        val group = exportData.groups.find { it.id == groupId }?.let {
                             serializeGroup(it)
                         }
                         var tmpSize = getMessageLength(account)
@@ -139,7 +136,7 @@ class AccountExporter {
         }
     }
 
-    fun import(text: String): List<BaseAccount> {
+    fun import(text: String): Data {
         val uris = text.split("\n").map {
             Uri.parse(it)
         }
@@ -147,36 +144,40 @@ class AccountExporter {
         return import(uris)
     }
 
-    fun import(uris: List<Uri>): List<BaseAccount> {
-        return uris.flatMap { import(it) }
+    fun import(uris: List<Uri>): Data {
+        val dataList = uris.map { import(it) }
+
+        if (!dataList.all { it.format == dataList[0].format }) {
+            throw Exception("Imported data can't have different formats")
+        }
+
+        return Data().apply {
+            format = dataList[0].format
+
+            for (data in dataList) {
+                accounts.addAll(data.accounts)
+                groups.addAll(data.groups)
+            }
+        }
     }
 
-    fun import(uri: Uri): List<BaseAccount> {
-        val items = mutableListOf<BaseAccount>()
+    fun import(uri: Uri): Data {
+        val importData = Data()
 
         when (uri.scheme) {
-            //
-            // Google Authenticator's export scheme
-            //
 //            EXPORT_OTP_SCHEME_GOOGLE -> decodeProtobuf(uri, ProtobufVariant.GoogleAuthenticator)
 
-            //
-            // Standard OTP scheme
-            //
             OTP_SCHEME -> when (uri.authority) {
-                //
-                // Protobuf Uri
-                //
                 EXPORT_OTP_AUTHORITY -> {
                     val data = uri.getQueryParameter(EXPORT_OTP_DATA)
 
                     if (data.isNullOrEmpty()) {
-                        error("Data parameter is empty")
+                        throw Exception("Data parameter is empty")
                     } else {
                         val payload = MigrationPayload.parseFrom(decodeMessage(data))
 
                         for (group in payload.groupsList) {
-                            items.add(
+                            importData.groups.add(
                                 AccountGroup(
                                     group.name
                                 ).apply {
@@ -186,7 +187,9 @@ class AccountExporter {
                         }
 
                         for (account in payload.accountsList) {
-                            items.add(
+                            val group = importData.groups.find { it.name == account.group }?.id ?: Account.DEFAULT_GROUP_ID
+
+                            importData.accounts.add(
                                 Account(
                                     account.name,
                                     decodeSecret(account.secret)
@@ -199,253 +202,28 @@ class AccountExporter {
                                     digits = account.digits
                                     period = account.period
                                     algorithm = decodeAlgorithm(account.algorithm)
-                                    groupId = account.group
+                                    groupId = group
                                 }
                             )
                         }
                     }
                 }
 
-                //
-                // Group Uri
-                //
-                OTP_GROUP_AUTHORITY -> items.add(parseGroup(uri))
+                OTP_GROUP_AUTHORITY -> importData.groups.add(parseGroup(uri))
 
-                //
-                // Account Uri
-                //
-                else -> items.add(parseAccount(uri))
+                else -> importData.accounts.add(parseAccount(uri))
             }
 
             else -> {
-                error("Unknown scheme ${uri.scheme}")
+                throw Exception("Unknown scheme ${uri.scheme}")
             }
         }
 
-        return items
+        return importData
     }
 
     private fun getMessageLength(messageLite: MessageLite): Int {
         return 4 * (messageLite.serializedSize / 3)
-    }
-
-//    private fun encodeProtobuf(accounts: List<Account>, groups: List<AccountGroup>, protobufVariant: ProtobufVariant, chunkSize: Int): List<Uri> {
-//        val accounts = accounts.toMutableList()
-//        val groups = groups.toMutableList()
-//
-//        return when (protobufVariant) {
-//            ProtobufVariant.Default -> {
-//
-//
-//                return mutableListOf<Uri>().apply {
-//                    for (gwa in groupsWithAccounts) {
-//                        val group = MigrationPayload.Group.newBuilder()
-//                            .setName(gwa.group.name)
-//                            .setOrder(gwa.group.order)
-//                            .build()
-//                        val accounts = gwa.accounts.map {
-//                            MigrationPayload.Account.newBuilder()
-//                                .setSecret(encodeSecret(it.secret))
-//                                .setName(it.name)
-//                                .setIssuer(it.issuer)
-//                                .setLabel(it.label)
-//                                .setAlgorithm(encodeAlgorithm(it.algorithm))
-//                                .setType(encodeOTPType(it.type))
-//                                .build()
-//                        }.chunked(chunkSize - group.serializedSize) {
-//                            it.serializedSize
-//                        }
-//
-//                        accounts.map {
-//                            val payload = MigrationPayload.newBuilder()
-//                                .addGroups(group)
-//                                .addAllAccounts(it)
-//                                .build()
-//                            val encoded = encodeMessage(payload.toByteArray())
-//
-//                            this += Uri.Builder()
-//                                .scheme(EXPORT_OTP_SCHEME)
-//                                .authority(EXPORT_OTP_AUTHORITY)
-//                                .appendQueryParameter(EXPORT_OTP_DATA, encoded)
-//                                .build()
-//                        }
-//                    }
-//                }
-//            }
-////            ProtobufVariant.GoogleAuthenticator -> accounts.map {
-////                GoogleMigrationPayload.Account.newBuilder()
-////                    .setAlgorithm(encodeAlgorithm(it.algorithm))
-////                    .setDigits(
-////                        when (it.digits) {
-////                            6 -> GoogleMigrationPayload.DigitCount.DIGIT_COUNT_SIX
-////                            8 -> GoogleMigrationPayload.DigitCount.DIGIT_COUNT_EIGHT
-////
-////                            else -> GoogleMigrationPayload.DigitCount.DIGIT_COUNT_SIX
-////                        }
-////                    )
-////                    .setIssuer(it.issuer)
-////                    .setName(it.path)
-////                    .setCounter(it.counter)
-////                    .setSecret(encodeSecret(it.secret))
-////                    .setType(encodeOTPType(it.type))
-////                    .build()
-////            }.chunked(chunkSize) {
-////                it.serializedSize
-////            }.map {
-////                val payloadMessage = GoogleMigrationPayload.newBuilder()
-////                    .setBatchId(681385) //TODO: Random ID
-////                    .setBatchIndex(0)
-////                    .setBatchSize(1)    //FIXME: Dynamic values
-////                    .setVersion(1)
-////                    .addAllAccounts(it)
-////                    .build()
-////                val encoded = encodeMessage(payloadMessage.toByteArray())
-////
-////                Uri.Builder()
-////                    .scheme(EXPORT_OTP_SCHEME_GOOGLE)
-////                    .authority(EXPORT_OTP_AUTHORITY_GOOGLE)
-////                    .appendQueryParameter(EXPORT_OTP_DATA_GOOGLE, encoded)
-////                    .build()
-////            }
-//        }
-//    }
-
-//    private fun encodeProtobuf(accounts: List<Account>, groups: List<AccountGroup>, protobufVariant: ProtobufVariant, chunkSize: Int): List<Uri> {
-//        return when (protobufVariant) {
-//            ProtobufVariant.Default -> {
-//                val payloadAccounts = accounts.map {
-//                    MigrationPayload.Account.newBuilder()
-//                        .setSecret(encodeSecret(it.secret))
-//                        .setName(it.name)
-//                        .setIssuer(it.issuer)
-//                        .setLabel(it.label)
-//                        .setAlgorithm(encodeAlgorithm(it.algorithm))
-//                        .setType(encodeOTPType(it.type))
-//                        .build()
-//                }
-//                val payloadGroups = groups.map {
-//                    MigrationPayload.Group.newBuilder()
-//                        .setName(it.name)
-//                        .setOrder(it.order)
-//                        .build()
-//                }
-//
-//                return mutableListOf<Uri>().apply {
-//                    for ((i, group) in payloadGroups.withIndex()) {
-//                        val groupAccounts = payloadAccounts.filter { it.group == groups[i].id }
-//                        val chunk = groupAccounts.chunked(chunkSize - group.serializedSize) {
-//                            it.serializedSize
-//                        }
-//
-//                        for (accounts in chunk) {
-//                            val payload = MigrationPayload.newBuilder()
-//                                .addGroups(group)
-//                                .addAllAccounts(accounts)
-//                                .build()
-//                            val encoded = encodeMessage(payload.toByteArray())
-//                            val uri = Uri.Builder()
-//                                .scheme(EXPORT_OTP_SCHEME)
-//                                .authority(EXPORT_OTP_AUTHORITY)
-//                                .appendQueryParameter(EXPORT_OTP_DATA, encoded)
-//                                .build()
-//
-//                            add(uri)
-//                        }
-//                    }
-//                }
-//            }
-//            ProtobufVariant.GoogleAuthenticator -> accounts.map {
-//                GoogleMigrationPayload.Account.newBuilder()
-//                    .setAlgorithm(encodeAlgorithm(it.algorithm))
-//                    .setDigits(
-//                        when (it.digits) {
-//                            6 -> GoogleMigrationPayload.DigitCount.DIGIT_COUNT_SIX
-//                            8 -> GoogleMigrationPayload.DigitCount.DIGIT_COUNT_EIGHT
-//
-//                            else -> GoogleMigrationPayload.DigitCount.DIGIT_COUNT_SIX
-//                        }
-//                    )
-//                    .setIssuer(it.issuer)
-//                    .setName(it.path)
-//                    .setCounter(it.counter)
-//                    .setSecret(encodeSecret(it.secret))
-//                    .setType(encodeOTPType(it.type))
-//                    .build()
-//            }.chunked(chunkSize) {
-//                it.serializedSize
-//            }.map {
-//                val payloadMessage = GoogleMigrationPayload.newBuilder()
-//                    .setBatchId(681385) //TODO: Random ID
-//                    .setBatchIndex(0)
-//                    .setBatchSize(1)    //FIXME: Dynamic values
-//                    .setVersion(1)
-//                    .addAllAccounts(it)
-//                    .build()
-//                val encoded = encodeMessage(payloadMessage.toByteArray())
-//
-//                Uri.Builder()
-//                    .scheme(EXPORT_OTP_SCHEME_GOOGLE)
-//                    .authority(EXPORT_OTP_AUTHORITY_GOOGLE)
-//                    .appendQueryParameter(EXPORT_OTP_DATA_GOOGLE, encoded)
-//                    .build()
-//            }
-//        }
-//    }
-
-    private fun deserializeProtobuf(uri: Uri, protobufVariant: ProtobufVariant): List<Account> {
-        val list = mutableListOf<Account>()
-
-        when (protobufVariant) {
-            ProtobufVariant.Default -> {
-                val data = uri.getQueryParameter(EXPORT_OTP_DATA)
-
-                if (data.isNullOrEmpty()) {
-                    error("Data parameter is empty")
-                } else {
-                    val messagePayload = MigrationPayload.parseFrom(decodeMessage(data))
-
-                    for (accountMessage in messagePayload.accountsList) {
-                        list.add(
-                            Account(
-                                accountMessage.name,
-                                decodeSecret(accountMessage.secret)
-                            ).apply {
-                                label = accountMessage.label
-                                issuer = accountMessage.issuer
-                                type = decodeOTPType(accountMessage.type)
-                            }
-                        )
-                    }
-                }
-            }
-//            ProtobufVariant.GoogleAuthenticator -> {
-//                val data = uri.getQueryParameter(EXPORT_OTP_DATA_GOOGLE)
-//
-//                if (data.isNullOrEmpty()) {
-//                    error("Data parameter is empty")
-//                } else {
-//                    val messagePayload = GoogleMigrationPayload.parseFrom(decodeMessage(data))
-//
-//                    for (accountMessage in messagePayload.accountsList) {
-//                        val path = parseAccountName(accountMessage.name)
-//
-//                        list.add(
-//                            Account(
-//                                path.groupValues[2],
-//                                decodeSecret(accountMessage.secret)
-//                            ).apply {
-//                                label = path.groupValues[1]
-//                                issuer = accountMessage.issuer
-//                                counter = accountMessage.counter
-//                                type = decodeOTPType(accountMessage.type)
-//                            }
-//                        )
-//                    }
-//                }
-//            }
-        }
-
-        return list.toList()
     }
 
     private inline fun <reified E : Enum<E>> encodeAlgorithm(algorithm: HmacAlgorithm): E {
@@ -466,7 +244,7 @@ class AccountExporter {
                 else -> MigrationPayload.Algorithm.ALGORITHM_SHA1
             }
 
-            else -> error("Unknown OTPType class")
+            else -> throw Exception("Unknown OTPType class")
         } as E
     }
 
@@ -488,7 +266,7 @@ class AccountExporter {
                 else -> HmacAlgorithm.SHA1
             }
 
-            else -> error("Unknown OTPType class")
+            else -> throw Exception("Unknown OTPType class")
         }
     }
 
@@ -516,7 +294,7 @@ class AccountExporter {
                 OTPType.HOTP -> MigrationPayload.OTPType.OTP_TYPE_HOTP
             }
 
-            else -> error("Unknown OTPType class")
+            else -> throw Exception("Unknown OTPType class")
         } as E
     }
 
@@ -536,12 +314,12 @@ class AccountExporter {
                 else -> OTPType.TOTP
             }
 
-            else -> error("Unknown OTPType class")
+            else -> throw Exception("Unknown OTPType class")
         }
     }
 
-    private fun encodeMessage(bytes: ByteArray): String {
-        val base64 = Base64().encode(bytes)
+    private fun encodeMessage(message: MessageLite): String {
+        val base64 = Base64().encode(message.toByteArray())
         val string = base64.toString(Charsets.UTF_8)
 
         return Uri.encode(string)
@@ -551,6 +329,25 @@ class AccountExporter {
         val base64 = Uri.decode(string).toByteArray(Charsets.UTF_8)
 
         return Base64().decode(base64)
+    }
+
+    class Data : Serializable {
+        var groups: MutableList<AccountGroup>
+        var accounts: MutableList<Account>
+        var format = BackupFormat.Plain
+
+        val itemCount
+            get() = groups.size + accounts.size
+
+        constructor() {
+            this.groups = mutableListOf()
+            this.accounts = mutableListOf()
+        }
+
+        constructor(groups: List<AccountGroup>, accounts: List<Account>) {
+            this.groups = groups.toMutableList()
+            this.accounts = accounts.toMutableList()
+        }
     }
 
     companion object {
@@ -576,9 +373,12 @@ class AccountExporter {
         const val OTP_ORDER = "order"
         const val OTP_GROUP = "group"
 
+        /**
+         * Parses the given [uri] into a [AccountGroup]
+         */
         fun parseGroup(uri: Uri): AccountGroup {
-            val pathError = { error("Path malformed, must be /name") }
-            val typeError = { error("Uri authority must be '${OTP_GROUP_AUTHORITY}'") }
+            val pathError = { throw Exception("Path malformed, must be /name") }
+            val typeError = { throw Exception("Uri authority must be '${OTP_GROUP_AUTHORITY}'") }
             val type = uri.authority?.toLowerCase(Locale.getDefault()) ?: typeError()
             val name = uri.path?.removePrefix("/") ?: pathError()
             val order = uri[OTP_ORDER]?.toLongOrNull() ?: 0L //TODO: If the order is <0 or it already exists assign it the latest order
@@ -596,36 +396,51 @@ class AccountExporter {
             }
         }
 
+        /**
+         * Parses the given [group] into an [Uri]
+         */
+        fun parseUri(group: AccountGroup): Uri {
+            return Uri.Builder()
+                .scheme(OTP_SCHEME)
+                .authority(OTP_GROUP_AUTHORITY)
+                .path(group.name)
+                .appendQueryParameter(OTP_ORDER, group.order.toString())
+                .build()
+        }
+
+        /**
+         * Parses the given [uri] into an [Account]
+         */
         fun parseAccount(uri: Uri): Account {
-            val pathError = { error("Path malformed, must be /label:name or /name") }
-            val typeError = { error("Type must be one of [${OTPType.values().joinToString()}]") }
+            val pathError = { throw Exception("Path malformed, must be /label:name or /name") }
+            val typeError = { throw Exception("Type must be one of [${OTPType.values().joinToString()}]") }
 
             //
             // Optional fields
             //
             val algorithm = if (OTP_ALGORITHM in uri) {
-                parseEnum(uri[OTP_ALGORITHM], true) ?: error("Unknown algorithm")
+                parseEnum(uri[OTP_ALGORITHM], true) ?: throw Exception("Unknown algorithm")
             } else {
                 Account.DEFAULT_ALGORITHM
             }
             val digits = if (OTP_DIGITS in uri) {
-                uri[OTP_DIGITS]?.toIntOrNull() ?: error("Digits number must be an integer")
+                uri[OTP_DIGITS]?.toIntOrNull() ?: throw Exception("Digits number must be an integer")
             }    //TODO: Between x and y
             else {
                 Account.DEFAULT_DIGITS
             }
             val counter = if (OTP_COUNTER in uri) {
-                uri[OTP_COUNTER]?.toLongOrNull() ?: error("Counter value must be an integer")
+                uri[OTP_COUNTER]?.toLongOrNull() ?: throw Exception("Counter value must be an integer")
             } else {
                 Account.DEFAULT_COUNTER
             }
             val period = if (OTP_PERIOD in uri) {
-                uri[OTP_PERIOD]?.toLongOrNull() ?: error("Period must be an integer")
+                uri[OTP_PERIOD]?.toLongOrNull() ?: throw Exception("Period must be an integer")
             } else {
                 Account.DEFAULT_PERIOD
             }
             val group = if (OTP_GROUP in uri) {
-                uri[OTP_GROUP]?.toLongOrNull() ?: error("Group ID must be an integer")
+                uri[OTP_GROUP]?.toLongOrNull() ?: throw Exception("Group ID must be an integer")
             } else {
                 Account.DEFAULT_GROUP_ID
             }
@@ -644,26 +459,26 @@ class AccountExporter {
             }
             val name = path.groupValues[2]
             val label = path.groupValues[1]
-            val secret = uri[OTP_SECRET] ?: error("Missing parameter 'secret'")
+            val secret = uri[OTP_SECRET] ?: throw Exception("Missing parameter 'secret'")
 
             if (name.isBlank()) {
-                error("Name cannot be empty")
+                throw Exception("Name cannot be empty")
             }
 
             if (label.isOnlySpaces()) {
-                error("Label cannot be blank")
+                throw Exception("Label cannot be blank")
             }
 
             if (issuer.isOnlySpaces()) {
-                error("Issuer cannot be blank")
+                throw Exception("Issuer cannot be blank")
             }
 
             if (secret.isBlank()) {
-                error("Secret cannot be empty")
+                throw Exception("Secret cannot be empty")
             }
 
             if (!isValidBase32(secret)) {
-                error("Secret key must be a base32 string")
+                throw Exception("Secret key must be a base32 string")
             }
 
             return Account(name, secret).apply {
@@ -678,15 +493,9 @@ class AccountExporter {
             }
         }
 
-        fun parseUri(group: AccountGroup): Uri {
-            return Uri.Builder()
-                .scheme(OTP_SCHEME)
-                .authority(OTP_GROUP_AUTHORITY)
-                .path(group.name)
-                .appendQueryParameter(OTP_ORDER, group.order.toString())
-                .build()
-        }
-
+        /**
+         * Parses the given [account] into an [Uri]
+         */
         fun parseUri(account: Account): Uri {
             val uri = Uri.Builder()
 
@@ -706,6 +515,16 @@ class AccountExporter {
             uri.appendQueryParameter(OTP_GROUP, account.groupId.toString())
 
             return uri.build()
+        }
+
+        fun isBackup(uri: Uri): Boolean {
+            val authority = uri.authority?.toLowerCase(Locale.getDefault())
+
+            return !(uri.scheme == OTP_SCHEME && authority in OTPType.stringValues())
+        }
+
+        fun isBackup(uri: String): Boolean {
+            return isBackup(Uri.parse(uri))
         }
     }
 }

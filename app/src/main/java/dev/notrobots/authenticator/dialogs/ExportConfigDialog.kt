@@ -1,13 +1,6 @@
 package dev.notrobots.authenticator.dialogs
 
-import android.app.Dialog
-import android.os.Bundle
-import android.view.Window
 import androidx.fragment.app.DialogFragment
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import dev.notrobots.authenticator.R
-import dev.notrobots.authenticator.models.ExportFormat
-import kotlinx.android.synthetic.main.dialog_export_config.view.*
 
 class ExportConfigDialog : DialogFragment() {
 //    var onExportListener: (format: ExportFormat, compression: ExportCompression) -> Unit = { _, _ -> }
