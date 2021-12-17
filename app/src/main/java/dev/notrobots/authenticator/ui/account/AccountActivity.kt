@@ -100,15 +100,20 @@ class AccountActivity : ThemedActivity() {
             account.counter = it.toString().toLongOrNull() ?: 0
         }
 
-        text_account_name.setText(account.name)
-        text_account_secret.setText(account.secret)
-        text_account_label.setText(account.label)
-        text_account_issuer.setText(account.issuer)
-        text_account_digits.setText(account.digits.toString())
-        text_account_period.setText(account.period.toString())
-        spinner_account_algorithm.setSelection(account.algorithm)
-        text_account_counter_value.setText(account.counter.toString())
-        binding.spinnerAccountType.setSelection(account.type)
+        text_account_digits.setText(Account.DEFAULT_DIGITS.toString())
+        text_account_period.setText(Account.DEFAULT_PERIOD.toString())
+
+        sourceAccount?.also {
+            text_account_name.setText(it.name)
+            text_account_secret.setText(it.secret)
+            text_account_label.setText(it.label)
+            text_account_issuer.setText(it.issuer)
+            text_account_digits.setText(it.digits.toString())
+            text_account_period.setText(it.period.toString())
+            spinner_account_algorithm.setSelection(it.algorithm)
+            text_account_counter_value.setText(it.counter.toString())
+            binding.spinnerAccountType.setSelection(it.type)
+        }
 
         viewModel.groups.observe(this) {
             spinner_account_group.entries = it.map { it.name }

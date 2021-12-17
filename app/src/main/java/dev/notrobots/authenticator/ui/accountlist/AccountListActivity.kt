@@ -35,7 +35,6 @@ import dev.notrobots.authenticator.google.TotpCounter
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.backup.BackupActivity
-import dev.notrobots.authenticator.ui.backupimport.ImportActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import dev.notrobots.authenticator.ui.importresult.ImportResultActivity
 import kotlinx.android.synthetic.main.activity_account_list.*
@@ -74,7 +73,7 @@ class AccountListActivity : BaseActivity() {
                             putExtra(ImportResultActivity.EXTRA_DATA, data)
                         }
                     } else {
-                        val account = AccountExporter.parseAccount(uri)
+                        val account = AccountExporter.parseAccount(uri)  //TODO: Single Group import?
 
                         addOrReplaceAccount(account)
                     }
@@ -247,22 +246,24 @@ class AccountListActivity : BaseActivity() {
             val dialog = AccountURLDialog()
 
             dialog.onConfirmListener = {
+                val uri = Uri.parse(it)
+
                 try {
-                    if (AccountExporter.isBackup(it)) {
-                        val data = AccountExporter().import(it)
+                    if (AccountExporter.isBackup(uri)) {
+                        val data = AccountExporter().import(uri)
 
                         startActivity(ImportResultActivity::class) {
                             putExtra(ImportResultActivity.EXTRA_DATA, data)
                         }
                     } else {
-                        val account = AccountExporter.parseAccount(it)  //TODO: Single Group import?
+                        val account = AccountExporter.parseAccount(uri)
 
                         addOrReplaceAccount(account)
                     }
+                    dialog.dismiss()
                 } catch (e: Exception) {
-                    showInfo(this, "Error", e.message)
+                    dialog.error = e.message
                 }
-                dialog.dismiss()
             }
             dialog.show(supportFragmentManager, null)
             btn_add_account.close(true)
