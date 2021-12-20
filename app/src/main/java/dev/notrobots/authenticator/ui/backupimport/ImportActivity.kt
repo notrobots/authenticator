@@ -4,35 +4,29 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
-import android.view.View
-import android.widget.ArrayAdapter
 import androidx.activity.result.contract.ActivityResultContracts.*
-import androidx.activity.viewModels
-import androidx.lifecycle.lifecycleScope
+import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.barcode.Barcode
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.activities.ThemedActivity
-import dev.notrobots.androidstuff.extensions.makeToast
-import dev.notrobots.androidstuff.extensions.setClearErrorOnType
+import dev.notrobots.androidstuff.extensions.makeSnackBar
 import dev.notrobots.androidstuff.extensions.startActivity
-import dev.notrobots.androidstuff.util.loge
-import dev.notrobots.androidstuff.util.parseEnum
+import dev.notrobots.androidstuff.extensions.viewBindings
+import dev.notrobots.androidstuff.util.showInfo
 import dev.notrobots.authenticator.R
-import dev.notrobots.authenticator.dialogs.ErrorDialog
+import dev.notrobots.authenticator.databinding.ActivityImportBinding
+import dev.notrobots.authenticator.dialogs.AccountURLDialog
 import dev.notrobots.authenticator.models.*
-import dev.notrobots.authenticator.ui.accountlist.AccountListActivity
-import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
-import kotlinx.android.synthetic.main.activity_import.*
-import kotlinx.coroutines.launch
+import dev.notrobots.authenticator.ui.importresult.ImportResultActivity
 
 @AndroidEntryPoint
-class ImportActivity : ThemedActivity() {   //FIXME: BackupImportActivity
+class ImportActivity : ThemedActivity() {
     private val accountExporter = AccountExporter()
-    private val barcodeScanner by lazy {
+    private val scanner by lazy {
         val scannerOptions = BarcodeScannerOptions.Builder()
             .setBarcodeFormats(
                 Barcode.FORMAT_QR_CODE,
@@ -42,148 +36,118 @@ class ImportActivity : ThemedActivity() {   //FIXME: BackupImportActivity
 
         BarcodeScanning.getClient(scannerOptions)
     }
-    private val scanBarcode = registerForActivityResult(StartActivityForResult()) {
+    private val barcodeScanner = registerForActivityResult(StartActivityForResult()) {
         if (it.resultCode == Activity.RESULT_OK) {
             if (it.data != null) {
                 val uri = it.data!!.getStringExtra(BarcodeScannerActivity.EXTRA_QR_DATA) ?: ""
 
                 try {
-//                    val accounts = accountExporter.import(uri)
-//
-//                    setImportResult(accounts)
+                    val data = accountExporter.import(uri)
+
+                    showResults(data)
                 } catch (e: Exception) {
-                    val dialog = ErrorDialog()
-
-                    dialog.setErrorMessage(e.message)
-                    dialog.show(supportFragmentManager, null)
+                    showInfo(this, "Error", e.message)
                 }
             }
         }
     }
-    private val textFilePicker = registerForActivityResult(OpenDocument()) {
-        layout_import_text_value.editText?.setText(it.toString())
-        contentResolver.openInputStream(it)?.let {
-            val content = it.reader().readText()
-//            val accounts = accountExporter.import(content)
-//
-//            setImportResult(accounts)
-        }
-    }
-    private val imageFilePicker = registerForActivityResult(OpenDocument()) {
-        val image = InputImage.fromFilePath(this, it)
+    private val filePicker = registerForActivityResult(OpenDocument()) {
+        val mimeType = contentResolver.getType(it) ?: ""
 
-        layout_import_file.text = it.toString()
-        barcodeScanner.process(image)
-            .addOnSuccessListener {
-                val content = it.first().rawValue
+        when {
+            mimeType.startsWith("image/") -> {
+                val image = InputImage.fromFilePath(this, it)
 
-                try {
-//                    val accounts = accountExporter.import(content!!)
-//
-//                    setImportResult(accounts)
-                }catch (e: Exception) {
-                    val dialog = ErrorDialog()
+                scanner.process(image)
+                    .addOnSuccessListener {
+                        val content = it.first().rawValue
 
-                    dialog.setErrorMessage("Import data is corrupt")    //FIXME: Show detailed error with account index ecc
-                    dialog.show(supportFragmentManager, null)
+                        try {
+                            val data = accountExporter.import(content!!)
+
+                            showResults(data)
+                        } catch (e: Exception) {
+                            showInfo(this, "Error", "Import data is corrupt")//FIXME: Show detailed error with account index ecc
+                        }
+                    }
+                    .addOnFailureListener {
+                        makeSnackBar("Error scanning QR", binding.root)
+                    }
+            }
+            mimeType.startsWith("text/") -> {
+                contentResolver.openInputStream(it)?.let {
+                    val content = it.reader().readText()
+
+                    try {
+                        val data = accountExporter.import(content)
+
+                        showResults(data)
+                    } catch (e: Exception) {
+                        showInfo(this, "Error", "Import data is corrupt")
+                    }
                 }
             }
-            .addOnFailureListener {
-                loge("Error: $it")
-            }
+
+            else -> makeSnackBar("Invalid file type", binding.root)
+        }
     }
-    private var items = listOf<BaseAccount>()
-    private val viewModel by viewModels<AccountListViewModel>()
+    private val binding by viewBindings<ActivityImportBinding>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_import)
+        setContentView(binding.root)
 
-        title = null
+        title = "Import backup"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        val types = ImportType.values()
-            .map { it.name }
-            .toMutableList().apply {
-                add(0, "")
-            }
+        val options = listOf(
+            ImportOption(
+                "QR Code",
+                "Scan one of multiple QR codes",
+                R.drawable.ic_qr
+            ),
+            ImportOption(
+                "File",
+                "Load a text or image file",
+                R.drawable.ic_qr
+            ),
+            ImportOption(
+                "Text",
+                "Input a string",
+                R.drawable.ic_qr
+            )
+        )
+        val adapter = ImportOptionAdapter(this, options)
 
-        spinner_import_type.values = types
-        spinner_import_type.onItemSelectedListener = { entry, value ->
-            val type = parseEnum<ImportType>(value as String)
-
-            when (type) {
-                ImportType.QR -> {
+        binding.options.adapter = adapter
+        binding.options.setOnItemClickListener { _, _, position, _ ->
+            when (position) {
+                0 -> {
                     val intent = Intent(this, BarcodeScannerActivity::class.java)
-
-                    scanBarcode.launch(intent)
-                    switcher_import_input.visibility = View.GONE
-                    setImportResult(emptyList())
+                    barcodeScanner.launch(intent)
                 }
-                ImportType.QRFile -> {
-                    switcher_import_input.showView(R.id.layout_import_file)
-                    switcher_import_input.visibility = View.VISIBLE
+                1 -> {
+                    val types = arrayOf(
+                        "image/*",  //TODO: Specify the image type
+                        "text/*"
+                    )
 
-                    layout_import_file.onClickListener = {
-                        imageFilePicker.launch(arrayOf("image/*"))
-                    }
-                    setImportResult(emptyList())
+                    filePicker.launch(types)
                 }
-                ImportType.TextFile -> {
-                    switcher_import_input.showView(R.id.layout_import_file)
-                    switcher_import_input.visibility = View.VISIBLE
+                2 -> {
+                    val dialog = AccountURLDialog()
 
-                    layout_import_file.onClickListener = {
-                        textFilePicker.launch(arrayOf("text/*"))
-                    }
-                    setImportResult(emptyList())
-                }
-                ImportType.Text -> {
-                    switcher_import_input.showView(R.id.layout_import_text)
-                    switcher_import_input.visibility = View.VISIBLE
-
-                    layout_import_text_value.setClearErrorOnType()
-                    btn_import_text.setOnClickListener {
-                        val text = layout_import_text_value.editText?.text.toString()
-
-                        if (text.isEmpty()) {
-                            layout_import_text_value.error = "Text is empty"
-
-                            return@setOnClickListener
-                        }
-
+                    dialog.onConfirmListener = {
                         try {
-//                            val accounts = accountExporter.import(text)
-//
-//                            setImportResult(accounts)
-                        } catch (e: Exception) {
-                            val dialog = ErrorDialog()
+                            val data = accountExporter.import(it)
 
-                            dialog.setErrorMessage("Import data is corrupt")    //FIXME: Show detailed error with account index ecc
-                            dialog.show(supportFragmentManager, null)
+                            showResults(data)
+                            dialog.dismiss()
+                        } catch (e: Exception) {
+                            dialog.error = e.message
                         }
                     }
-                    setImportResult(emptyList())
-                }
-            }
-        }
-        btn_import_confirm.setOnClickListener {
-            if (items.isEmpty()) {
-                makeToast("No accounts to import")
-            } else {
-                lifecycleScope.launch {
-                    //TODO: Let the user choose and tell them which are going to get replaced, because in this way they get replaced
-
-                    items.filterIsInstance<AccountGroup>().forEach {
-                        viewModel.addGroup(it, true)
-                    }
-                    items.filterIsInstance<Account>().forEach {
-                        viewModel.addAccount(it, true)
-                    }
-
-                    startActivity(AccountListActivity::class) {
-                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                    }
+                    dialog.show(supportFragmentManager, null)
                 }
             }
         }
@@ -200,14 +164,9 @@ class ImportActivity : ThemedActivity() {   //FIXME: BackupImportActivity
         }
     }
 
-    private fun setImportResult(items: List<BaseAccount>) {
-        val adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_list_item_1,
-            items.map { it.name }
-        )
-
-        txt_import_output.adapter = adapter
-        this.items = items
+    private fun showResults(data: AccountExporter.Data) {
+        startActivity(ImportResultActivity::class) {
+            putExtra(ImportResultActivity.EXTRA_DATA, data) //FIXME: Start on top?
+        }
     }
 }
