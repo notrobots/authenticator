@@ -1,6 +1,7 @@
 package dev.notrobots.authenticator.ui.accountlist
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.androidstuff.util.loge
@@ -8,6 +9,7 @@ import dev.notrobots.authenticator.db.AccountDao
 import dev.notrobots.authenticator.db.AccountGroupDao
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.AccountGroup
+import dev.notrobots.authenticator.util.makeLiveData
 import javax.inject.Inject
 
 @HiltViewModel
@@ -16,8 +18,8 @@ class AccountListViewModel @Inject constructor(
     val accountGroupDao: AccountGroupDao
 ) : ViewModel() {
     val groupsWithAccount = accountGroupDao.getGroupsWithAccounts()
-    val accounts = accountDao.getAccounts()
-    val groups = accountGroupDao.getGroups()
+    val accounts = makeLiveData<List<Account>> { accountDao.getAccounts() }
+    val groups = makeLiveData<List<AccountGroup>> { accountGroupDao.getGroups() }
 
     /**
      * Checks if the given [account] already exists.

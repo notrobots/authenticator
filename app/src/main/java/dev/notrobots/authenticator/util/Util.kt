@@ -2,7 +2,13 @@ package dev.notrobots.authenticator.util
 
 import android.content.Context
 import android.widget.ArrayAdapter
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.LiveDataScope
+import androidx.lifecycle.liveData
 import org.apache.commons.codec.binary.Base32
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.experimental.ExperimentalTypeInference
 import kotlin.reflect.jvm.isAccessible
 
 fun isValidBase32(base32: String): Boolean {
@@ -30,3 +36,10 @@ inline fun <reified T> lazyType(crossinline initializer: T.() -> Unit = {}): Laz
     }
 }
 
+fun <T> makeLiveData(
+    context: CoroutineContext = EmptyCoroutineContext,
+    timeoutInMs: Long = 5000L,
+    block: suspend LiveDataScope<T>.() -> T
+): LiveData<T> = liveData(context, timeoutInMs) {
+    emit(block())
+}

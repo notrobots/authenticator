@@ -1,13 +1,12 @@
 package dev.notrobots.authenticator.db
 
-import androidx.lifecycle.LiveData
 import androidx.room.*
 import dev.notrobots.authenticator.models.Account
 
 @Dao
 interface AccountDao {
     @Query("SELECT * FROM Account ORDER BY `order`")
-    fun getAccounts(): LiveData<List<Account>>
+    suspend fun getAccounts(): List<Account>
 
     @Query("SELECT * FROM Account WHERE id = :id")
     suspend fun getAccount(id: Long): Account

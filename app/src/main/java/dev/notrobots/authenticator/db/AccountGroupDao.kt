@@ -9,7 +9,7 @@ import dev.notrobots.authenticator.models.GroupWithAccounts
 @Dao
 interface AccountGroupDao {
     @Query("SELECT * FROM AccountGroup")
-    fun getGroups(): LiveData<List<AccountGroup>>
+    suspend fun getGroups(): List<AccountGroup>
 
     @Transaction
     @Query("SELECT * FROM AccountGroup ORDER BY `order`=${BaseAccount.DEFAULT_ORDER}, `order`")
