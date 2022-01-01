@@ -4,8 +4,9 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import androidx.annotation.ColorInt
 import com.google.zxing.common.BitMatrix
+import java.io.Serializable
 
-abstract class QRCodeStyle {
+abstract class QRCodeStyle : Serializable {
     abstract fun paint(width: Int, height: Int, bitmap: Bitmap, matrix: BitMatrix)
 
     companion object {

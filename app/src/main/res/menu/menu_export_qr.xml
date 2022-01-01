@@ -33,26 +33,6 @@
     </item>
 
     <item
-        android:icon="@drawable/ic_palette"
-        android:title="Style"
-        app:showAsAction="ifRoom">
-        <menu>
-            <group android:checkableBehavior="single">
-                <item
-                    android:id="@+id/menu_export_style_default"
-                    android:checked="true"
-                    android:title="Default" />
-                <item
-                    android:id="@+id/menu_export_style_rainbow"
-                    android:title="Rainbow" />
-                <item
-                    android:id="@+id/menu_export_style_trans"
-                    android:title="Rainbow2" />
-            </group>
-        </menu>
-    </item>
-
-    <item
         android:icon="@drawable/ic_print"
         android:title="Print"
         app:showAsAction="ifRoom">

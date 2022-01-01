@@ -1,42 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:padding="18dp">
 
-    <dev.notrobots.authenticator.views.BetterSpinner
-        android:id="@+id/spinner_export_format"
-        android:layout_width="0dp"
+    <TextView
+        android:id="@+id/description"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:spinnerLabel="Export format">
+        android:layout_marginTop="42dp"
+        android:text="Select the items that you want to export"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+        android:textSize="18sp"/>
 
-    </dev.notrobots.authenticator.views.BetterSpinner>
-
-    <dev.notrobots.authenticator.views.BetterSpinner
-        android:id="@+id/spinner_export_output"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:layout_constraintEnd_toEndOf="@+id/spinner_export_format"
-        app:layout_constraintStart_toStartOf="@+id/spinner_export_format"
-        app:layout_constraintTop_toBottomOf="@+id/spinner_export_format"
-        app:spinnerLabel="Export output" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="18dp"
+        android:layout_marginBottom="18dp"
+        app:layout_constraintBottom_toTopOf="@+id/next"
+        app:layout_constraintTop_toBottomOf="@+id/description"
+        tools:listitem="@layout/item_export" />
 
     <Button
-        android:id="@+id/btn_export_confirm"
+        android:id="@+id/next"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="18dp"
-        android:layout_marginTop="16dp"
-        android:text="Export"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/spinner_export_output" />
+        android:text="Next"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

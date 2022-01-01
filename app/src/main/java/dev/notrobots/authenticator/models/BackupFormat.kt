@@ -1,8 +1,8 @@
 package dev.notrobots.authenticator.models
 
 enum class BackupFormat {
-    Plain,    //Plain text
     Default,   // Default
+    Plain    //Plain text
 //    GoogleProtobuf    // Google
     // Json
 }

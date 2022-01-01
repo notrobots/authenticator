@@ -1,6 +1,5 @@
-package dev.notrobots.authenticator.ui.importresult
+package dev.notrobots.authenticator.ui.backupimportresult
 
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
@@ -13,7 +12,6 @@ import dev.notrobots.authenticator.databinding.ItemImportResultBinding
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.AccountGroup
 import kotlinx.android.synthetic.main.item_import_result.view.*
-import kotlin.reflect.KClass
 
 class ImportResultAdapter : RecyclerView.Adapter<ImportResultAdapter.ViewHolder>() {
     private var items = listOf<ImportResult>()

@@ -2,14 +2,16 @@ package dev.notrobots.authenticator.models
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.net.Uri
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.common.BitMatrix
 import com.google.zxing.qrcode.QRCodeWriter
+import java.io.Serializable
 
 class QRCode(
     val content: String,
-    size: Int
-) {
+    size: Int = DEFAULT_SIZE
+) : Serializable {
     private val writer = QRCodeWriter()
     private val bitMatrix = writer.encode(
         content,
@@ -19,6 +21,8 @@ class QRCode(
     )
     private val width = bitMatrix.width
     private val height = bitMatrix.height
+
+    constructor(uri: Uri, size: Int = DEFAULT_SIZE) : this(uri.toString(), size)
 
     override fun toString(): String {
         return content
@@ -36,5 +40,9 @@ class QRCode(
 
     fun toBitmap(): Bitmap {
         return toBitmap(QRCodeStyle.Default)
+    }
+
+    companion object {
+        const val DEFAULT_SIZE = 512
     }
 }

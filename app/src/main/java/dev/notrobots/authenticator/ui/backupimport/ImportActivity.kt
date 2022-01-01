@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts.*
-import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.barcode.Barcode
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
@@ -21,7 +20,7 @@ import dev.notrobots.authenticator.databinding.ActivityImportBinding
 import dev.notrobots.authenticator.dialogs.AccountURLDialog
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
-import dev.notrobots.authenticator.ui.importresult.ImportResultActivity
+import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
 
 @AndroidEntryPoint
 class ImportActivity : ThemedActivity() {

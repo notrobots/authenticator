@@ -1,4 +1,4 @@
-package dev.notrobots.authenticator.ui.importresult
+package dev.notrobots.authenticator.ui.backupimportresult
 
 import dev.notrobots.authenticator.models.BaseAccount
 

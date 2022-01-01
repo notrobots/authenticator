@@ -36,7 +36,7 @@ import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.backup.BackupActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
-import dev.notrobots.authenticator.ui.importresult.ImportResultActivity
+import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit

@@ -1,49 +1,69 @@
 package dev.notrobots.authenticator.ui.backupexport
 
-import android.content.Intent
 import android.os.Bundle
-import dev.notrobots.androidstuff.activities.ThemedActivity
-import dev.notrobots.androidstuff.util.loge
+import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
+import dev.notrobots.androidstuff.extensions.makeSnackBar
+import dev.notrobots.androidstuff.extensions.resolveColorAttribute
+import dev.notrobots.androidstuff.extensions.startActivity
+import dev.notrobots.androidstuff.extensions.viewBindings
 import dev.notrobots.authenticator.R
-import dev.notrobots.authenticator.models.BackupFormat
-import dev.notrobots.authenticator.models.BackupOutput
-import kotlinx.android.synthetic.main.activity_export.*
+import dev.notrobots.authenticator.databinding.ActivityExportBinding
+import dev.notrobots.authenticator.db.AccountDao
+import dev.notrobots.authenticator.db.AccountGroupDao
+import dev.notrobots.authenticator.ui.backupexportconfig.ExportConfigActivity
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ExportActivity : ThemedActivity() {
+@AndroidEntryPoint
+class ExportActivity : AppCompatActivity() {
+    private val binding by viewBindings<ActivityExportBinding>()
+
+    @Inject
+    lateinit var accountDao: AccountDao
+
+    @Inject
+    lateinit var accountGroupDao: AccountGroupDao
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_export)
+        setContentView(binding.root)
 
-        title = "Export accounts"
+        title = "Export"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        if (intent.extras != null) {
-            spinner_export_format.values = BackupFormat.values().toList()
-            spinner_export_output.values = BackupOutput.values().toList()
+        lifecycleScope.launch {
+            val groups = accountGroupDao.getGroups()
+            val accounts = accountDao.getAccounts()
+            val adapter = ExportAdapter(groups + accounts)
 
-            btn_export_confirm.setOnClickListener {
-                val exportFormat = spinner_export_format.selectedValue as BackupFormat
-                val exportOutput = spinner_export_output.selectedValue as BackupOutput
-                val intent = Intent(this, ExportResultActivity::class.java)
+            binding.list.layoutManager = LinearLayoutManager(this@ExportActivity)
+            binding.list.adapter = adapter
+            binding.next.setOnClickListener {
+                val checked = adapter.checkedItems
 
-                intent.putExtra(ExportResultActivity.EXTRA_EXPORT_FORMAT, exportFormat)
-                intent.putExtra(ExportResultActivity.EXTRA_EXPORT_OUTPUT, exportOutput)
-                intent.putExtras(this.intent.extras!!)
-                startActivity(intent)
+                if (checked.isNotEmpty()) {
+                    startActivity(ExportConfigActivity::class) {
+                        putExtra(ExportConfigActivity.EXTRA_ITEMS, ArrayList(checked))
+                    }
+                } else {
+                    val sb = makeSnackBar("No items selected", binding.root, Snackbar.LENGTH_SHORT)
+                    sb.anchorView = binding.next
+                }
             }
-        } else {
-            loge("Account list is null")
-            finish()
         }
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
-        return true
-    }
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) {
+            finish()
+            return true
+        }
 
-    companion object {
-        const val EXTRA_ACCOUNT_LIST = "ExportActivity.ACCOUNT_LIST"
-        const val EXTRA_GROUP_LIST = "ExportActivity.GROUP_LIST"
+        return false
     }
 }
