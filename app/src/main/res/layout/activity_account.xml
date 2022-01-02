@@ -49,7 +49,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/layout_account_name"
                 app:passwordToggleEnabled="true"
-                app:passwordToggleTint="?attr/colorAccent">
+                app:passwordToggleTint="?attr/colorSecondary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/text_account_secret"
@@ -133,8 +133,8 @@
                     app:endIconMode="custom"
                     app:startIconDrawable="@drawable/ic_remove"
                     app:endIconDrawable="@drawable/ic_add"
-                    app:startIconTint="?attr/colorAccent"
-                    app:endIconTint="?attr/colorAccent">
+                    app:startIconTint="?attr/colorSecondary"
+                    app:endIconTint="?attr/colorSecondary">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/text_account_counter_value"

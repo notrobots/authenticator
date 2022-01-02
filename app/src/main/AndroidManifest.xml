@@ -32,9 +32,7 @@
             android:name=".ui.account.AccountActivity"
             android:screenOrientation="portrait" />
 
-        <activity
-            android:name=".ui.backup.BackupActivity"
-            android:screenOrientation="portrait" />
+        <activity android:name=".ui.backup.BackupActivity" />
 
         <activity
             android:name=".ui.backupimport.ImportActivity"

@@ -78,7 +78,7 @@
         app:layout_constraintStart_toEndOf="@+id/img_drag_handle"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_palette"
-        app:tint="?attr/colorAccent" />
+        app:tint="?attr/colorSecondary" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/group_account_edit"
