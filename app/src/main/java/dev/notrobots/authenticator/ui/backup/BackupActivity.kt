@@ -5,6 +5,7 @@ import android.view.MenuItem
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.activities.ThemedActivity
+import dev.notrobots.androidstuff.extensions.makeSnackBar
 import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.extensions.viewBindings
 import dev.notrobots.authenticator.R
@@ -45,8 +46,12 @@ class BackupActivity : ThemedActivity() {
                 val accounts = accountDao.getAccounts()
                 val items = ArrayList(groups + accounts)
 
-                startActivity(ExportConfigActivity::class) {
-                    putExtra(ExportConfigActivity.EXTRA_ITEMS, items)
+                if (items.isNotEmpty()) {
+                    startActivity(ExportConfigActivity::class) {
+                        putExtra(ExportConfigActivity.EXTRA_ITEMS, items)
+                    }
+                } else {
+                    makeSnackBar("Nothing to export", binding.root)
                 }
             }
         }

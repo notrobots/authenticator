@@ -99,56 +99,45 @@ class ImportActivity : ThemedActivity() {
         title = "Import backup"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        val options = listOf(
-            ImportOption(
-                "QR Code",
-                "Scan one of multiple QR codes",
-                R.drawable.ic_qr
-            ),
-            ImportOption(
-                "File",
-                "Load a text or image file",
-                R.drawable.ic_qr
-            ),
-            ImportOption(
-                "Text",
-                "Input a string",
-                R.drawable.ic_qr
+        binding.options.addOption(
+            "QR Code",
+            "Scan one of multiple QR codes",
+            R.drawable.ic_qr
+        ) {
+            val intent = Intent(this, BarcodeScannerActivity::class.java)
+
+            barcodeScanner.launch(intent)
+        }
+        binding.options.addOption(
+            "File",
+            "Load a text or image file",
+            R.drawable.ic_qr
+        ) {
+            val types = arrayOf(
+                "image/*",  //TODO: Specify the image type
+                "text/*"
             )
-        )
-        val adapter = ImportOptionAdapter(this, options)
 
-        binding.options.adapter = adapter
-        binding.options.setOnItemClickListener { _, _, position, _ ->
-            when (position) {
-                0 -> {
-                    val intent = Intent(this, BarcodeScannerActivity::class.java)
-                    barcodeScanner.launch(intent)
-                }
-                1 -> {
-                    val types = arrayOf(
-                        "image/*",  //TODO: Specify the image type
-                        "text/*"
-                    )
+            filePicker.launch(types)
+        }
+        binding.options.addOption(
+            "Text",
+            "Input a string",
+            R.drawable.ic_qr
+        ) {
+            val dialog = AccountURLDialog()
 
-                    filePicker.launch(types)
-                }
-                2 -> {
-                    val dialog = AccountURLDialog()
+            dialog.onConfirmListener = {
+                try {
+                    val data = accountExporter.import(it)
 
-                    dialog.onConfirmListener = {
-                        try {
-                            val data = accountExporter.import(it)
-
-                            showResults(data)
-                            dialog.dismiss()
-                        } catch (e: Exception) {
-                            dialog.error = e.message
-                        }
-                    }
-                    dialog.show(supportFragmentManager, null)
+                    showResults(data)
+                    dialog.dismiss()
+                } catch (e: Exception) {
+                    dialog.error = e.message
                 }
             }
+            dialog.show(supportFragmentManager, null)
         }
     }
 
