@@ -16,7 +16,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="?attr/colorPrimary" />
+        app:tint="?attr/colorSecondary" />
 
     <TextView
         android:id="@+id/text_account_label"
@@ -48,7 +48,7 @@
         app:layout_constraintEnd_toStartOf="@+id/img_account_counter_update"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_edit"
-        app:tint="?attr/colorPrimary" />
+        app:tint="?attr/colorSecondary" />
 
     <ImageView
         android:id="@+id/img_account_counter_update"
@@ -58,7 +58,7 @@
         app:layout_constraintEnd_toStartOf="@+id/pb_phase"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_refresh"
-        app:tint="?attr/colorPrimary" />
+        app:tint="?attr/colorSecondary" />
 
     <dev.notrobots.authenticator.google.CountdownIndicator
         android:id="@+id/pb_phase"

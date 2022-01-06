@@ -22,10 +22,13 @@ import dev.notrobots.androidstuff.activities.BaseActivity
 import dev.notrobots.androidstuff.extensions.copyToClipboard
 import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.extensions.startActivity
+import dev.notrobots.androidstuff.extensions.viewBindings
 import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.androidstuff.util.showInfo
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.data.Preferences
+import dev.notrobots.authenticator.databinding.ActivityAccountBinding
+import dev.notrobots.authenticator.databinding.ActivityAccountListBinding
 import dev.notrobots.authenticator.dialogs.*
 import dev.notrobots.authenticator.extensions.absoluteRangeTo
 import dev.notrobots.authenticator.google.CountdownIndicator
@@ -228,12 +231,15 @@ class AccountListActivity : BaseActivity() {
             restoreGroupsExpandState()
         }
     }
+    private val binding by viewBindings<ActivityAccountListBinding>()
 
     //region Activity lifecycle
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_account_list)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbarLayout.toolbar)
+
         doubleBackPressToExitEnabled = true
 
         btn_add_account_qr.setOnClickListener {

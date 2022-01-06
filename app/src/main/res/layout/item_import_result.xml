@@ -14,7 +14,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_account"
-        app:tint="?attr/colorPrimary" />
+        app:tint="?attr/colorSecondary" />
 
     <TextView
         android:id="@+id/name"

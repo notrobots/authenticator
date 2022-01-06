@@ -32,8 +32,11 @@ class BackupActivity : ThemedActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
 
-        title = null
+        binding.toolbar.setNavigationOnClickListener {
+            finish()
+        }
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         binding.options.addOption(
@@ -64,12 +67,12 @@ class BackupActivity : ThemedActivity() {
         }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            finish()
-            return true
-        }
-
-        return false
-    }
+//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+//        if (item.itemId == android.R.id.home) {
+//            finish()
+//            return true
+//        }
+//
+//        return false
+//    }
 }

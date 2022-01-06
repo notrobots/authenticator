@@ -23,6 +23,7 @@ class OptionList(
     private val adapter = OptionAdapter(context)
     private val binding by viewBindings<ViewOptionlistBinding>(context)
 
+    //TODO: Option list should have a children named Option and they should be added to the options list on initialization
     init {
         binding.optionList.adapter = adapter
         binding.optionList.setOnItemClickListener { _, _, position, _ ->

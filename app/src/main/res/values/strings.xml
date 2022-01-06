@@ -14,6 +14,8 @@
     </plurals>
     <string name="label_delete_group_desc"><![CDATA[You are about to <b>permanently delete %s</b><br/><br/>Deleting an account from the authenticator won\'t disable the 2 factor authentication.<br/><br/><b>Make sure to disable the 2FA on the website/service the account is tied to.</b>]]></string>
     <string name="label_delete_group_and_accounts_desc"><![CDATA[You are about to <b>permanently delete %s and %s</b><br/><br/>Deleting an account from the authenticator won\'t disable the 2 factor authentication.<br/><br/><b>Make sure to disable the 2FA on the website/service the account is tied to.</b>]]></string>
+    <string name="backup_introduction_description">You can transfer your data to another device or Authenticator app</string>
+    <string name="backup_introduction_title">Backup</string>
     <plurals name="label_delete_account_title">
         <item quantity="one">Remove account</item>
         <item quantity="other">Remove accounts</item>
