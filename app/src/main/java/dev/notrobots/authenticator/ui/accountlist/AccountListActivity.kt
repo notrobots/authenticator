@@ -4,11 +4,11 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.activity.viewModels
-import androidx.appcompat.view.ActionMode
 import androidx.core.content.edit
 import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
@@ -103,7 +103,7 @@ class AccountListActivity : BaseActivity() {
 
         override fun onItemLongClick(account: Account, id: Long, adapter: AccountListAdapter): Boolean {
             if (actionMode == null) {
-                startSupportActionMode(accountActionMode)
+                binding.toolbarLayout.toolbar.startActionMode(accountActionMode)
             }
 
             return true
@@ -145,7 +145,7 @@ class AccountListActivity : BaseActivity() {
 
         override fun onGroupLongClick(group: AccountGroup, id: Long, adapter: AccountListAdapter): Boolean {
             if (actionMode == null) {
-                startSupportActionMode(accountActionMode)
+                binding.toolbarLayout.toolbar.startActionMode(accountActionMode)
             }
 
             return true
@@ -443,7 +443,7 @@ class AccountListActivity : BaseActivity() {
                 }
             }
             R.id.menu_account_list_edit -> {
-                startSupportActionMode(accountActionMode)
+                binding.toolbarLayout.toolbar.startActionMode(accountActionMode)
             }
             R.id.menu_account_list_toggle_pins -> {
                 val showPins = preferences.getBoolean(Preferences.SHOW_PINS, true)

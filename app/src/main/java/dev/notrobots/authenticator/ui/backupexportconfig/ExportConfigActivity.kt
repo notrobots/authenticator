@@ -1,7 +1,6 @@
 package dev.notrobots.authenticator.ui.backupexportconfig
 
 import android.os.Bundle
-import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import dev.notrobots.androidstuff.extensions.startActivity
@@ -23,13 +22,18 @@ class ExportConfigActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        setSupportActionBar(binding.toolbarLayout.toolbar)
 
         val items = intent.getSerializableExtra(EXTRA_ITEMS) as List<BaseAccount>
         val groups = items.filterIsInstance<AccountGroup>()
         val accounts = items.filterIsInstance<Account>()
 
-        title = "Export config"
+        title = "Export"
+        binding.toolbarLayout.toolbar.setNavigationOnClickListener {
+            finish()
+        }
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
         binding.output.onSelectionChanged = { value, _ ->
             binding.qrStyle.visibility = if (value == BackupOutput.QR) View.VISIBLE else View.GONE
         }
@@ -62,15 +66,6 @@ class ExportConfigActivity : AppCompatActivity() {
                 else -> throw Exception("Unknown output format")
             }
         }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            finish()
-            return true
-        }
-
-        return false
     }
 
     companion object {
