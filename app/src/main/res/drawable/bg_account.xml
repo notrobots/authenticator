@@ -3,9 +3,6 @@
     android:color="?attr/colorControlHighlight">
     <item>
         <selector>
-<!--            <item-->
-<!--                android:drawable="@color/userRowClickedBackgroundColor"-->
-<!--                android:state_pressed="true" />-->
             <item
                 android:drawable="@color/userRowSelectedBackgroundColor"
                 android:state_selected="true" />

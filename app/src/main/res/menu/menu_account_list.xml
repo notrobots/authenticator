@@ -6,7 +6,7 @@
         android:id="@+id/menu_account_list_edit"
         android:icon="@drawable/ic_edit"
         android:title="Edit items"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom"/>
 
     <item
         android:id="@+id/menu_account_list_toggle_pins"
