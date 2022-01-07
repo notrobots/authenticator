@@ -14,7 +14,8 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/collapsingToolbarLayoutMediumSize"
             app:title="@string/backup_introduction_title"
-            app:expandedTitleGravity="center|bottom">
+            app:expandedTitleGravity="center|bottom"
+            android:background="?attr/colorSurface">
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
