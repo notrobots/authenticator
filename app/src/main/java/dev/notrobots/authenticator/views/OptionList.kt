@@ -1,18 +1,23 @@
 package dev.notrobots.authenticator.views
 
 import android.content.Context
+import android.graphics.Color
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.FrameLayout
+import androidx.core.content.res.getResourceIdOrThrow
+import dev.notrobots.androidstuff.extensions.resolveColorAttribute
 import dev.notrobots.androidstuff.extensions.resolveDrawable
 import dev.notrobots.androidstuff.extensions.resolveString
+import dev.notrobots.androidstuff.extensions.setTint
 import dev.notrobots.androidstuff.util.viewBindings
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ItemListOptionBinding
 import dev.notrobots.authenticator.databinding.ViewOptionlistBinding
+import dev.notrobots.authenticator.extensions.getResourceIdOrNull
 
 class OptionList(
     context: Context,
@@ -23,7 +28,33 @@ class OptionList(
     private val adapter = OptionAdapter(context)
     private val binding by viewBindings<ViewOptionlistBinding>(context)
 
-    //TODO: Option list should have a children named Option and they should be added to the options list on initialization
+    /**
+     * Text appearance of each of the option's title
+     */
+    var titleTextAppearance: Int = Color.TRANSPARENT
+        set(value) {
+            adapter.notifyDataSetChanged()
+            field = value
+        }
+
+    /**
+     * Text appearance of each of the option's description
+     */
+    var descriptionTextAppearance: Int = Color.TRANSPARENT
+        set(value) {
+            adapter.notifyDataSetChanged()
+            field = value
+        }
+
+    /**
+     * Tint of each of the option's icon
+     */
+    var iconTint: Int = Color.TRANSPARENT
+        set(value) {
+            adapter.notifyDataSetChanged()
+            field = value
+        }
+
     init {
         binding.optionList.adapter = adapter
         binding.optionList.setOnItemClickListener { _, _, position, _ ->
@@ -31,6 +62,23 @@ class OptionList(
         }
 
         addView(binding.root)
+
+        titleTextAppearance = titleTextAppearance
+        descriptionTextAppearance = descriptionTextAppearance
+        iconTint = iconTint
+
+        with(context.obtainStyledAttributes(attrs, R.styleable.OptionList, defStyleAttr, 0)) {
+            val defaultTint = context.resolveColorAttribute(R.attr.colorPrimary)
+
+            iconTint = getColor(R.styleable.OptionList_option_iconTint, defaultTint)
+
+            getResourceIdOrNull(R.styleable.OptionList_option_titleTextAppearance)?.let {
+                titleTextAppearance = it
+            }
+            getResourceIdOrNull(R.styleable.OptionList_option_descriptionTextAppearance)?.let {
+                descriptionTextAppearance = it
+            }
+        }
     }
 
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
@@ -79,7 +127,10 @@ class OptionList(
             val binding = ItemListOptionBinding.bind(view)
 
             binding.title.text = context.resolveString(option.title)
+            binding.title.setTextAppearance(titleTextAppearance)
             binding.description.text = context.resolveString(option.description)
+            binding.description.setTextAppearance(descriptionTextAppearance)
+            binding.icon.setTint(iconTint)
 
             if (option.icon != null) {
                 val icon = context.resolveDrawable(option.icon)

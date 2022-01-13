@@ -8,4 +8,12 @@
         <!-- Spinner label -->
         <attr name="spinnerLabel" format="string"/>
     </declare-styleable>
+    <declare-styleable name="OptionList">
+        <!-- Text appearance of each of the option's title -->
+        <attr name="option_titleTextAppearance" format="reference"/>
+        <!-- Text appearance of each of the option's description -->
+        <attr name="option_descriptionTextAppearance" format="reference"/>
+        <!-- Tint of each of the option's icon -->
+        <attr name="option_iconTint" format="reference|color" />
+    </declare-styleable>
 </resources>
