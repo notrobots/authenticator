@@ -56,10 +56,10 @@ class ExportConfigActivity : AppCompatActivity() {
                     }
                 }
                 BackupOutput.Text -> {
-                    val export = AccountExporter().exportText(data)
+                    val export = AccountExporter().exportUris(data)
 
                     startActivity(ExportTextActivity::class) {
-                        putExtra(ExportTextActivity.EXTRA_TEXT, export)
+                        putExtra(ExportTextActivity.EXTRA_URIS, ArrayList(export))
                     }
                 }
 

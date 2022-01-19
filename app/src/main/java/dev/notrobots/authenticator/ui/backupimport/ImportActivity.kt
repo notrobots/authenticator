@@ -12,9 +12,9 @@ import com.google.mlkit.vision.common.InputImage
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.activities.ThemedActivity
 import dev.notrobots.androidstuff.extensions.makeSnackBar
+import dev.notrobots.androidstuff.extensions.showInfo
 import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.extensions.viewBindings
-import dev.notrobots.androidstuff.util.showInfo
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ActivityImportBinding
 import dev.notrobots.authenticator.dialogs.AccountURLDialog
@@ -45,7 +45,7 @@ class ImportActivity : ThemedActivity() {
 
                     showResults(data)
                 } catch (e: Exception) {
-                    showInfo(this, "Error", e.message)
+                    showInfo("Error", e.message)
                 }
             }
         }
@@ -66,7 +66,7 @@ class ImportActivity : ThemedActivity() {
 
                             showResults(data)
                         } catch (e: Exception) {
-                            showInfo(this, "Error", "Import data is corrupt")//FIXME: Show detailed error with account index ecc
+                            showInfo("Error", "Import data is corrupt")//FIXME: Show detailed error with account index ecc
                         }
                     }
                     .addOnFailureListener {
@@ -82,7 +82,7 @@ class ImportActivity : ThemedActivity() {
 
                         showResults(data)
                     } catch (e: Exception) {
-                        showInfo(this, "Error", "Import data is corrupt")
+                        showInfo("Error", "Import data is corrupt")
                     }
                 }
             }

@@ -7,9 +7,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
+import dev.notrobots.androidstuff.extensions.showChoice
+import dev.notrobots.androidstuff.extensions.showInfo
 import dev.notrobots.androidstuff.extensions.startActivity
-import dev.notrobots.androidstuff.util.showChoice
-import dev.notrobots.androidstuff.util.showInfo
 import dev.notrobots.androidstuff.util.viewBindings
 import dev.notrobots.authenticator.databinding.ActivityImportResultBinding
 import dev.notrobots.authenticator.models.Account
@@ -80,7 +80,6 @@ class ImportResultActivity : AppCompatActivity() {
 
             if (importResults.any(isNotResolved)) {
                 showChoice(
-                    this,
                     "Import conflicts",
                     "There are still some conflicts left, are you sure you want to proceed?\n\nNOTE: By default conflicting items will be skipped",
                     "Proceed",
@@ -144,7 +143,6 @@ class ImportResultActivity : AppCompatActivity() {
             }
 
             showInfo(
-                this@ImportResultActivity,
                 "Import succeed",
                 "$added new items\n$replaced replaced items\n$skipped skipped items"
             ) {

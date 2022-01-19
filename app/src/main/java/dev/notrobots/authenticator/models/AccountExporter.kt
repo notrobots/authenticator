@@ -17,6 +17,10 @@ import java.io.Serializable
 import java.util.*
 
 class AccountExporter {
+    fun exportUris(exportData: Data): List<Uri> {
+        return export(exportData, 0)
+    }
+
     fun exportText(exportData: Data): String {
         return export(exportData, 0).joinToString("\n")
     }

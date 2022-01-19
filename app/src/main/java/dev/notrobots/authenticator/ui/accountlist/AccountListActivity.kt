@@ -19,15 +19,10 @@ import com.h6ah4i.android.widget.advrecyclerview.draggable.RecyclerViewDragDropM
 import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandableItemManager
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.activities.BaseActivity
-import dev.notrobots.androidstuff.extensions.copyToClipboard
-import dev.notrobots.androidstuff.extensions.makeToast
-import dev.notrobots.androidstuff.extensions.startActivity
-import dev.notrobots.androidstuff.extensions.viewBindings
+import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.logd
-import dev.notrobots.androidstuff.util.showInfo
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.data.Preferences
-import dev.notrobots.authenticator.databinding.ActivityAccountBinding
 import dev.notrobots.authenticator.databinding.ActivityAccountListBinding
 import dev.notrobots.authenticator.dialogs.*
 import dev.notrobots.authenticator.extensions.absoluteRangeTo
@@ -81,7 +76,7 @@ class AccountListActivity : BaseActivity() {
                         addOrReplaceAccount(account)
                     }
                 } catch (e: Exception) {
-                    showInfo(this, "Error", e.message)
+                    showInfo("Error", e.message)
                 }
             }
         }
