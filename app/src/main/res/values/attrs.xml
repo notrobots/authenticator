@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <declare-styleable name="ImageSlider">
+        <!-- Whether or not the scroll is circular -->
+        <attr name="slider_infiniteScroll" format="boolean"/>
+        <!-- Whether or not you want this view to handle the default controls internally -->
+        <attr name="slider_useDefaultControls" format="boolean"/>
+        <!-- The view used to slide to the previous image -->
+        <attr name="slider_previousView" format="reference"/>
+        <!-- The view used to slide to the next image -->
+        <attr name="slider_nextView" format="reference"/>
+        <!-- The TextView showing the index of the current selected image -->
+        <attr name="slider_indicatorView" format="reference"/>
+    </declare-styleable>
     <declare-styleable name="BetterSpinner">
         <!-- Spinner entries, will be used as values if no values are provided -->
         <attr name="spinnerEntries" format="reference"/>

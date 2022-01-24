@@ -6,7 +6,7 @@
     android:layout_height="match_parent">
 
     <TextView
-        android:id="@+id/imageslider_indicator"
+        android:id="@+id/indicator"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="end"
@@ -18,35 +18,35 @@
         tools:text="2/4" />
 
     <ImageView
-        android:id="@+id/imageslider_previous"
+        android:id="@+id/previous"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@+id/imageslider_indicator"
+        app:layout_constraintBottom_toTopOf="@+id/indicator"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_chevron_left"
         app:tint="?attr/colorSecondary" />
 
     <ImageView
-        android:id="@+id/imageslider_next"
+        android:id="@+id/next"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@+id/imageslider_indicator"
+        app:layout_constraintBottom_toTopOf="@+id/indicator"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_chevron_right"
         app:tint="?attr/colorSecondary" />
 
     <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/imageslider_pager"
+        android:id="@+id/pager"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/imageslider_indicator"
-        app:layout_constraintEnd_toStartOf="@+id/imageslider_next"
-        app:layout_constraintStart_toEndOf="@+id/imageslider_previous"
+        app:layout_constraintBottom_toTopOf="@+id/indicator"
+        app:layout_constraintEnd_toStartOf="@+id/next"
+        app:layout_constraintStart_toEndOf="@+id/previous"
         app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
