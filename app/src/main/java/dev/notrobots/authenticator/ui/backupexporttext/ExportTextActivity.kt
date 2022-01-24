@@ -49,9 +49,12 @@ class ExportTextActivity : AppCompatActivity() {
             if (uris.size > 1) {
                 val adapter = ExportTextAdapter(this, uris)
 
-                showList("Export data", adapter)
+                showList(null, adapter, itemClickListener = {
+                    copyToClipboard(it)
+                    makeToast("Copied to clipboard")
+                })
             } else {
-                showInfo("Export data", uris[0])
+                showInfo(null, uris[0])
             }
         }
         binding.listOutput.addOption(
@@ -71,14 +74,6 @@ class ExportTextActivity : AppCompatActivity() {
             saveText.launch(getFilename())
             hasInteracted = true
         }
-        binding.listOutput.addOption(
-            "Print",
-            "Print the backup data",
-            R.drawable.ic_print
-        ) {
-            printHTML(uris.joinToString("<br/>"))
-            hasInteracted = true
-        }
     }
 
     override fun onBackPressed() {
@@ -88,11 +83,13 @@ class ExportTextActivity : AppCompatActivity() {
     private fun showExitWarning() {
         if (!hasInteracted) {
             showChoice(
-                "Exit",
-                "Are you sure you want to quit before saving/printing your backup?",
-                positiveCallback = {
+                "Go back",
+                "Are you sure you want to go back before saving/printing your backup?",
+                "Yes",
+                {
                     finish()
-                }
+                },
+                "No"
             )
         } else {
             finish()

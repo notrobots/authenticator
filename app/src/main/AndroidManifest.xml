@@ -44,6 +44,8 @@
 
         <activity android:name=".ui.backupexport.ExportActivity" />
         <activity android:name=".ui.backupexportqr.ExportQRActivity" />
-        <activity android:name=".ui.backupexporttext.ExportTextActivity" />
+        <activity
+            android:name=".ui.backupexporttext.ExportTextActivity"
+            android:screenOrientation="portrait" />
     </application>
 </manifest>

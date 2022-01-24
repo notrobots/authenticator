@@ -13,7 +13,7 @@
             style="?attr/collapsingToolbarLayoutLargeStyle"
             android:layout_width="match_parent"
             android:layout_height="?attr/collapsingToolbarLayoutMediumSize"
-            app:title="@string/backup_introduction_title"
+            app:title="@string/introduction_backup_title"
             app:expandedTitleGravity="center|bottom"
             android:background="?attr/colorSurface">
 
@@ -38,7 +38,7 @@
             android:id="@+id/description"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/backup_introduction_description"
+            android:text="@string/introduction_backup_description"
             style="@style/IntroductionDescription" />
 
         <dev.notrobots.authenticator.views.OptionList

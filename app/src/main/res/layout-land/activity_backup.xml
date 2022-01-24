@@ -14,7 +14,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:elevation="0dp"
-            app:title="@string/backup_introduction_title"
+            app:title="@string/introduction_backup_title"
             app:titleCentered="true" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -35,7 +35,7 @@
             android:layout_marginEnd="18dp"
             android:gravity="center"
             android:paddingBottom="18dp"
-            android:text="@string/backup_introduction_description"
+            android:text="@string/introduction_backup_description"
             android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
             android:textColor="@color/google_grey900"
             android:textSize="16sp" />
