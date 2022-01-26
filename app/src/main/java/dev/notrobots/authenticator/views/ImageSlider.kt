@@ -2,7 +2,6 @@ package dev.notrobots.authenticator.views
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
@@ -14,14 +13,10 @@ import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import dev.notrobots.androidstuff.extensions.hide
-import dev.notrobots.androidstuff.extensions.resolveColorAttribute
-import dev.notrobots.androidstuff.extensions.setTint
-import dev.notrobots.androidstuff.extensions.viewBindings
+import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ViewImagesliderBinding
 import dev.notrobots.authenticator.extensions.getResourceIdOrNull
-import kotlinx.android.synthetic.main.view_imageslider.view.*
 
 class ImageSlider(
     context: Context,
@@ -160,9 +155,14 @@ class ImageSlider(
         if (images.isNotEmpty()) {
             currentImageIndex = 0
             currentImage = images[0]
-            imageAdapter.notifyDataSetChanged()
-            binding.pager.currentItem = 0
+        } else {
+            currentImageIndex = -1
+            currentImage = null
         }
+
+        binding.pager.isUserInputEnabled = images.size > 1
+        binding.pager.currentItem = 0
+        imageAdapter.notifyDataSetChanged()
     }
 
     /**
