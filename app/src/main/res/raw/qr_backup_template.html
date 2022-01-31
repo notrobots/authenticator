@@ -1,0 +1,63 @@
+<style>
+    * {
+        font-family: Arial, Helvetica, sans-serif;
+    }
+    body {
+        text-align: center;
+    }
+    table {
+        width: 100%;
+        margin: auto;
+    }
+    tr {
+        padding-top: 30px;
+    }
+    .qr-code {
+        display: block;
+        width: 200px; 
+        height: 200px; 
+        margin-top: 20px;
+        margin-bottom: 20px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+</style>
+
+<body>
+    <h1>Authenticator backup</h1>
+    <script>
+        const date = new Date()
+        const year = date.getFullYear()
+        const month = (date.getMonth() + 1).toString().padStart(2, '0')
+        const day = date.getDate().toString().padStart(2, '0')
+        const hour = date.getHours().toString().padStart(2, '0')
+        const minutes = date.getMinutes().toString().padStart(2, '0')
+
+        document.write(`<h4>(${year}/${month}/${day} - ${hour}:${minutes})</h4>`)
+    </script>
+    <table id="table"></table>
+</body>
+
+<script>
+    const data = [QR_DATA_ARRAY]
+    const table = document.getElementById('table')
+    let row = document.createElement('tr')
+
+    for (i = 0, r = 0; i < data.length; i++) {
+        const td = document.createElement('td')
+        const img = document.createElement('img')
+
+        img.classList.add('qr-code')
+        img.src = data[i]
+
+        td.appendChild(img)
+        row.appendChild(td)
+        r++
+
+        if (r == 3) {
+            row = document.createElement('tr')
+            table.appendChild(row)
+            r = 0
+        }
+    }
+</script>

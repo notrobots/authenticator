@@ -6,44 +6,18 @@
         android:id="@+id/menu_export_copy"
         android:icon="@drawable/ic_copy"
         android:title="Copy"
-        android:titleCondensed="Copy"
-        app:showAsAction="ifRoom">
-        <menu>
-            <item
-                android:id="@+id/menu_export_copy_current"
-                android:title="Current" />
-            <item
-                android:id="@+id/menu_export_copy_all"
-                android:title="All" />
-        </menu>
-    </item>
+        app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/menu_export_save"
         android:icon="@drawable/ic_save"
         android:title="Save"
-        app:showAsAction="ifRoom">
-        <menu>
-            <item
-                android:id="@+id/menu_export_save_current"
-                android:title="Current" />
-            <item
-                android:id="@+id/menu_export_save_all"
-                android:title="All" />
-        </menu>
-    </item>
+        app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/menu_export_print"
         android:icon="@drawable/ic_print"
         android:title="Print"
-        app:showAsAction="ifRoom">
-        <menu>
-            <item
-                android:id="@+id/menu_export_print_current"
-                android:title="Current" />
-            <item
-                android:id="@+id/menu_export_print_all"
-                android:title="All" />
-        </menu>
-    </item>
+        app:showAsAction="ifRoom" />
 
 </menu>

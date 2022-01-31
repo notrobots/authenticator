@@ -3,6 +3,7 @@ package dev.notrobots.authenticator.ui.backupexportqr
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import android.print.PrintAttributes
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -10,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.documentfile.provider.DocumentFile
 import dev.notrobots.androidstuff.extensions.*
+import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.androidstuff.util.now
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ActivityExportQrBinding
@@ -21,13 +23,12 @@ import java.io.ByteArrayOutputStream
 
 class ExportQRActivity : AppCompatActivity() {
     private val binding by viewBindings<ActivityExportQrBinding>()
-    private var currentQRCode = 0
-    private val saveCurrentQRCode = registerForActivityResult(ActivityResultContracts.CreateDocument()) {
+    private val saveCurrent = registerForActivityResult(ActivityResultContracts.CreateDocument()) {
         it?.let {
-            saveQRCode(qrCodes[currentQRCode], it)
+            saveQRCode(qrCodes[binding.imageSlider.currentImageIndex], it)
         }
     }
-    private val saveAllQRCodes = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) {
+    private val saveAll = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) {
         it?.let {
             val document = DocumentFile.fromTreeUri(this, it)
 
@@ -44,34 +45,43 @@ class ExportQRActivity : AppCompatActivity() {
         }
     }
     private var qrCodes: List<QRCode> = emptyList()
+    private var currentQRCode = 0
     private var qrStyle = QRCodeStyle.Default
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
 
         val uris = intent.getSerializableExtra(EXTRA_QR_CODES) as List<Uri>
 
         qrStyle = intent.getSerializableExtra(EXTRA_QR_STYLE) as QRCodeStyle
         qrCodes = uris.map { QRCode(it) }
 
-        //binding.imageSlider.infiniteScroll = true   //FIXME: If this is enabled, the next and previous should never have the "disabled" color
-        binding.imageSlider.indicatorView.visibility = View.GONE
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        binding.toolbar.setNavigationOnClickListener {
+            finish()
+        }
+        binding.imageSlider.indicatorView?.disable()
         binding.imageSlider.setImageBitmaps(qrCodes.map { it.toBitmap(qrStyle) })
         binding.done.setOnClickListener {
             finish()    //FIXME: Back to MainActivity
         }
 
         if (qrCodes.size == 1) {
-            binding.title.text = "QR code"
+            binding.imageSlider.nextView?.disable()
+            binding.imageSlider.previousView?.disable()
+            binding.toolbarLayout.title = "QR code"
         } else {
+            binding.imageSlider.nextView?.show()
+            binding.imageSlider.previousView?.show()
             binding.imageSlider.setCallback(object : ImageSlider.Callback {
                 override fun onNextImage(view: View, position: Int) {}
 
                 override fun onPreviousImage(view: View, position: Int) {}
 
                 override fun onImageChanged(view: ImageSlider, old: Int, new: Int) {
-                    binding.title.text = "QR code ${new + 1} of ${qrCodes.size}"
+                    binding.toolbarLayout.title = "QR code ${new + 1} of ${qrCodes.size}"
                     currentQRCode = new
                 }
             })
@@ -89,47 +99,15 @@ class ExportQRActivity : AppCompatActivity() {
             android.R.id.home -> {
                 onBackPressed()
             }
-            R.id.menu_export_copy_current -> {
-                copyToClipboard(qrCodes[currentQRCode])
-                makeToast("Copied to clipboard")
-            }
-            R.id.menu_export_copy_all -> {
+            R.id.menu_export_copy -> {
                 copyToClipboard(qrCodes.joinToString("\n"))
                 makeToast("Copied to clipboard")
             }
-            R.id.menu_export_save_current -> {
-                saveCurrentQRCode.launch(getFilename())
+            R.id.menu_export_save -> {
+                saveAll.launch(null)
             }
-            R.id.menu_export_save_all -> {
-                saveAllQRCodes.launch(null)
-            }
-            R.id.menu_export_print_current -> {
-                val bitmap = qrCodes[currentQRCode].toBitmap(qrStyle)
-
-                printImage(bitmap)
-            }
-            R.id.menu_export_print_all -> {
-                //TODO: Show more info and put all QRs in one file if possible
-                val html = buildString {
-                    append("<html><body>")
-
-                    for (qrCode in qrCodes) {
-                        val stream = ByteArrayOutputStream()
-                        val bitmap = qrCode.toBitmap(qrStyle)
-
-                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
-
-                        val bytes = stream.toByteArray()
-                        val base64 = Base64.encodeBase64String(bytes)
-                        val imgSrc = "data:image/png;base64,$base64"
-
-                        append("<img src='$imgSrc' /><br/>")
-                    }
-
-                    append("</body></html>")
-                }
-
-                printHTML(html)    //TODO: Specify the job
+            R.id.menu_export_print -> {
+                printBackup()
             }
         }
 
@@ -143,8 +121,6 @@ class ExportQRActivity : AppCompatActivity() {
         val stream = contentResolver.openOutputStream(location)
         val bitmap = qrCode.toBitmap(qrStyle)
 
-        //TODO: The QR img should have additional text info
-
         try {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
             makeToast("Saved successfully")
@@ -153,6 +129,36 @@ class ExportQRActivity : AppCompatActivity() {
         } finally {
             stream?.close()
         }
+    }
+
+    /**
+     * Formats and prints the backup data
+     */
+    private fun printBackup() {
+        val template = resources.openRawResource(R.raw.qr_backup_template)
+            .bufferedReader()
+            .readText()
+        val data = qrCodes.joinToString(",") {
+            val bitmap = it.toBitmap()
+            val stream = ByteArrayOutputStream().apply {
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, this)
+            }
+            val bytes = stream.toByteArray()
+            val base64 = Base64.encodeBase64String(bytes)
+
+            "'data:image/png;base64,$base64'"
+        }
+        val printAttributes = PrintAttributes.Builder()
+            .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
+            .setColorMode(PrintAttributes.COLOR_MODE_MONOCHROME)
+            .build()
+
+        printHTML(
+            template.replace("QR_DATA_ARRAY", data),
+            "Authenticator Backup print",
+            printAttributes,
+            true
+        )
     }
 
     private fun getFilename(): String {
