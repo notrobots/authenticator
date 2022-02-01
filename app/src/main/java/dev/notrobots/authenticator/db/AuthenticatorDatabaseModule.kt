@@ -1,7 +1,6 @@
 package dev.notrobots.authenticator.db
 
 import android.content.Context
-import androidx.room.Database
 import androidx.room.Room
 import dagger.Module
 import dagger.Provides
@@ -30,7 +29,7 @@ object AuthenticatorDatabaseModule {
         return Room.databaseBuilder(
             appContext,
             AuthenticatorDatabase::class.java,
-            appContext.getString(R.string.app_name)
+            appContext.getString(R.string.label_app_name)
         ).build()
     }
 }

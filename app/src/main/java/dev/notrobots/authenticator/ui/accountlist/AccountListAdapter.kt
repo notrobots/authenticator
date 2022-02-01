@@ -1,5 +1,7 @@
 package dev.notrobots.authenticator.ui.accountlist
 
+import android.app.Activity
+import android.content.Context
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
@@ -7,23 +9,27 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.viewbinding.ViewBinding
 import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemState
 import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemViewHolder
 import com.h6ah4i.android.widget.advrecyclerview.draggable.ItemDraggableRange
 import com.h6ah4i.android.widget.advrecyclerview.expandable.ExpandableDraggableItemAdapter
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAdapter
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder
+import dev.notrobots.androidstuff.extensions.inflate
 import dev.notrobots.androidstuff.extensions.setTint
+import dev.notrobots.androidstuff.extensions.viewBindings
 import dev.notrobots.androidstuff.util.swap
+import dev.notrobots.androidstuff.util.viewBindings
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.data.KnownIssuers
+import dev.notrobots.authenticator.databinding.ItemAccountBinding
+import dev.notrobots.authenticator.databinding.ItemAccountGroupBinding
 import dev.notrobots.authenticator.extensions.find
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.util.ViewUtil
 import kotlinx.android.synthetic.main.item_account.view.*
 import kotlinx.android.synthetic.main.item_account_group.view.*
-import kotlinx.android.synthetic.main.item_account_group.view.img_account_edit
-import kotlinx.android.synthetic.main.item_account_group.view.img_drag_handle
 import java.util.*
 
 private typealias ParentViewHolder = AccountListAdapter.GroupViewHolder
@@ -101,13 +107,9 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
     }
 
     override fun onBindGroupViewHolder(holder: GroupViewHolder, groupPosition: Int, viewType: Int) {
-        val groupWithAccounts = items[groupPosition]
         val group = groups[groupPosition]
         val view = holder.itemView
-        val childCount = getChildCount(groupPosition)
-
-        view.text_group_account_count.visibility = if (editMode == EditMode.Disabled) View.VISIBLE else View.GONE
-        view.text_group_account_count.text = if (childCount > 0) childCount.toString() else null
+        val binding = holder.binding
 
         if (!group.isDefault) {
             view.isSelected = group.isSelected
@@ -138,14 +140,14 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
                 listener.onGroupLongClick(group, group.id, this)
             }
 
-            view.text_group_name.text = group.name
-            view.img_drag_handle.visibility = if (editMode == EditMode.Item) View.VISIBLE else View.GONE
-            view.img_account_edit.visibility = if (editMode == EditMode.Item) View.VISIBLE else View.GONE
-            view.img_account_edit.setOnClickListener {
+            binding.name.text = group.name
+            binding.dragHandle.visibility = if (editMode == EditMode.Item) View.VISIBLE else View.GONE
+            binding.edit.visibility = if (editMode == EditMode.Item) View.VISIBLE else View.GONE
+            binding.edit.setOnClickListener {
                 listener.onGroupEdit(group, group.id, this)
             }
         } else {
-            view.text_group_name.text = null
+            binding.name.text = null
         }
     }
 
@@ -527,7 +529,7 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
         LayoutInflater.from(parent.context).inflate(layoutRes, parent, false)
     ), DraggableItemViewHolder {
         private val dragState = DraggableItemState()
-        val dragHandle = itemView.img_drag_handle
+        val dragHandle = itemView.findViewById<View>(R.id.drag_handle)
 
         override fun setDragStateFlags(flags: Int) {
             dragState.flags = flags
@@ -542,8 +544,13 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
         }
     }
 
-    class AccountViewHolder(layoutRes: Int, parent: ViewGroup) : BaseViewHolder<Account>(layoutRes, parent)
-    class GroupViewHolder(layoutRes: Int, parent: ViewGroup) : BaseViewHolder<AccountGroup>(layoutRes, parent)
+    class AccountViewHolder(layoutRes: Int, parent: ViewGroup) : BaseViewHolder<Account>(layoutRes, parent) {
+        val binding = ItemAccountBinding.bind(itemView)
+    }
+
+    class GroupViewHolder(layoutRes: Int, parent: ViewGroup) : BaseViewHolder<AccountGroup>(layoutRes, parent) {
+        val binding = ItemAccountGroupBinding.bind(itemView)
+    }
 
     //endregion
 }
