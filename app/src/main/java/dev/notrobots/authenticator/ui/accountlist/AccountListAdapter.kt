@@ -13,6 +13,8 @@ import com.h6ah4i.android.widget.advrecyclerview.draggable.ItemDraggableRange
 import com.h6ah4i.android.widget.advrecyclerview.expandable.ExpandableDraggableItemAdapter
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAdapter
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder
+import dev.notrobots.androidstuff.extensions.hide
+import dev.notrobots.androidstuff.extensions.setDisabled
 import dev.notrobots.androidstuff.extensions.setTint
 import dev.notrobots.androidstuff.util.swap
 import dev.notrobots.authenticator.R
@@ -135,13 +137,13 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
             }
 
             binding.name.text = group.name
-            binding.dragHandle.visibility = if (editMode == EditMode.Item) View.VISIBLE else View.GONE
-            binding.edit.visibility = if (editMode == EditMode.Item) View.VISIBLE else View.GONE
+            binding.groupEdit.setDisabled(editMode != EditMode.Item)
             binding.edit.setOnClickListener {
                 listener.onGroupEdit(group, group.id, this)
             }
         } else {
             binding.name.text = null
+            binding.groupEdit.hide()
         }
     }
 

@@ -51,6 +51,7 @@
 
     <!-- Edit mode -->
     <androidx.constraintlayout.widget.Group
+        android:id="@+id/group_edit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:constraint_referenced_ids="drag_handle, edit"
