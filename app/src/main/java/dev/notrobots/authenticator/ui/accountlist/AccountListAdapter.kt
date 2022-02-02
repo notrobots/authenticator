@@ -1,7 +1,5 @@
 package dev.notrobots.authenticator.ui.accountlist
 
-import android.app.Activity
-import android.content.Context
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
@@ -9,18 +7,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.viewbinding.ViewBinding
 import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemState
 import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemViewHolder
 import com.h6ah4i.android.widget.advrecyclerview.draggable.ItemDraggableRange
 import com.h6ah4i.android.widget.advrecyclerview.expandable.ExpandableDraggableItemAdapter
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemAdapter
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractExpandableItemViewHolder
-import dev.notrobots.androidstuff.extensions.inflate
 import dev.notrobots.androidstuff.extensions.setTint
-import dev.notrobots.androidstuff.extensions.viewBindings
 import dev.notrobots.androidstuff.util.swap
-import dev.notrobots.androidstuff.util.viewBindings
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.data.KnownIssuers
 import dev.notrobots.authenticator.databinding.ItemAccountBinding
@@ -154,6 +148,7 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
     override fun onBindChildViewHolder(holder: AccountViewHolder, groupPosition: Int, childPosition: Int, viewType: Int) {
         val view = holder.itemView
         val account = getAccount(groupPosition, childPosition)
+        val binding = holder.binding
         val id = account.id
         val icon = KnownIssuers.find { k, _ ->
             val rgx = Regex(k, RegexOption.IGNORE_CASE)
@@ -161,10 +156,10 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
             rgx.matches(account.issuer)
         }!!.value
 
-        view.img_account_icon.visibility = if (showIcons && editMode == EditMode.Disabled) View.VISIBLE else View.GONE
-        view.text_account_pin.visibility = if (showPins) View.VISIBLE else View.INVISIBLE
-        view.text_account_label.text = account.displayName
-        view.img_account_icon.setImageResource(icon)
+        binding.icon.visibility = if (showIcons && editMode == EditMode.Disabled) View.VISIBLE else View.GONE
+        binding.icon.setImageResource(icon)
+        binding.pin.visibility = if (showPins) View.VISIBLE else View.INVISIBLE
+        binding.name.text = account.displayName
         view.isSelected = account.isSelected
         view.setOnClickListener {
             if (editMode == EditMode.Item) {
@@ -188,42 +183,42 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
         }
 
         if (editMode == EditMode.Item) {
-            view.img_account_edit.setOnClickListener {
+            binding.edit.setOnClickListener {
                 listener.onItemEdit(account, id, this)
             }
-            view.group_account_edit.visibility = View.VISIBLE
-            view.group_account_totp.visibility = View.GONE
-            view.group_account_hotp.visibility = View.GONE
+            binding.groupEdit.visibility = View.VISIBLE
+            binding.groupTotp.visibility = View.GONE
+            binding.groupHotp.visibility = View.GONE
         } else {
+            binding.groupEdit.visibility = View.GONE
+
             when (account.type) {
                 OTPType.TOTP -> {
-                    view.text_account_pin.text = OTPGenerator.generate(account)
-                    view.group_account_totp.visibility = View.VISIBLE
-                    view.group_account_hotp.visibility = View.GONE
+                    binding.pin.text = OTPGenerator.generate(account)
+                    binding.groupTotp.visibility = View.VISIBLE
+                    binding.groupHotp.visibility = View.GONE
                 }
                 OTPType.HOTP -> {
                     //view.text_account_pin.text = "- - - - - -"           // "-".repeat(account.digits)
-                    view.img_account_counter_update.setOnClickListener {
+                    binding.nextPin.setOnClickListener {
                         it as ImageView
 
                         account.counter++
-                        view.text_account_pin.text = OTPGenerator.generate(account)
+                        binding.pin.text = OTPGenerator.generate(account)
                         it.isEnabled = false
                         it.setTint(Color.LTGRAY)    //FIXME: Use the app's colors
 
                         handler.postDelayed({
-                                                it.isEnabled = true
-                                                it.setTint(Color.BLUE)
-                                            }, Account.HOTP_CODE_INTERVAL)
+                            it.isEnabled = true
+                            it.setTint(Color.BLUE)
+                        }, Account.HOTP_CODE_INTERVAL)
 
                         listener.onItemCounterIncrement(account, id, this)
                     }
-                    view.group_account_hotp.visibility = View.VISIBLE
-                    view.group_account_totp.visibility = View.GONE
+                    binding.groupHotp.visibility = View.VISIBLE
+                    binding.groupTotp.visibility = View.GONE
                 }
             }
-
-            view.group_account_edit.visibility = View.GONE
         }
     }
 

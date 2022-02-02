@@ -46,7 +46,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_edit"
-        app:tint="?attr/colorSecondary" />
+        app:tint="?attr/colorSecondary"
+        android:contentDescription="@string/label_edit"/>
 
     <!-- Edit mode -->
     <androidx.constraintlayout.widget.Group

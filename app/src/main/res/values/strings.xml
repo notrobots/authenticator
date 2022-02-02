@@ -20,6 +20,9 @@
     <string name="introduction_export_text_description">Copy, Save or Print your backup and store it in a secure location</string>
     <string name="label_done">Done</string>
     <string name="label_drag_handle">Drag handle</string>
+    <string name="label_account_icon">Account icon</string>
+    <string name="label_generate_next_pin">Generate next pin</string>
+    <string name="label_edit">Edit</string>
     <plurals name="label_delete_account_title">
         <item quantity="one">Remove account</item>
         <item quantity="other">Remove accounts</item>

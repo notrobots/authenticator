@@ -473,7 +473,7 @@ class AccountListActivity : BaseActivity() {
     private fun setTotpCountdownPhase(phase: Double) {
         if (actionMode == null) {
             for (child in list_accounts.children) {
-                val indicator = child.findViewById<CountdownIndicator>(R.id.pb_phase)
+                val indicator = child.findViewById<CountdownIndicator>(R.id.indicator)
 
                 indicator?.setPhase(phase)
             }

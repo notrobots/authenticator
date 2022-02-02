@@ -5,101 +5,125 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_account"
-    android:paddingEnd="16dp">
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
 
     <ImageView
-        android:id="@+id/img_drag_handle"
+        android:id="@+id/drag_handle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="-5dp"
+        android:layout_marginStart="-10dp"
         android:src="@drawable/ic_reorder"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="?attr/colorSecondary" />
+        app:tint="?attr/colorSecondary"
+        android:contentDescription="@string/label_drag_handle"/>
 
     <TextView
-        android:id="@+id/text_account_label"
+        android:id="@+id/name"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="10dp"
-        android:text="Label (name)"
-        app:layout_constraintEnd_toStartOf="@+id/img_account_edit"
-        app:layout_constraintStart_toEndOf="@+id/img_account_icon"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_marginEnd="8dp"
+        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+        android:textStyle="normal"
+        app:layout_constraintEnd_toStartOf="@+id/edit"
+        app:layout_constraintStart_toEndOf="@+id/icon"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Label (Name)" />
 
     <TextView
-        android:id="@+id/text_account_pin"
-        android:layout_width="wrap_content"
+        android:id="@+id/pin"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
-        android:text="000000"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="8dp"
+        android:letterSpacing="0.08"
+        android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+        android:textColor="?attr/colorSecondary"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/text_account_label"
-        app:layout_constraintTop_toBottomOf="@+id/text_account_label" />
+        app:layout_constraintEnd_toStartOf="@+id/edit"
+        app:layout_constraintStart_toStartOf="@+id/name"
+        app:layout_constraintTop_toBottomOf="@+id/name"
+        tools:text="123456" />
 
     <ImageView
-        android:id="@+id/img_account_edit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:id="@+id/edit"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/img_account_counter_update"
+        app:layout_constraintEnd_toStartOf="@+id/next_pin"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_edit"
-        app:tint="?attr/colorSecondary" />
+        app:tint="?attr/colorSecondary"
+        android:contentDescription="@string/label_edit"/>
 
     <ImageView
-        android:id="@+id/img_account_counter_update"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:id="@+id/next_pin"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/pb_phase"
+        app:layout_constraintEnd_toStartOf="@+id/timer"
         app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginEnd="12dp"
         app:srcCompat="@drawable/ic_refresh"
-        app:tint="?attr/colorSecondary" />
+        app:tint="?attr/colorSecondary"
+        android:contentDescription="@string/label_generate_next_pin"/>
 
     <dev.notrobots.authenticator.google.CountdownIndicator
-        android:id="@+id/pb_phase"
+        android:id="@+id/timer"
         android:layout_width="30dp"
         android:layout_height="30dp"
+        android:layout_marginEnd="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
-        android:id="@+id/img_account_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:id="@+id/icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         android:layout_marginStart="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/text_account_label"
-        app:layout_constraintStart_toEndOf="@+id/img_drag_handle"
+        app:layout_constraintEnd_toStartOf="@+id/name"
+        app:layout_constraintStart_toEndOf="@+id/drag_handle"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_palette"
-        app:tint="?attr/colorSecondary" />
+        app:tint="?attr/colorSecondary"
+        android:contentDescription="@string/label_account_icon"/>
 
+    <!-- Edit mode -->
     <androidx.constraintlayout.widget.Group
-        android:id="@+id/group_account_edit"
+        android:id="@+id/group_edit"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:visibility="gone"
-        app:constraint_referenced_ids="img_account_edit, img_drag_handle"
+        app:constraint_referenced_ids="edit, drag_handle"
         tools:visibility="gone" />
 
+    <!-- Base -->
     <androidx.constraintlayout.widget.Group
-        android:id="@+id/group_account_totp"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:constraint_referenced_ids="pb_phase"
-        tools:visibility="visible" />
+        app:constraint_referenced_ids="icon"
+        tools:visibility="gone" />
 
+    <!-- TOTP -->
     <androidx.constraintlayout.widget.Group
-        android:id="@+id/group_account_hotp"
+        android:id="@+id/group_totp"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:constraint_referenced_ids="img_account_counter_update"
+        app:constraint_referenced_ids="timer"
+        tools:visibility="gone" />
+
+    <!-- HOTP -->
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/group_hotp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:constraint_referenced_ids="next_pin"
         tools:visibility="gone" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
