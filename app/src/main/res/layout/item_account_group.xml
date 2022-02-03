@@ -5,8 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_account"
-    android:paddingTop="28dp"
-    android:paddingBottom="6dp">
+    android:paddingTop="20dp"
+    android:paddingBottom="8dp">
 
     <ImageView
         android:id="@+id/drag_handle"
@@ -25,8 +25,8 @@
         android:id="@+id/name"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
         android:ellipsize="end"
         android:maxLines="1"
         android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
