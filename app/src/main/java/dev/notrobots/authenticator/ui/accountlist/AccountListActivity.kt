@@ -33,8 +33,8 @@ import dev.notrobots.authenticator.google.TotpCounter
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.backup.BackupActivity
-import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
+import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
@@ -473,9 +473,9 @@ class AccountListActivity : BaseActivity() {
     private fun setTotpCountdownPhase(phase: Double) {
         if (actionMode == null) {
             for (child in list_accounts.children) {
-                val indicator = child.findViewById<CountdownIndicator>(R.id.indicator)
+                val countdownIndicator = child.findViewById<CountdownIndicator>(R.id.timer)
 
-                indicator?.setPhase(phase)
+                countdownIndicator?.setPhase(phase)
             }
         }
     }
@@ -494,6 +494,8 @@ class AccountListActivity : BaseActivity() {
     }
 
     private fun setupListAdapter() {
+        val layoutManager = LinearLayoutManager(this)
+
         adapter = AccountListAdapter()
         adapter.setListener(accountListAdapterListener)
 
@@ -514,7 +516,7 @@ class AccountListActivity : BaseActivity() {
         adapterWrapper = recyclerViewDragDropManager.createWrappedAdapter(adapterWrapper)
 
         list_accounts.adapter = adapterWrapper
-        list_accounts.layoutManager = LinearLayoutManager(this)
+        list_accounts.layoutManager = layoutManager
     }
 
     /**
