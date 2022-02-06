@@ -10,11 +10,30 @@
         layout="@layout/view_toolbar" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/empty_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <androidx.recyclerview.widget.RecyclerView
+        <!--   TODO Improve this screen  -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+            android:text="No accounts added"
+            android:gravity="center"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <dev.notrobots.authenticator.widget.AdvancedRecyclerView
             android:id="@+id/list_accounts"
             android:layout_width="match_parent"
             android:layout_height="0dp"

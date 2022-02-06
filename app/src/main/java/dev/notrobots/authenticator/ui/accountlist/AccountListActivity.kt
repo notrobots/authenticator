@@ -382,7 +382,6 @@ class AccountListActivity : BaseActivity() {
                 lifecycleScope.launch {
                     viewModel.accountDao.deleteAll()
                     viewModel.accountGroupDao.deleteAll()
-                    viewModel.accountGroupDao.insert(AccountGroup.DEFAULT_GROUP)
                 }
             }
             R.id.menu_refresh -> {
@@ -515,6 +514,7 @@ class AccountListActivity : BaseActivity() {
         adapterWrapper = recyclerViewExpandableItemManager.createWrappedAdapter(adapter)
         adapterWrapper = recyclerViewDragDropManager.createWrappedAdapter(adapterWrapper)
 
+        list_accounts.setEmptyView(binding.emptyView)
         list_accounts.adapter = adapterWrapper
         list_accounts.layoutManager = layoutManager
     }
