@@ -24,9 +24,8 @@ import dev.notrobots.authenticator.databinding.ItemGroupBinding
 import dev.notrobots.authenticator.extensions.find
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.util.ViewUtil
-import kotlinx.android.synthetic.main.item_account.view.*
-import kotlinx.android.synthetic.main.item_group.view.*
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 private typealias ParentViewHolder = AccountListAdapter.GroupViewHolder
 private typealias ChildViewHolder = AccountListAdapter.AccountViewHolder
@@ -196,7 +195,21 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
 
             when (account.type) {
                 OTPType.TOTP -> {
-                    binding.pin.text = OTPGenerator.generate(account)
+                    val timer = TotpTimer(account.period)
+
+                    timer.setListener(object : TotpTimer.Listener {
+                        override fun onTick(timeLeft: Long) {
+                            val phase = timeLeft.toDouble() / TimeUnit.SECONDS.toMillis(account.period)
+
+                            binding.timer.setPhase(phase)
+                        }
+
+                        override fun onValueChanged() {
+                            binding.pin.text = OTPGenerator.generate(account)
+                        }
+                    })
+                    timer.start()
+
                     binding.groupTotp.visibility = View.VISIBLE
                     binding.groupHotp.visibility = View.GONE
                 }

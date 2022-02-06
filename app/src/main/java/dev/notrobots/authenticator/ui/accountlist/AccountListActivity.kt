@@ -10,7 +10,6 @@ import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.activity.viewModels
 import androidx.core.content.edit
-import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -26,10 +25,6 @@ import dev.notrobots.authenticator.data.Preferences
 import dev.notrobots.authenticator.databinding.ActivityAccountListBinding
 import dev.notrobots.authenticator.dialogs.*
 import dev.notrobots.authenticator.extensions.absoluteRangeTo
-import dev.notrobots.authenticator.google.CountdownIndicator
-import dev.notrobots.authenticator.google.TotpClock
-import dev.notrobots.authenticator.google.TotpCountdownTask
-import dev.notrobots.authenticator.google.TotpCounter
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.backup.BackupActivity
@@ -37,7 +32,6 @@ import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
 class AccountListActivity : BaseActivity() {
@@ -48,15 +42,6 @@ class AccountListActivity : BaseActivity() {
     private lateinit var adapterWrapper: RecyclerView.Adapter<*>
     private val preferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(this)
-    }
-    private var totpCountdownTask: TotpCountdownTask? = null
-
-    /** Counter used for generating TOTP verification codes.  */
-    private val totpCounter: TotpCounter = TotpCounter(30)
-
-    /** Clock used for generating TOTP verification codes.  */
-    private val totpClock: TotpClock by lazy {
-        TotpClock(this)
     }
     private val scanBarcode = registerForActivityResult(StartActivityForResult()) {
         if (it.resultCode == Activity.RESULT_OK) {
@@ -304,40 +289,6 @@ class AccountListActivity : BaseActivity() {
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-
-        if (totpCountdownTask != null) {
-            totpCountdownTask!!.stop()
-            totpCountdownTask = null
-        }
-
-        totpCountdownTask = TotpCountdownTask(
-            totpCounter,
-            totpClock,
-            100
-        )
-        totpCountdownTask!!.setListener(object : TotpCountdownTask.Listener {
-            override fun onTotpCountdown(millisRemaining: Long) {
-                if (isFinishing) {
-                    // No need to reach to this even because the Activity is finishing anyway
-                    return
-                }
-                setTotpCountdownPhaseFromTimeTillNextValue(millisRemaining)
-            }
-
-            override fun onTotpCounterValueChanged() {
-                if (isFinishing) {
-                    // No need to reach to this even because the Activity is finishing anyway
-                    return
-                }
-
-                adapter.notifyDataSetChanged()
-            }
-        })
-        totpCountdownTask!!.startAndNotifyListener()
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         actionMode?.finish()
@@ -465,20 +416,9 @@ class AccountListActivity : BaseActivity() {
 
     //endregion
 
-    private fun setTotpCountdownPhaseFromTimeTillNextValue(millisRemaining: Long) {
-        setTotpCountdownPhase(millisRemaining.toDouble() / TimeUnit.SECONDS.toMillis(totpCounter.timeStep))
-    }
-
-    private fun setTotpCountdownPhase(phase: Double) {
-        if (actionMode == null) {
-            for (child in list_accounts.children) {
-                val countdownIndicator = child.findViewById<CountdownIndicator>(R.id.timer)
-
-                countdownIndicator?.setPhase(phase)
-            }
-        }
-    }
-
+    /**
+     * Creates the default group if it doesn't exist
+     */
     private fun createDefaultGroup() {
         lifecycleScope.launch {
             val defaultGroup = viewModel.accountGroupDao.getGroup(Account.DEFAULT_GROUP_ID)
@@ -492,6 +432,9 @@ class AccountListActivity : BaseActivity() {
         }
     }
 
+    /**
+     * Sets up the the [RecyclerView] that shows the accounts and its adapter
+     */
     private fun setupListAdapter() {
         val layoutManager = LinearLayoutManager(this)
 

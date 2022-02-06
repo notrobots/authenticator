@@ -18,10 +18,10 @@ package dev.notrobots.authenticator.google
 import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
+import java.util.concurrent.TimeUnit
 
 /**
  * Clock input for the time-based OTPs (TOTP).
- *
  *
  * The input is based on the current system time and is adjusted by a persistently stored
  * correction value (offset in minutes).
@@ -31,37 +31,34 @@ class TotpClock(context: Context?) : Clock {
     private val mPreferences: SharedPreferences
     private val mLock = Any()
 
-    /**
-     * Cached value of time correction (in minutes) or `null` if not cached. The value is cached
-     * because it's read very frequently (once every 100ms) and is modified very infrequently.
-     *
-     * @GuardedBy [.mLock]
-     */
-    private var mCachedCorrectionMinutes: Int? = null
-
-    override fun nowMillis(): Long {
-        return mSystemWallClock.nowMillis() + timeCorrectionMinutes * Utilities.MINUTE_IN_MILLIS
+    init {
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(context)
     }
 
     /**
-     * Gets the currently used time correction value.
+     * Number of minutes by which this device is behind the correct time.
      *
-     * @return number of minutes by which this device is behind the correct time.
-     */// Invalidate the cache to force reading actual settings from time to time
-    /**
-     * Sets the currently used time correction value.
-     *
-     * @param minutes number of minutes by which this device is behind the correct time.
+     * Invalidate the cache to force reading actual settings from time to time.
      */
-    var timeCorrectionMinutes: Int = 0
-        get() {
-            synchronized(mLock) {
-                if (mCachedCorrectionMinutes == null) {
-                    mCachedCorrectionMinutes = mPreferences.getInt(PREFERENCE_KEY_OFFSET_MINUTES, 0)
-                }
-                return mCachedCorrectionMinutes!!
+    var timeCorrectionMinutes: Long? = null
+        set(value) {
+            synchronized (mLock) {
+                mPreferences.edit().putLong(PREFERENCE_OFFSET_MINUTES, value ?: 0).commit()
+                field = null
             }
         }
+        get() {
+            synchronized(mLock) {
+                if (field == null) {
+                    field = mPreferences.getLong(PREFERENCE_OFFSET_MINUTES, 0)
+                }
+                return field!!
+            }
+        }
+
+    override fun nowMillis(): Long {
+        return mSystemWallClock.nowMillis() + TimeUnit.MINUTES.toMillis(timeCorrectionMinutes!!)
+    }
 
     /**
      * Gets the system "wall" clock on top of this this TOTP clock operates.
@@ -71,10 +68,6 @@ class TotpClock(context: Context?) : Clock {
     }
 
     companion object {
-        val PREFERENCE_KEY_OFFSET_MINUTES = "timeCorrectionMinutes"
-    }
-
-    init {
-        mPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        const val PREFERENCE_OFFSET_MINUTES = "time_correction_minutes"
     }
 }

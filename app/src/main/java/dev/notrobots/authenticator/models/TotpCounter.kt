@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.notrobots.authenticator.google
+package dev.notrobots.authenticator.models
+
+import java.util.concurrent.TimeUnit
 
 /**
  * Counter whose value is a deterministic function of time as described in RFC 6238
@@ -41,24 +43,15 @@ package dev.notrobots.authenticator.google
  *
  * Thread-safety: Instances of this class are immutable and are thus thread-safe.
  */
-class TotpCounter @JvmOverloads constructor(timeStep: Long, startTime: Long = 0) {
+class TotpCounter(
     /**
-     * Gets the frequency with which the value of this counter changes.
-     *
-     * @return interval of time (seconds) between successive changes of this counter's value.
+     * Interval of time (seconds) between successive changes of this counter's value.
      */
-    /** Interval of time (seconds) between successive changes of this counter's value.  */
     val timeStep: Long
-    /**
-     * Gets the earliest time instant at which this counter assumes the value `0`.
-     *
-     * @return time (seconds since UNIX epoch).
-     */
-    /**
-     * Earliest time instant (seconds since UNIX epoch) at which this counter assumes the value of
-     * `0`.
-     */
-    val startTime: Long
+) {
+    init {
+        require(timeStep >= 1) { "Time step must be positive: $timeStep" }
+    }
 
     /**
      * Gets the value of this counter at the specified time.
@@ -68,6 +61,20 @@ class TotpCounter @JvmOverloads constructor(timeStep: Long, startTime: Long = 0)
      * @return value of the counter at the `time`.
      */
     fun getValueAtTime(time: Long): Long {
+        return getValueAtTime(time, TimeUnit.SECONDS)
+    }
+
+    /**
+     * Gets the value of this counter at the specified time.
+     *
+     * @param time time instant for which to obtain the value.
+     * @param unit Time unit of the given [time] value
+     *
+     * @return value of the counter at the `time`.
+     */
+    fun getValueAtTime(time: Long, unit: TimeUnit): Long {
+        val time = unit.toSeconds(time)
+
         assertValidTime(time)
 
         // According to the RFC:
@@ -85,11 +92,10 @@ class TotpCounter @JvmOverloads constructor(timeStep: Long, startTime: Long = 0)
         // To avoid using Math.floor which requires imprecise floating-point arithmetic, we
         // we compute the value using integer division, but using a different equation for
         // negative and non-negative time since start time.
-        val timeSinceStartTime = time - startTime
-        return if (timeSinceStartTime >= 0) {
-            timeSinceStartTime / timeStep
+        return if (time >= 0) {
+            time / timeStep
         } else {
-            (timeSinceStartTime - (timeStep - 1)) / timeStep
+            (time - (timeStep - 1)) / timeStep
         }
     }
 
@@ -101,32 +107,12 @@ class TotpCounter @JvmOverloads constructor(timeStep: Long, startTime: Long = 0)
      * @return earliest time instant (seconds since UNIX epoch) when the counter assumes the value.
      */
     fun getValueStartTime(value: Long): Long {
-        return startTime + value * timeStep
+        return value * timeStep
     }
 
     companion object {
         private fun assertValidTime(time: Long) {
             require(time >= 0) { "Negative time: $time" }
         }
-    }
-    /**
-     * Constructs a new `TotpCounter` that starts with the value `0` at the specified
-     * time and increments its value with the specified frequency.
-     *
-     * @param timeStep interval of time (seconds) between successive changes of this counter's value.
-     * @param startTime the earliest time instant (seconds since UNIX epoch) at which this counter
-     * assumes the value `0`.
-     */
-    /**
-     * Constructs a new `TotpCounter` that starts with the value `0` at time instant
-     * `0` (seconds since UNIX epoch) and increments its value with the specified frequency.
-     *
-     * @param timeStep interval of time (seconds) between successive changes of this counter's value.
-     */
-    init {
-        require(timeStep >= 1) { "Time step must be positive: $timeStep" }
-        assertValidTime(startTime)
-        this.timeStep = timeStep
-        this.startTime = startTime
     }
 }
