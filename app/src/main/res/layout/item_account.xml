@@ -72,16 +72,18 @@
         android:layout_marginEnd="12dp"
         android:contentDescription="@string/label_generate_next_pin"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/timer"
+        app:layout_constraintEnd_toStartOf="@+id/indicator"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_refresh"
         app:tint="?attr/colorSecondary" />
 
-    <dev.notrobots.authenticator.widget.CountdownIndicator
-        android:id="@+id/timer"
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/indicator"
         android:layout_width="30dp"
         android:layout_height="30dp"
         android:layout_marginEnd="12dp"
+        android:max="10"
+        android:progress="5"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -128,7 +130,7 @@
         android:id="@+id/group_totp"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:constraint_referenced_ids="timer"
+        app:constraint_referenced_ids="indicator"
         tools:visibility="visible" />
 
     <!-- HOTP -->

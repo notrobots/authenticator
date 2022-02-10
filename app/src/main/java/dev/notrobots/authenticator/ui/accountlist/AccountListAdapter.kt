@@ -199,9 +199,7 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
 
                     timer.setListener(object : TotpTimer.Listener {
                         override fun onTick(timeLeft: Long) {
-                            val phase = timeLeft.toDouble() / TimeUnit.SECONDS.toMillis(account.period)
-
-                            binding.timer.setPhase(phase)
+                            binding.indicator.progress = timeLeft.toInt()
                         }
 
                         override fun onValueChanged() {
@@ -210,6 +208,7 @@ class AccountListAdapter : AbstractExpandableItemAdapter<ParentViewHolder, Child
                     })
                     timer.start()
 
+                    binding.indicator.max = TimeUnit.SECONDS.toMillis(account.period).toInt()
                     binding.groupTotp.visibility = View.VISIBLE
                     binding.groupHotp.visibility = View.GONE
                 }
