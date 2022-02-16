@@ -60,13 +60,13 @@
         android:layout_marginEnd="12dp"
         android:contentDescription="@string/label_edit"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/next_pin"
+        app:layout_constraintEnd_toStartOf="@+id/generate"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_edit"
         app:tint="?attr/colorSecondary" />
 
     <ImageView
-        android:id="@+id/next_pin"
+        android:id="@+id/generate"
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_marginEnd="12dp"
@@ -79,11 +79,12 @@
 
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/indicator"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginEnd="12dp"
         android:max="10"
         android:progress="5"
+        app:indicatorSize="28dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -138,7 +139,7 @@
         android:id="@+id/group_hotp"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:constraint_referenced_ids="next_pin"
+        app:constraint_referenced_ids="generate"
         tools:visibility="gone" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

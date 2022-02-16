@@ -24,7 +24,6 @@ import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
 
 @AndroidEntryPoint
 class ImportActivity : ThemedActivity() {
-    private val accountExporter = AccountExporter()
     private val scanner by lazy {
         val scannerOptions = BarcodeScannerOptions.Builder()
             .setBarcodeFormats(
@@ -41,7 +40,7 @@ class ImportActivity : ThemedActivity() {
                 val uri = it.data!!.getStringExtra(BarcodeScannerActivity.EXTRA_QR_DATA) ?: ""
 
                 try {
-                    val data = accountExporter.import(uri)
+                    val data = AccountExporter.import(uri)
 
                     showResults(data)
                 } catch (e: Exception) {
@@ -62,7 +61,7 @@ class ImportActivity : ThemedActivity() {
                         val content = it.first().rawValue
 
                         try {
-                            val data = accountExporter.import(content!!)
+                            val data = AccountExporter.import(content!!)
 
                             showResults(data)
                         } catch (e: Exception) {
@@ -78,7 +77,7 @@ class ImportActivity : ThemedActivity() {
                     val content = it.reader().readText()
 
                     try {
-                        val data = accountExporter.import(content)
+                        val data = AccountExporter.import(content)
 
                         showResults(data)
                     } catch (e: Exception) {
@@ -129,7 +128,7 @@ class ImportActivity : ThemedActivity() {
 
             dialog.onConfirmListener = {
                 try {
-                    val data = accountExporter.import(it)
+                    val data = AccountExporter.import(it)
 
                     showResults(data)
                     dialog.dismiss()
@@ -152,9 +151,9 @@ class ImportActivity : ThemedActivity() {
         }
     }
 
-    private fun showResults(data: AccountExporter.Data) {
+    private fun showResults(importedData: AccountExporter.ImportedData) {
         startActivity(ImportResultActivity::class) {
-            putExtra(ImportResultActivity.EXTRA_DATA, data) //FIXME: Start on top?
+            putExtra(ImportResultActivity.EXTRA_DATA, importedData) //FIXME: Start on top?
         }
     }
 }

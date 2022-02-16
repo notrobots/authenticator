@@ -13,6 +13,8 @@ enum class OTPType {
      */
     HOTP;
 
+    //TODO: Steam, mOTP
+
     companion object {
         fun stringValues(): List<String> {
             return values().map {

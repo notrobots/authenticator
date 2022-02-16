@@ -25,8 +25,8 @@ class AccountExporterTest {
     @Test
     fun export() {
         val exportData = listOf(
-            AccountExporter.Data(groups, accounts),
-            AccountExporter.Data(groups, accounts).apply {
+            AccountExporter.ImportedData(groups, accounts),
+            AccountExporter.ImportedData(groups, accounts).apply {
                 this.format = BackupFormat.Default
             }
         )

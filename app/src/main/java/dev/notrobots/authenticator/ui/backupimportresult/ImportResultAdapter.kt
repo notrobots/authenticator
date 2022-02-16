@@ -10,7 +10,6 @@ import dev.notrobots.androidstuff.widget.BindableViewHolder
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ItemImportResultBinding
 import dev.notrobots.authenticator.models.Account
-import dev.notrobots.authenticator.models.AccountGroup
 import kotlinx.android.synthetic.main.item_import_result.view.*
 
 class ImportResultAdapter : RecyclerView.Adapter<ImportResultAdapter.ViewHolder>() {
@@ -26,14 +25,12 @@ class ImportResultAdapter : RecyclerView.Adapter<ImportResultAdapter.ViewHolder>
 
         binding.name.text = when (val i = item.item) {
             is Account -> i.displayName
-            is AccountGroup -> i.name
 
             else -> null
         }
         binding.icon.setImageResource(
             when (item.item) {
                 is Account -> R.drawable.ic_account
-                is AccountGroup -> R.drawable.ic_group
 
                 else -> 0
             }

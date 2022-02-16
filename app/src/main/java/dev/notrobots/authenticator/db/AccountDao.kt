@@ -1,5 +1,6 @@
 package dev.notrobots.authenticator.db
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import dev.notrobots.authenticator.models.Account
 
@@ -8,11 +9,14 @@ interface AccountDao {
     @Query("SELECT * FROM Account ORDER BY `order`")
     suspend fun getAccounts(): List<Account>
 
+    @Query("SELECT * FROM Account ORDER BY `order`")
+    fun getAccountsLive(): LiveData<List<Account>>
+
     @Query("SELECT * FROM Account WHERE id = :id")
-    suspend fun getAccount(id: Long): Account
+    suspend fun getAccount(id: Long): Account?
 
     @Query("SELECT * FROM Account WHERE name = :name AND label = :label AND issuer = :issuer")
-    suspend fun getAccount(name: String, label: String, issuer: String): Account
+    suspend fun getAccount(name: String, label: String, issuer: String): Account?
 
     @Query("SELECT COUNT(name) FROM Account WHERE name = :name AND label = :label AND issuer = :issuer")
     suspend fun getCount(name: String, label: String, issuer: String): Int
@@ -27,8 +31,8 @@ interface AccountDao {
         return getCount(account.name, account.label, account.issuer) > 0
     }
 
-    @Query("SELECT COALESCE(MAX(`order`), 0) FROM Account WHERE groupId = :groupId")
-    suspend fun getLargestOrder(groupId: Long = Account.DEFAULT_GROUP_ID): Long
+    @Query("SELECT COALESCE(MAX(`order`), 0) FROM Account")
+    suspend fun getLargestOrder(): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(account: Account)
@@ -47,9 +51,6 @@ interface AccountDao {
 
     @Delete
     suspend fun delete(accounts: List<Account>)
-
-    @Query("DELETE FROM Account WHERE groupId = :groupId")
-    suspend fun delete(groupId: Long)
 
     @Query("DELETE FROM Account")
     suspend fun deleteAll()

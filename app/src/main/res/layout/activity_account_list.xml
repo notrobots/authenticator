@@ -13,6 +13,7 @@
         android:id="@+id/empty_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:visibility="gone"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <!--   TODO Improve this screen  -->
@@ -23,7 +24,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
-            android:text="No accounts added"
+            android:text="Press the '+' to add an account"
             android:gravity="center"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -71,14 +72,6 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_add"
                 app:fab_label="Custom"
-                app:fab_size="mini" />
-
-            <com.github.clans.fab.FloatingActionButton
-                android:id="@+id/btn_add_account_group"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_add"
-                app:fab_label="Group"
                 app:fab_size="mini" />
 
         </com.github.clans.fab.FloatingActionMenu>

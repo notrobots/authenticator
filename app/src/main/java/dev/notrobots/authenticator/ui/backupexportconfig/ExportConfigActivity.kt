@@ -24,9 +24,7 @@ class ExportConfigActivity : AppCompatActivity() {
         setContentView(binding.root)
         setSupportActionBar(binding.toolbarLayout.toolbar)
 
-        val items = intent.getSerializableExtra(EXTRA_ITEMS) as List<BaseAccount>
-        val groups = items.filterIsInstance<AccountGroup>()
-        val accounts = items.filterIsInstance<Account>()
+        val accounts = intent.getSerializableExtra(EXTRA_ITEMS) as List<Account>
 
         title = "Export"
         binding.toolbarLayout.toolbar.setNavigationOnClickListener {
@@ -42,13 +40,9 @@ class ExportConfigActivity : AppCompatActivity() {
         binding.qrStyle.entries = qrStyles.map { it.key }
         binding.qrStyle.values = qrStyles.map { it.value }
         binding.done.setOnClickListener {
-            val data = AccountExporter.Data(groups, accounts).apply {
-                format = binding.format.selectedValue as BackupFormat
-            }
-
             when (binding.output.selectedValue) {
                 BackupOutput.QR -> {
-                    val export = AccountExporter().export(data, AccountExporter.QR_MAX_BYTES)
+                    val export = AccountExporter.exportQRUris(accounts)
 
                     startActivity(ExportQRActivity::class) {
                         putExtra(ExportQRActivity.EXTRA_QR_CODES, ArrayList(export))
@@ -56,7 +50,7 @@ class ExportConfigActivity : AppCompatActivity() {
                     }
                 }
                 BackupOutput.Text -> {
-                    val export = AccountExporter().exportUris(data)
+                    val export = AccountExporter.exportUris(accounts)
 
                     startActivity(ExportTextActivity::class) {
                         putExtra(ExportTextActivity.EXTRA_URIS, ArrayList(export))

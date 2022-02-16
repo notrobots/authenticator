@@ -1,22 +1,16 @@
 package dev.notrobots.authenticator.ui.accountlist
 
 import android.content.Context
-import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import dev.notrobots.authenticator.db.AccountDao
 import dev.notrobots.authenticator.db.AuthenticatorDatabase
-import dev.notrobots.authenticator.db.AuthenticatorDatabaseModule
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.AccountGroup
 import junit.framework.TestCase
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.junit.runner.RunWith
@@ -48,14 +42,14 @@ class AccountListViewModelTest : TestCase() {
         }
 
         runBlocking {
-            viewModel.addAccount(account)
+            viewModel.insertAccount(account)
 
             assertThrows<Exception> {
-                viewModel.addAccount(account)
+                viewModel.insertAccount(account)
             }
 
             assertDoesNotThrow {
-                viewModel.addAccount(account.apply { label = "" })
+                viewModel.insertAccount(account.apply { label = "" })
             }
         }
     }
@@ -79,21 +73,9 @@ class AccountListViewModelTest : TestCase() {
         val account = Account("johndoe", "22334455")
 
         runBlocking {
-            viewModel.addAccount(account)
+            viewModel.insertAccount(account)
 
-            assert(viewModel.checkIfAccountExists(account))
-        }
-    }
-
-    @Test
-    fun testCheckIfGroupExists() {
-        val group = AccountGroup("Group 1")
-
-        runBlocking {
-            viewModel.addGroup(group)
-
-            assert(viewModel.checkIfGroupExists(group))
-            assert(viewModel.checkIfGroupExists(group.name))
+            assert(viewModel.accountDao.exists(account))
         }
     }
 }

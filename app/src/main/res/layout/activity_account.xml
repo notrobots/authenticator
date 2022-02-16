@@ -172,14 +172,6 @@
                 app:layout_constraintTop_toBottomOf="@+id/layout_account_digits"
                 app:spinnerLabel="Algorithm" />
 
-            <dev.notrobots.authenticator.views.BetterSpinner
-                android:id="@+id/spinner_account_group"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                app:layout_constraintTop_toBottomOf="@+id/spinner_account_algorithm"
-                app:spinnerLabel="Group" />
-
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </ScrollView>

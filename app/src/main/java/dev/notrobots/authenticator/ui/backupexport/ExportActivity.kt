@@ -14,7 +14,6 @@ import dev.notrobots.androidstuff.extensions.viewBindings
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ActivityExportBinding
 import dev.notrobots.authenticator.db.AccountDao
-import dev.notrobots.authenticator.db.AccountGroupDao
 import dev.notrobots.authenticator.ui.backupexportconfig.ExportConfigActivity
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -26,9 +25,6 @@ class ExportActivity : AppCompatActivity() {
     @Inject
     lateinit var accountDao: AccountDao
 
-    @Inject
-    lateinit var accountGroupDao: AccountGroupDao
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -37,9 +33,8 @@ class ExportActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         lifecycleScope.launch {
-            val groups = accountGroupDao.getGroups()
             val accounts = accountDao.getAccounts()
-            val adapter = ExportAdapter(groups + accounts)
+            val adapter = ExportAdapter(accounts)
 
             binding.list.layoutManager = LinearLayoutManager(this@ExportActivity)
             binding.list.adapter = adapter

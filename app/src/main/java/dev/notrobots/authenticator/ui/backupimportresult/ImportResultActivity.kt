@@ -14,7 +14,6 @@ import dev.notrobots.androidstuff.util.viewBindings
 import dev.notrobots.authenticator.databinding.ActivityImportResultBinding
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.AccountExporter
-import dev.notrobots.authenticator.models.AccountGroup
 import dev.notrobots.authenticator.ui.accountlist.AccountListActivity
 import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
 import kotlinx.coroutines.launch
@@ -28,7 +27,7 @@ class ImportResultActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        val data = intent.getSerializableExtra(EXTRA_DATA) as AccountExporter.Data
+        val data = intent.getSerializableExtra(EXTRA_DATA) as AccountExporter.ImportedData
         val importResults = mutableListOf<ImportResult>()
         val adapter = ImportResultAdapter()
 
@@ -36,15 +35,6 @@ class ImportResultActivity : AppCompatActivity() {
         binding.list.adapter = adapter
 
         lifecycleScope.launch {
-            for (group in data.groups) {
-                val result = ImportResult(
-                    group,
-                    viewModel.accountGroupDao.exists(group)
-                )
-
-                importResults.add(result)
-            }
-
             for (account in data.accounts) {
                 val result = ImportResult(
                     account,
@@ -105,7 +95,6 @@ class ImportResultActivity : AppCompatActivity() {
                     when (importResult.importStrategy) {
                         ImportStrategy.Replace -> {
                             when (val i = importResult.item) {
-                                is AccountGroup -> viewModel.updateGroup(i)
                                 is Account -> viewModel.updateAccount(i)
                             }
                             replaced++
@@ -135,8 +124,7 @@ class ImportResultActivity : AppCompatActivity() {
                     }
                 } else {
                     when (val i = importResult.item) {
-                        is AccountGroup -> viewModel.addGroup(i)
-                        is Account -> viewModel.addAccount(i)
+                        is Account -> viewModel.insertAccount(i)
                     }
                     added++
                 }

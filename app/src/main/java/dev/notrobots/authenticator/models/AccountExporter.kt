@@ -1,4 +1,4 @@
- package dev.notrobots.authenticator.models
+package dev.notrobots.authenticator.models
 
 import android.net.Uri
 import com.google.protobuf.ByteString
@@ -13,134 +13,91 @@ import dev.notrobots.authenticator.util.isValidBase32
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
 import org.apache.commons.codec.binary.Base32
 import org.apache.commons.codec.binary.Base64
+import org.json.JSONObject
 import java.io.Serializable
 import java.util.*
 
-class AccountExporter {
-    fun exportUris(exportData: Data): List<Uri> {
-        return export(exportData, 0)
+object AccountExporter {
+    //TODO: Let the user chose the resolution 264, 512, 1024, 2048
+    const val QR_BITMAP_SIZE = 512
+
+    //TODO: There should be a list of sizes: 64, 128, 256, 512
+    const val QR_MAX_BYTES = 512       // Max: 2953
+    const val BACKUP_OTP_SCHEME = "otpauth"
+    const val BACKUP_OTP_AUTHORITY = "backup"
+    const val BACKUP_OTP_DATA = "data"
+    const val BACKUP_OTP_SCHEME_GOOGLE = "otpauth-migration"
+    const val BACKUP_OTP_AUTHORITY_GOOGLE = "offline"
+    const val BACKUP_OTP_DATA_GOOGLE = "data"
+    const val OTP_SCHEME = "otpauth"
+    const val OTP_SECRET = "secret"
+    const val OTP_ISSUER = "issuer"
+    const val OTP_COUNTER = "counter"
+    const val OTP_ALGORITHM = "algorithm"
+    const val OTP_DIGITS = "digits"
+    const val OTP_PERIOD = "period"
+    const val OTP_ORDER = "order"
+
+    fun exportUris(accounts: List<Account>): List<Uri> {
+        return accounts.map(::parseUri)
     }
 
-    fun exportText(exportData: Data): String {
-        return export(exportData, 0).joinToString("\n")
+    fun exportText(accounts: List<Account>): String {
+        return exportProtobuf(accounts, 0).joinToString("\n")
     }
 
-    fun exportQR(exportData: Data): List<QRCode> {
-        return export(exportData, QR_MAX_BYTES).map { QRCode(it.toString(), QR_BITMAP_SIZE) }
+    fun exportQRs(accounts: List<Account>): List<QRCode> {
+        return exportQRUris(accounts).map { QRCode(it.toString(), QR_BITMAP_SIZE) }
     }
 
-    fun export(exportData: Data, maxBytes: Int): List<Uri> {
-        when (exportData.format) {
-            BackupFormat.Plain -> {
-                val groups = exportData.groups.map(::parseUri)
-                val accounts = exportData.accounts.map(::parseUri)
+    fun exportQRUris(accounts: List<Account>): List<Uri> {
+        return exportProtobuf(accounts, QR_MAX_BYTES)
+    }
 
-                return accounts + groups
-            }
-            BackupFormat.Default -> {
-                val chunk = mutableSetOf<MessageLite>()
-                var chunkSize = 0
-                val uris = mutableListOf<Uri>()
-                val groupIds = exportData.accounts.map { it.groupId }.distinct()
-                val emptyGroups = exportData.groups.filter { it.id !in groupIds }
-                val serializeAccount = { it: Account ->
-                    val groupName = exportData.groups.find { g -> it.groupId == g.id }?.name
+    fun exportPlainText(accounts: List<Account>): String {
+        return exportUris(accounts).joinToString("\n")
+    }
 
-                    MigrationPayload.Account.newBuilder()
-                        .setName(it.name)
-                        .setOrder(it.order)
-                        .setSecret(encodeSecret(it.secret))
-                        .setIssuer(it.issuer)
-                        .setLabel(it.label)
-                        .setType(encodeOTPType(it.type))
-                        .setCounter(it.counter)
-                        .setDigits(it.digits)
-                        .setPeriod(it.period)
-                        .setAlgorithm(encodeAlgorithm(it.algorithm))
-                        .setGroup(groupName)
-                        .build()
-                }
-                val serializeGroup = { it: AccountGroup ->
-                    MigrationPayload.Group.newBuilder()
-                        .setName(it.name)
-                        .setOrder(it.order)
-                        .build()
-                }
-                val serializeChunk = {
-                    val payload = MigrationPayload.newBuilder()
+    fun exportPlainQRs(accounts: List<Account>): List<QRCode> {
+        return exportUris(accounts).map { QRCode(it.toString(), QR_BITMAP_SIZE) }
+    }
 
-                    for (message in chunk) {
-                        when (message) {
-                            is MigrationPayload.Account -> payload.addAccounts(message)
-                            is MigrationPayload.Group -> payload.addGroups(message)
-                        }
-                    }
+    fun exportPlainQRUris(accounts: List<Account>): List<Uri> {
+        return exportUris(accounts)
+    }
 
-                    uris += Uri.Builder()
-                        .scheme(EXPORT_OTP_SCHEME)
-                        .authority(EXPORT_OTP_AUTHORITY)
-                        .appendQueryParameter(EXPORT_OTP_DATA, encodeMessage(payload.build()))
-                        .build()
-                }
+    fun exportJson(accounts: List<Account>, tags: List<Any>): JSONObject {
+//        val obj = JSONObject()
+//        val accountArray = JSONArray().apply {
+//            obj.put("accounts", this)
+//        }
+//        val tagArray = JSONArray().apply {
+//            obj.put("tags", this)
+//        }
+//
+//        return obj
 
-                if (maxBytes <= 0) {
-                    for (group in exportData.groups) {
-                        chunk.add(serializeGroup(group))
-                    }
-                    for (account in exportData.accounts) {
-                        chunk.add(serializeAccount(account))
-                    }
-                    serializeChunk()
-                } else {
-                    for (cursor in exportData.accounts.indices) {
-                        val groupId = exportData.accounts[cursor].groupId
-                        val account = serializeAccount(exportData.accounts[cursor])
-                        val group = exportData.groups.find { it.id == groupId }?.let {
-                            serializeGroup(it)
-                        }
-                        var tmpSize = getMessageLength(account)
+        TODO()
+    }
 
-                        if (group != null) {
-                            tmpSize += getMessageLength(group)
-                        }
+    fun exportGoogleAuthenticator(accounts: List<Account>): List<QRCode> {
+        TODO()
+    }
 
-                        if (tmpSize + chunkSize > maxBytes) {
-                            serializeChunk()
-                            chunk.clear()
-                            chunkSize = 0
-                        }
+    fun exportMicrosoftAuthenticator(accounts: List<Account>): String {
+        TODO()
+    }
 
-                        if (group != null) {
-                            chunk.add(group)
-                            chunkSize += getMessageLength(group)
-                        }
+    fun import(json: JSONObject): ImportedData {
+        TODO()
+    }
 
-                        chunk.add(account)
-                        chunkSize += getMessageLength(account)
-                    }
-
-                    for (group in emptyGroups) {
-                        val g = serializeGroup(group)
-
-                        if (chunkSize + getMessageLength(g) > maxBytes) {
-                            serializeChunk()
-                            chunk.clear()
-                            chunkSize = 0
-                        }
-
-                        chunk.add(g)
-                        chunkSize += getMessageLength(g)
-                    }
-
-                    serializeChunk()
-                }
-
-                return uris
-            }
+    fun import(text: String): ImportedData {
+        try {
+            return import(JSONObject(text))
+        } catch (e: Exception) {
         }
-    }
 
-    fun import(text: String): Data {
         val uris = text.split("\n").map {
             Uri.parse(it)
         }
@@ -148,82 +105,273 @@ class AccountExporter {
         return import(uris)
     }
 
-    fun import(uris: List<Uri>): Data {
+    fun import(uris: List<Uri>): ImportedData {
         val dataList = uris.map { import(it) }
 
-        if (!dataList.all { it.format == dataList[0].format }) {
-            throw Exception("Imported data can't have different formats")
-        }
-
-        return Data().apply {
-            format = dataList[0].format
-
+        return ImportedData().apply {
             for (data in dataList) {
                 accounts.addAll(data.accounts)
-                groups.addAll(data.groups)
             }
         }
     }
 
-    fun import(uri: Uri): Data {
-        val importData = Data()
+    /**
+     * Imports the given [uri].
+     */
+    fun import(uri: Uri): ImportedData {
+        val importData = ImportedData()
 
-        when (uri.scheme) {
-//            EXPORT_OTP_SCHEME_GOOGLE -> decodeProtobuf(uri, ProtobufVariant.GoogleAuthenticator)
+        when (getUriType(uri)) {
+            UriType.Plain -> importData.accounts.add(parseAccount(uri))
+            UriType.Backup -> {
+                val data = uri.getQueryParameter(BACKUP_OTP_DATA)
 
-            OTP_SCHEME -> when (uri.authority) {
-                EXPORT_OTP_AUTHORITY -> {
-                    val data = uri.getQueryParameter(EXPORT_OTP_DATA)
+                if (data.isNullOrEmpty()) {
+                    throw Exception("Data parameter is empty")
+                } else {
+                    val payload = MigrationPayload.parseFrom(decodeMessage(data))
 
-                    if (data.isNullOrEmpty()) {
-                        throw Exception("Data parameter is empty")
-                    } else {
-                        val payload = MigrationPayload.parseFrom(decodeMessage(data))
-
-                        for (group in payload.groupsList) {
-                            importData.groups.add(
-                                AccountGroup(
-                                    group.name
-                                ).apply {
-                                    order = group.order
-                                }
-                            )
-                        }
-
-                        for (account in payload.accountsList) {
-                            val group = importData.groups.find { it.name == account.group }?.id ?: Account.DEFAULT_GROUP_ID
-
-                            importData.accounts.add(
-                                Account(
-                                    account.name,
-                                    decodeSecret(account.secret)
-                                ).apply {
-                                    order = account.order
-                                    issuer = account.issuer
-                                    label = account.label
-                                    type = decodeOTPType(account.type)
-                                    counter = account.counter
-                                    digits = account.digits
-                                    period = account.period
-                                    algorithm = decodeAlgorithm(account.algorithm)
-                                    groupId = group
-                                }
-                            )
-                        }
+                    for (account in payload.accountsList) {
+                        importData.accounts.add(
+                            Account(
+                                account.name,
+                                decodeSecret(account.secret)
+                            ).apply {
+                                order = account.order
+                                issuer = account.issuer
+                                label = account.label
+                                type = decodeOTPType(account.type)
+                                counter = account.counter
+                                digits = account.digits
+                                period = account.period
+                                algorithm = decodeAlgorithm(account.algorithm)
+                            }
+                        )
                     }
                 }
-
-                OTP_GROUP_AUTHORITY -> importData.groups.add(parseGroup(uri))
-
-                else -> importData.accounts.add(parseAccount(uri))
             }
 
-            else -> {
-                throw Exception("Unknown scheme ${uri.scheme}")
-            }
+            else -> throw Exception("Unknown format")
         }
 
         return importData
+    }
+
+    /**
+     * Parses the given [uriString] into an [Account].
+     */
+    fun parseAccount(uriString: String): Account {
+        return parseAccount(Uri.parse(uriString))
+    }
+
+    /**
+     * Parses the given [uri] into an [Account].
+     */
+    fun parseAccount(uri: Uri): Account {
+        val pathError = { throw Exception("Path malformed, must be /label:name or /name") }
+        val typeError = { throw Exception("Type must be one of [${OTPType.values().joinToString()}]") }
+
+        //
+        // Optional fields
+        //
+        val algorithm = if (OTP_ALGORITHM in uri) {
+            parseEnum(uri[OTP_ALGORITHM], true) ?: throw Exception("Unknown algorithm")
+        } else {
+            Account.DEFAULT_ALGORITHM
+        }
+        val digits = if (OTP_DIGITS in uri) {
+            uri[OTP_DIGITS]?.toIntOrNull() ?: throw Exception("Digits number must be an integer")
+        }    //TODO: Between x and y
+        else {
+            Account.DEFAULT_DIGITS
+        }
+        val counter = if (OTP_COUNTER in uri) {
+            uri[OTP_COUNTER]?.toLongOrNull() ?: throw Exception("Counter value must be an integer")
+        } else {
+            Account.DEFAULT_COUNTER
+        }
+        val period = if (OTP_PERIOD in uri) {
+            uri[OTP_PERIOD]?.toLongOrNull() ?: throw Exception("Period must be an integer")
+        } else {
+            Account.DEFAULT_PERIOD
+        }
+        val issuer = if (OTP_ISSUER in uri) uri[OTP_ISSUER]!! else ""
+
+        //
+        // Required fields
+        //
+        val type = parseEnum<OTPType>(uri.authority?.toUpperCase(Locale.getDefault())) ?: typeError()
+        val path = uri.path?.removePrefix("/").let {
+            if (it == null || it.isBlank()) {
+                pathError()
+            }
+
+            Regex("^(?:(.+):)?(.+)$").find(it) ?: pathError()
+        }
+        val name = path.groupValues[2]
+        val label = path.groupValues[1]
+        val secret = uri[OTP_SECRET] ?: throw Exception("Missing parameter 'secret'")
+
+        if (name.isBlank()) {
+            throw Exception("Name cannot be empty")
+        }
+
+        if (label.isOnlySpaces()) {
+            throw Exception("Label cannot be blank")
+        }
+
+        if (issuer.isOnlySpaces()) {
+            throw Exception("Issuer cannot be blank")
+        }
+
+        if (secret.isBlank()) {
+            throw Exception("Secret cannot be empty")
+        }
+
+        if (!isValidBase32(secret)) {
+            throw Exception("Secret key must be a base32 string")
+        }
+
+        return Account(name, secret).apply {
+            this.issuer = issuer
+            this.label = label
+            this.type = type
+            this.algorithm = algorithm
+            this.digits = digits
+            this.counter = counter
+            this.period = period
+        }
+    }
+
+    /**
+     * Parses the given [account] into an [Uri].
+     */
+    fun parseUri(account: Account): Uri {
+        val uri = Uri.Builder()
+
+        uri.scheme(OTP_SCHEME)
+        uri.authority(account.type.toString().toLowerCase(Locale.getDefault()))
+        uri.path(account.path)
+        uri.appendQueryParameter(OTP_SECRET, account.secret)
+
+        if (account.issuer.isNotBlank()) {
+            uri.appendQueryParameter(OTP_ISSUER, account.issuer)
+        }
+
+        uri.appendQueryParameter(OTP_COUNTER, account.counter.toString())
+        uri.appendQueryParameter(OTP_DIGITS, account.digits.toString())
+        uri.appendQueryParameter(OTP_PERIOD, account.period.toString())
+        uri.appendQueryParameter(OTP_ALGORITHM, account.algorithm.toString().toLowerCase(Locale.getDefault()))
+
+        return uri.build()
+    }
+
+    /**
+     * Returns the [UriType] of the given [uri].
+     */
+    fun getUriType(uri: Uri): UriType {
+        val scheme = uri.scheme?.lowercase()
+        val authority = uri.authority?.lowercase()
+
+        return when {
+            scheme == BACKUP_OTP_SCHEME_GOOGLE && authority == BACKUP_OTP_AUTHORITY_GOOGLE -> UriType.GoogleAuthenticatorBackup
+            scheme == OTP_SCHEME -> when (authority) {
+                in OTPType.stringValues() -> UriType.Plain
+                BACKUP_OTP_AUTHORITY -> UriType.Backup
+
+                else -> UriType.Unknown
+            }
+
+            else -> UriType.Unknown
+        }
+    }
+
+    /**
+     * Returns whether or not the given [uri] is a backup.
+     */
+    fun isBackup(uri: Uri): Boolean {
+        val type = getUriType(uri)
+
+        return type == UriType.Backup || type == UriType.GoogleAuthenticatorBackup
+    }
+
+    /**
+     * Returns whether or not the given [data] is a backup.
+     */
+    fun isBackup(data: String): Boolean {
+        try {
+            JSONObject(data)
+            return true
+        } catch (e: Exception) {
+        }
+
+        try {
+            return isBackup(Uri.parse(data))
+        } catch (e: Exception) {
+        }
+
+        return false
+    }
+
+    private fun exportProtobuf(accounts: List<Account>, maxBytes: Int): List<Uri> {
+        val chunk = mutableSetOf<MessageLite>()
+        var chunkSize = 0
+        val uris = mutableListOf<Uri>()
+        val serializeAccount = { it: Account ->
+            MigrationPayload.Account.newBuilder()
+                .setName(it.name)
+                .setOrder(it.order)
+                .setSecret(encodeSecret(it.secret))
+                .setIssuer(it.issuer)
+                .setLabel(it.label)
+                .setType(encodeOTPType(it.type))
+                .setCounter(it.counter)
+                .setDigits(it.digits)
+                .setPeriod(it.period)
+                .setAlgorithm(encodeAlgorithm(it.algorithm))
+                .build()
+        }
+        val serializeChunk = {
+            val payload = MigrationPayload.newBuilder()
+
+            for (message in chunk) {
+                when (message) {
+                    is MigrationPayload.Account -> payload.addAccounts(message)
+                }
+            }
+
+            uris += Uri.Builder()
+                .scheme(BACKUP_OTP_SCHEME)
+                .authority(BACKUP_OTP_AUTHORITY)
+                .appendQueryParameter(BACKUP_OTP_DATA, encodeMessage(payload.build()))
+                .build()
+        }
+
+        if (maxBytes <= 0) {
+            for (account in accounts) {
+                chunk.add(serializeAccount(account))
+            }
+            serializeChunk()
+        } else {
+            //TODO: Try and eventually fix this
+            for (cursor in accounts.indices) {
+                val account = serializeAccount(accounts[cursor])
+                var tmpSize = getMessageLength(account)
+
+                if (tmpSize + chunkSize > maxBytes) {
+                    serializeChunk()
+                    chunk.clear()
+                    chunkSize = 0
+                }
+
+                chunk.add(account)
+                chunkSize += getMessageLength(account)
+            }
+
+            serializeChunk()
+        }
+
+        return uris
     }
 
     private fun getMessageLength(messageLite: MessageLite): Int {
@@ -335,214 +483,15 @@ class AccountExporter {
         return Base64().decode(base64)
     }
 
-    class Data : Serializable {
-        var groups: MutableList<AccountGroup>
-        var accounts: MutableList<Account>
-        var format = BackupFormat.Plain
+    data class ImportedData(
+        val accounts: MutableList<Account> = mutableListOf(),
+//        val tags: List<Tag> = emptyList()
+    ) : Serializable
 
-        val itemCount
-            get() = groups.size + accounts.size
-
-        constructor() {
-            this.groups = mutableListOf()
-            this.accounts = mutableListOf()
-        }
-
-        constructor(groups: List<AccountGroup>, accounts: List<Account>) {
-            this.groups = groups.toMutableList()
-            this.accounts = accounts.toMutableList()
-        }
-    }
-
-    companion object {
-        //TODO: Let the user chose the resolution 264, 512, 1024, 2048
-        const val QR_BITMAP_SIZE = 512
-
-        //TODO: There should be a list of sizes: 64, 128, 256, 512
-        const val QR_MAX_BYTES = 512       // Max: 2953
-        const val EXPORT_OTP_SCHEME = "otpauth"
-        const val EXPORT_OTP_AUTHORITY = "offline"
-        const val EXPORT_OTP_DATA = "data"
-        const val EXPORT_OTP_SCHEME_GOOGLE = "otpauth-migration"
-        const val EXPORT_OTP_AUTHORITY_GOOGLE = "offline"
-        const val EXPORT_OTP_DATA_GOOGLE = "data"
-        const val OTP_GROUP_AUTHORITY = "group"
-        const val OTP_SCHEME = "otpauth"
-        const val OTP_SECRET = "secret" //TODO: Rename to ACCOUNT_SECRET and GROUP_XXXX
-        const val OTP_ISSUER = "issuer"
-        const val OTP_COUNTER = "counter"
-        const val OTP_ALGORITHM = "algorithm"
-        const val OTP_DIGITS = "digits"
-        const val OTP_PERIOD = "period"
-        const val OTP_ORDER = "order"
-        const val OTP_GROUP = "group"
-
-        /**
-         * Parses the given [uri] into a [AccountGroup]
-         */
-        fun parseGroup(uri: Uri): AccountGroup {
-            val pathError = { throw Exception("Path malformed, must be /name") }
-            val typeError = { throw Exception("Uri authority must be '${OTP_GROUP_AUTHORITY}'") }
-            val type = uri.authority?.toLowerCase(Locale.getDefault()) ?: typeError()
-            val name = uri.path?.removePrefix("/") ?: pathError()
-            val order = uri[OTP_ORDER]?.toLongOrNull() ?: 0L //TODO: If the order is <0 or it already exists assign it the latest order
-
-            if (type != OTP_GROUP_AUTHORITY) {
-                typeError()
-            }
-
-            if (name.isBlank()) {
-                pathError()
-            }
-
-            return AccountGroup(name).apply {
-                this.order = order
-            }
-        }
-
-        /**
-         * Parses the given [uriString] into a [AccountGroup]
-         */
-        fun parseGroup(uriString: String): AccountGroup {
-            return parseGroup(Uri.parse(uriString))
-        }
-
-        /**
-         * Parses the given [group] into an [Uri]
-         */
-        fun parseUri(group: AccountGroup): Uri {
-            return Uri.Builder()
-                .scheme(OTP_SCHEME)
-                .authority(OTP_GROUP_AUTHORITY)
-                .path(group.name)
-                .appendQueryParameter(OTP_ORDER, group.order.toString())
-                .build()
-        }
-
-        /**
-         * Parses the given [uriString] into an [Account]
-         */
-        fun parseAccount(uriString: String): Account {
-            return parseAccount(Uri.parse(uriString))
-        }
-
-        /**
-         * Parses the given [uri] into an [Account]
-         */
-        fun parseAccount(uri: Uri): Account {
-            val pathError = { throw Exception("Path malformed, must be /label:name or /name") }
-            val typeError = { throw Exception("Type must be one of [${OTPType.values().joinToString()}]") }
-
-            //
-            // Optional fields
-            //
-            val algorithm = if (OTP_ALGORITHM in uri) {
-                parseEnum(uri[OTP_ALGORITHM], true) ?: throw Exception("Unknown algorithm")
-            } else {
-                Account.DEFAULT_ALGORITHM
-            }
-            val digits = if (OTP_DIGITS in uri) {
-                uri[OTP_DIGITS]?.toIntOrNull() ?: throw Exception("Digits number must be an integer")
-            }    //TODO: Between x and y
-            else {
-                Account.DEFAULT_DIGITS
-            }
-            val counter = if (OTP_COUNTER in uri) {
-                uri[OTP_COUNTER]?.toLongOrNull() ?: throw Exception("Counter value must be an integer")
-            } else {
-                Account.DEFAULT_COUNTER
-            }
-            val period = if (OTP_PERIOD in uri) {
-                uri[OTP_PERIOD]?.toLongOrNull() ?: throw Exception("Period must be an integer")
-            } else {
-                Account.DEFAULT_PERIOD
-            }
-            val group = if (OTP_GROUP in uri) {
-                uri[OTP_GROUP]?.toLongOrNull() ?: throw Exception("Group ID must be an integer")
-            } else {
-                Account.DEFAULT_GROUP_ID
-            }
-            val issuer = if (OTP_ISSUER in uri) uri[OTP_ISSUER]!! else ""
-
-            //
-            // Required fields
-            //
-            val type = parseEnum<OTPType>(uri.authority?.toUpperCase(Locale.getDefault())) ?: typeError()
-            val path = uri.path?.removePrefix("/").let {
-                if (it == null || it.isBlank()) {
-                    pathError()
-                }
-
-                Regex("^(?:(.+):)?(.+)$").find(it) ?: pathError()
-            }
-            val name = path.groupValues[2]
-            val label = path.groupValues[1]
-            val secret = uri[OTP_SECRET] ?: throw Exception("Missing parameter 'secret'")
-
-            if (name.isBlank()) {
-                throw Exception("Name cannot be empty")
-            }
-
-            if (label.isOnlySpaces()) {
-                throw Exception("Label cannot be blank")
-            }
-
-            if (issuer.isOnlySpaces()) {
-                throw Exception("Issuer cannot be blank")
-            }
-
-            if (secret.isBlank()) {
-                throw Exception("Secret cannot be empty")
-            }
-
-            if (!isValidBase32(secret)) {
-                throw Exception("Secret key must be a base32 string")
-            }
-
-            return Account(name, secret).apply {
-                this.issuer = issuer
-                this.label = label
-                this.type = type
-                this.algorithm = algorithm
-                this.digits = digits
-                this.counter = counter
-                this.period = period
-                this.groupId = group
-            }
-        }
-
-        /**
-         * Parses the given [account] into an [Uri]
-         */
-        fun parseUri(account: Account): Uri {
-            val uri = Uri.Builder()
-
-            uri.scheme(OTP_SCHEME)
-            uri.authority(account.type.toString().toLowerCase(Locale.getDefault()))
-            uri.path(account.path)
-            uri.appendQueryParameter(OTP_SECRET, account.secret)
-
-            if (account.issuer.isNotBlank()) {
-                uri.appendQueryParameter(OTP_ISSUER, account.issuer)
-            }
-
-            uri.appendQueryParameter(OTP_COUNTER, account.counter.toString())
-            uri.appendQueryParameter(OTP_DIGITS, account.digits.toString())
-            uri.appendQueryParameter(OTP_PERIOD, account.period.toString())
-            uri.appendQueryParameter(OTP_ALGORITHM, account.algorithm.toString().toLowerCase(Locale.getDefault()))
-            uri.appendQueryParameter(OTP_GROUP, account.groupId.toString())
-
-            return uri.build()
-        }
-
-        fun isBackup(uri: Uri): Boolean {
-            val authority = uri.authority?.toLowerCase(Locale.getDefault())
-
-            return !(uri.scheme == OTP_SCHEME && authority in OTPType.stringValues())
-        }
-
-        fun isBackup(uri: String): Boolean {
-            return isBackup(Uri.parse(uri))
-        }
+    enum class UriType {
+        Unknown,
+        Plain,
+        Backup,
+        GoogleAuthenticatorBackup
     }
 }

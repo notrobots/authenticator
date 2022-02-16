@@ -14,8 +14,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.h6ah4i.android.widget.advrecyclerview.animator.DraggableItemAnimator
 import com.h6ah4i.android.widget.advrecyclerview.draggable.RecyclerViewDragDropManager
-import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandableItemManager
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.activities.BaseActivity
 import dev.notrobots.androidstuff.extensions.*
@@ -24,7 +24,6 @@ import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.data.Preferences
 import dev.notrobots.authenticator.databinding.ActivityAccountListBinding
 import dev.notrobots.authenticator.dialogs.*
-import dev.notrobots.authenticator.extensions.absoluteRangeTo
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.backup.BackupActivity
@@ -36,8 +35,8 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class AccountListActivity : BaseActivity() {
     private val viewModel by viewModels<AccountListViewModel>()
+    private val binding by viewBindings<ActivityAccountListBinding>()
     private lateinit var adapter: AccountListAdapter
-    private lateinit var recyclerViewExpandableItemManager: RecyclerViewExpandableItemManager
     private lateinit var recyclerViewDragDropManager: RecyclerViewDragDropManager
     private lateinit var adapterWrapper: RecyclerView.Adapter<*>
     private val preferences by lazy {
@@ -46,33 +45,22 @@ class AccountListActivity : BaseActivity() {
     private val scanBarcode = registerForActivityResult(StartActivityForResult()) {
         if (it.resultCode == Activity.RESULT_OK) {
             if (it.data != null) {
-                val uri = Uri.parse(it.data!!.getStringExtra(BarcodeScannerActivity.EXTRA_QR_DATA) ?: "")
+                val data = it.data!!.getStringExtra(BarcodeScannerActivity.EXTRA_QR_DATA) ?: ""
 
                 try {
-                    if (AccountExporter.isBackup(uri)) {
-                        val data = AccountExporter().import(uri)    //FIXME: This throws an unreadable exception for the final user
-
-                        startActivity(ImportResultActivity::class) {
-                            putExtra(ImportResultActivity.EXTRA_DATA, data)
-                        }
-                    } else {
-                        val account = AccountExporter.parseAccount(uri)  //TODO: Single Group import?
-
-                        addOrReplaceAccount(account)
-                    }
+                    import(data)
                 } catch (e: Exception) {
                     showInfo("Error", e.message)
                 }
             }
         }
     }
-    private var actionMode: ActionMode? = null
-
-    private val accountListAdapterListener = object : AccountListAdapter.Listener {
+    private val listAdapterListener = object : AccountListAdapter.Listener {
         override fun onItemClick(account: Account, id: Long, adapter: AccountListAdapter) {
-            if (actionMode != null) {   //TODO: Handle the selection in the adapter and notify that the item has been selected
+            if (adapter.editMode) {
                 if (!account.isSelected && adapter.selectedItemCount == 0) {
                     actionMode?.finish()
+                    return
                 }
                 actionMode?.title = adapter.selectedItemCount.toString()
             } else {
@@ -83,92 +71,33 @@ class AccountListActivity : BaseActivity() {
 
         override fun onItemLongClick(account: Account, id: Long, adapter: AccountListAdapter): Boolean {
             if (actionMode == null) {
-                binding.toolbarLayout.toolbar.startActionMode(accountActionMode)
+                binding.toolbarLayout.toolbar.startActionMode(actionModeCallback)
             }
 
             return true
         }
 
-        override fun onItemEdit(account: Account, id: Long, adapter: AccountListAdapter) {
+        override fun onItemEditClick(account: Account, id: Long, adapter: AccountListAdapter) {
             startActivity(AccountActivity::class) {
                 putExtra(AccountActivity.EXTRA_ACCOUNT, account)
             }
             actionMode?.finish()
         }
 
-        override fun onItemMoved(updatedRows: Map<Int, Int>) {
+        override fun onItemMoved(fromPosition: Int, toPosition: Int) {
             lifecycleScope.launch {
-                viewModel.accountDao.update(adapter.accounts)
-
-//                for (row in updatedRows) {    //TODO: Do this
-//                    viewModel.accountDao.update(adapter.getAccount(row.key, row.value))
-//                }
-            }
-        }
-
-        override fun onItemSelected(account: Account, groupPosition: Int, childPosition: Int) {
-            val packedPosition = RecyclerViewExpandableItemManager.getPackedPositionForChild(groupPosition, childPosition)
-            val flatPosition = recyclerViewExpandableItemManager.getFlatPosition(packedPosition)
-            val viewHolder = list_accounts.findViewHolderForAdapterPosition(flatPosition)
-
-            viewHolder?.itemView?.isSelected = account.isSelected
-        }
-
-        override fun onGroupClick(group: AccountGroup, id: Long, adapter: AccountListAdapter) {
-            if (actionMode != null) {
-                if (!group.isSelected && adapter.selectedItemCount == 0) {
-                    actionMode?.finish()
-                }
-                actionMode?.title = this@AccountListActivity.adapter.selectedItemCount.toString()
-            }
-        }
-
-        override fun onGroupLongClick(group: AccountGroup, id: Long, adapter: AccountListAdapter): Boolean {
-            if (actionMode == null) {
-                binding.toolbarLayout.toolbar.startActionMode(accountActionMode)
-            }
-
-            return true
-        }
-
-        override fun onGroupEdit(group: AccountGroup, id: Long, adapter: AccountListAdapter) {
-            val dialog = AddAccountGroupDialog()
-
-            dialog.text = group.name
-            dialog.onConfirmListener = { name ->
-                if (name == group.name) {
-                    dialog.dismiss()
-                } else {
-                    lifecycleScope.launch {
-                        try {
-                            group.name = name   //FIXME: Isn't this changing the name even if there's an exception
-                            viewModel.addGroup(group)
-                            dialog.dismiss()
-                        } catch (e: Exception) {
-                            dialog.error = e.message
-                        }
-                    }
-                }
-            }
-            dialog.show(supportFragmentManager, null)
-        }
-
-        override fun onGroupMoved(fromGroupPosition: Int, toGroupPosition: Int) {
-            lifecycleScope.launch {
-                for (i in fromGroupPosition absoluteRangeTo toGroupPosition) {
-                    viewModel.accountGroupDao.update(adapter.getGroup(i))
-                }
+                viewModel.accountDao.update(adapter.items)
             }
         }
     }
-    private val accountActionMode = object : ActionMode.Callback {
+    private var actionMode: ActionMode? = null
+    private val actionModeCallback = object : ActionMode.Callback {
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-            menuInflater.inflate(R.menu.menu_account_list_item, menu)   //TODO: Merge the two menus in one single xml file
+            menuInflater.inflate(R.menu.menu_account_list_item, menu)
             actionMode = mode
             actionMode?.title = adapter.selectedItemCount.toString()
-            adapter.editMode = AccountListAdapter.EditMode.Item
+            adapter.editMode = true
             adapter.notifyDataSetChanged()
-            recyclerViewExpandableItemManager.expandAll()
 
             return true
         }
@@ -181,18 +110,18 @@ class AccountListActivity : BaseActivity() {
             when (item.itemId) {
                 R.id.menu_account_remove -> {
                     if (adapter.selectedItemCount > 0) {
-                        val dialog = DeleteGroupDialog(adapter.selectedGroupCount, adapter.selectedAccountCount) {
-                            deleteGroups(adapter.selectedGroups)
-                            deleteAccounts(adapter.selectedAccounts)
+                        DeleteAccountDialog(adapter.selectedItemCount, supportFragmentManager) {
+                            lifecycleScope.launch {
+                                viewModel.accountDao.delete(adapter.selectedItems)
+                            }
                             actionMode?.finish()
                         }
-                        dialog.show(supportFragmentManager, null)
                     } else {
                         makeToast("No items selected")
                     }
                 }
                 R.id.menu_account_selectall -> {
-                    if (adapter.hasSelectableItems) {
+                    if (adapter.items.isNotEmpty()) {
                         adapter.selectAll()
                         actionMode?.title = adapter.selectedItemCount.toString()
                     } else {
@@ -206,12 +135,10 @@ class AccountListActivity : BaseActivity() {
 
         override fun onDestroyActionMode(mode: ActionMode?) {
             actionMode = null
-            adapter.editMode = AccountListAdapter.EditMode.Disabled
+            adapter.editMode = false
             adapter.clearSelected()
-            restoreGroupsExpandState()
         }
     }
-    private val binding by viewBindings<ActivityAccountListBinding>()
 
     //region Activity lifecycle
 
@@ -222,30 +149,18 @@ class AccountListActivity : BaseActivity() {
 
         doubleBackPressToExitEnabled = true
 
-        btn_add_account_qr.setOnClickListener {
+        binding.btnAddAccountQr.setOnClickListener {
             val intent = Intent(this, BarcodeScannerActivity::class.java)
 
             scanBarcode.launch(intent)
             btn_add_account.close(true)
         }
-        btn_add_account_url.setOnClickListener {
+        binding.btnAddAccountUrl.setOnClickListener {
             val dialog = AccountURLDialog()
 
             dialog.onConfirmListener = {
-                val uri = Uri.parse(it)
-
                 try {
-                    if (AccountExporter.isBackup(uri)) {
-                        val data = AccountExporter().import(uri)
-
-                        startActivity(ImportResultActivity::class) {
-                            putExtra(ImportResultActivity.EXTRA_DATA, data)
-                        }
-                    } else {
-                        val account = AccountExporter.parseAccount(uri)
-
-                        addOrReplaceAccount(account)
-                    }
+                    import(it)
                     dialog.dismiss()
                 } catch (e: Exception) {
                     dialog.error = e.message
@@ -254,37 +169,14 @@ class AccountListActivity : BaseActivity() {
             dialog.show(supportFragmentManager, null)
             btn_add_account.close(true)
         }
-        btn_add_account_custom.setOnClickListener {
+        binding.btnAddAccountCustom.setOnClickListener {
             startActivity(AccountActivity::class)
-            btn_add_account.close(true)
-        }
-        btn_add_account_group.setOnClickListener {
-            val dialog = AddAccountGroupDialog()
-
-            dialog.onConfirmListener = {
-                val group = AccountGroup(it)
-
-                lifecycleScope.launch {
-                    try {
-                        viewModel.addGroup(group)
-                        dialog.dismiss()
-                    } catch (e: Exception) {
-                        dialog.error = e.message
-                    }
-                }
-            }
-            dialog.show(supportFragmentManager, null)
             btn_add_account.close(true)
         }
 
         setupListAdapter()
-        createDefaultGroup()
 
-        viewModel.groupsWithAccount.observe(this) {
-            for (groupWithAccount in it) {
-                groupWithAccount.accounts.sortBy { it.order }
-            }
-
+        viewModel.accounts.observe(this) {
             adapter.setItems(it)
         }
     }
@@ -332,63 +224,46 @@ class AccountListActivity : BaseActivity() {
             R.id.menu_clear -> {
                 lifecycleScope.launch {
                     viewModel.accountDao.deleteAll()
-                    viewModel.accountGroupDao.deleteAll()
                 }
             }
             R.id.menu_refresh -> {
                 adapter.notifyDataSetChanged()
             }
             R.id.menu_add_test -> {
-                val groups = listOf(
-                    AccountGroup("Group 1").apply { id = 2; order = 0 },
-                    AccountGroup("Group 2").apply { id = 3; order = 1 },
-                    AccountGroup("Group 3").apply { id = 4; order = 2 }
-                )
                 val accounts = listOf(
-                    Account("Account 1", "22334455").apply { groupId = 2 },
-                    Account("Account 2", "22334466").apply { groupId = 2 },
-                    Account("Account 3", "22332277").apply { groupId = 3 },
-                    Account("Account 4", "22334455").apply { groupId = 3 },
+                    Account("Account 1", "22334455").apply { },
+                    Account("Account 2", "22334466").apply { },
+                    Account("Account 3", "22332277").apply { },
+                    Account("Account 4", "22334455").apply { },
                     Account("Account 5", "22444455").apply { },
                     Account("Account 6", "22774477").apply { }
                 )
                 lifecycleScope.launch {
                     viewModel.accountDao.deleteAll()
-                    viewModel.accountGroupDao.deleteAll()
 
-                    groups.forEach { viewModel.addGroup(it) }
-                    accounts.forEach { viewModel.addAccount(it) }
-
-                    viewModel.accountGroupDao.insert(AccountGroup.DEFAULT_GROUP)
+                    accounts.forEach { viewModel.insertAccount(it) }
                 }
             }
             R.id.menu_add_test_2 -> {
-                val groups = listOf(
-                    AccountGroup("Work").apply { id = 2; order = 0 },
-                    AccountGroup("Personal").apply { id = 3; order = 1 }
-                )
                 val accounts = listOf(
-                    Account("Max", "22334455").apply { label = "Twitter"; groupId = 2 },
-                    Account("Max", "22334466").apply { label = "Steam"; groupId = 2 },
-                    Account("Max", "22332277").apply { label = "Amazon"; groupId = 2 },
-                    Account("Max", "22334455").apply { label = "EGS"; groupId = 3 },
-                    Account("Max", "22444455").apply { label = "Github"; groupId = 3 },
+                    Account("Max", "22334455").apply { label = "Twitter"; },
+                    Account("Max", "22334466").apply { label = "Steam"; },
+                    Account("Max", "22332277").apply { label = "Amazon"; },
+                    Account("Max", "22334455").apply { label = "EGS"; },
+                    Account("Max", "22444455").apply { label = "Github"; },
                     Account("JohnDoe", "22774477"),
                     Account("MarioRossi", "77334455"),
                     Account("JaneDoe", "22223355")
                 )
+
                 lifecycleScope.launch {
                     viewModel.accountDao.deleteAll()
-                    viewModel.accountGroupDao.deleteAll()
 
-                    groups.forEach { viewModel.addGroup(it) }
-                    accounts.forEach { viewModel.addAccount(it) }
-
-                    viewModel.accountGroupDao.insert(AccountGroup.DEFAULT_GROUP)
+                    accounts.forEach { viewModel.insertAccount(it) }
                 }
             }
             R.id.menu_account_list_edit -> {
-                binding.toolbarLayout.toolbar.startActionMode(accountActionMode)
+                binding.toolbarLayout.toolbar.startActionMode(actionModeCallback)
             }
             R.id.menu_account_list_toggle_pins -> {
                 val showPins = preferences.getBoolean(Preferences.SHOW_PINS, true)
@@ -417,18 +292,21 @@ class AccountListActivity : BaseActivity() {
     //endregion
 
     /**
-     * Creates the default group if it doesn't exist
+     * Tries to import the given [data] and throws an Exception if there any errors.
      */
-    private fun createDefaultGroup() {
-        lifecycleScope.launch {
-            val defaultGroup = viewModel.accountGroupDao.getGroup(Account.DEFAULT_GROUP_ID)
+    private fun import(data: String) {
+        val importedData = AccountExporter.import(data)     //FIXME: This throws an unreadable exception for the final user
 
-            if (defaultGroup == null) {
-                viewModel.accountGroupDao.insert(AccountGroup.DEFAULT_GROUP)
-                logd("Default group added")
-            } else {
-                logd("Default group already added")
+        if (importedData.accounts.size > 1 || AccountExporter.isBackup(data)) {
+            startActivity(ImportResultActivity::class) {
+                putExtra(ImportResultActivity.EXTRA_DATA, importedData)
             }
+            logd("QR: Importing backup of size: ${importedData.accounts}")
+        } else {
+            val account = AccountExporter.parseAccount(data)
+
+            addOrReplaceAccount(account)
+            logd("QR: Importing single account")
         }
     }
 
@@ -436,43 +314,32 @@ class AccountListActivity : BaseActivity() {
      * Sets up the the [RecyclerView] that shows the accounts and its adapter
      */
     private fun setupListAdapter() {
+        val animator = DraggableItemAnimator()
         val layoutManager = LinearLayoutManager(this)
 
         adapter = AccountListAdapter()
-        adapter.setListener(accountListAdapterListener)
+        adapter.setListener(listAdapterListener)
 
         recyclerViewDragDropManager = RecyclerViewDragDropManager()
         recyclerViewDragDropManager.attachRecyclerView(list_accounts)
         recyclerViewDragDropManager.setInitiateOnTouch(true)
         recyclerViewDragDropManager.isCheckCanDropEnabled = true
-        recyclerViewExpandableItemManager = RecyclerViewExpandableItemManager(null)
-        recyclerViewExpandableItemManager.setOnGroupCollapseListener { groupPosition, _, _ ->
-            adapter.groups[groupPosition].isExpanded = false
-        }
-        recyclerViewExpandableItemManager.setOnGroupExpandListener { groupPosition, _, _ ->
-            adapter.groups[groupPosition].isExpanded = true
-        }
-        recyclerViewExpandableItemManager.attachRecyclerView(list_accounts)
+//        recyclerViewDragDropManager.setDraggingItemShadowDrawable(
+//            ContextCompat.getDrawable(this, R.drawable.material_shadow_z3) as NinePatchDrawable?
+//        )
 
-        adapterWrapper = recyclerViewExpandableItemManager.createWrappedAdapter(adapter)
-        adapterWrapper = recyclerViewDragDropManager.createWrappedAdapter(adapterWrapper)
+        adapterWrapper = recyclerViewDragDropManager.createWrappedAdapter(adapter)
+        binding.listAccounts.layoutManager = layoutManager
+        binding.listAccounts.adapter = adapterWrapper
+        binding.listAccounts.itemAnimator = animator
+        binding.listAccounts.setEmptyView(binding.emptyView)
 
-        list_accounts.setEmptyView(binding.emptyView)
-        list_accounts.adapter = adapterWrapper
-        list_accounts.layoutManager = layoutManager
-    }
-
-    /**
-     * Restores the expand states of each group
-     */
-    private fun restoreGroupsExpandState() {
-        for ((index, group) in adapter.groups.withIndex()) {
-            if (group.isExpanded) {
-                recyclerViewExpandableItemManager.expandGroup(index)
-            } else {
-                recyclerViewExpandableItemManager.collapseGroup(index)
-            }
-        }
+//        if (supportsViewElevation()) {
+//            // Lollipop or later has native drop shadow feature. ItemShadowDecorator is not required.
+//        } else {
+//            mRecyclerView.addItemDecoration(ItemShadowDecorator((ContextCompat.getDrawable(requireContext(), R.drawable.material_shadow_z1) as NinePatchDrawable?)!!))
+//        }
+//        binding.listAccounts.addItemDecoration(SimpleListDividerDecorator(ContextCompat.getDrawable(requireContext(), R.drawable.list_divider_h), true))
     }
 
     /**
@@ -482,7 +349,7 @@ class AccountListActivity : BaseActivity() {
         lifecycleScope.launch {
             // If the count is greater than 0, that means there's one other account
             // with the same name and issuer, ask the user if they want to overwrite it
-            if (viewModel.checkIfAccountExists(account)) {
+            if (viewModel.accountDao.exists(account)) {
                 val dialog = ReplaceAccountDialog() //TODO Let the user keep both accounts
 
                 dialog.onReplaceListener = {
@@ -490,8 +357,8 @@ class AccountListActivity : BaseActivity() {
                         // If the given account has the default id, we need to grab the id
                         // corresponding to the given account's name, issuer and label and set it
                         // to the given account so that it can be updated
-                        if (account.id == BaseAccount.DEFAULT_ID) {
-                            val id = viewModel.accountDao.getAccount(account.name, account.label, account.issuer).id
+                        if (account.id == 0L) {
+                            val id = viewModel.accountDao.getAccount(account.name, account.label, account.issuer)!!.id
 
                             account.id = id
                         }
@@ -505,41 +372,8 @@ class AccountListActivity : BaseActivity() {
             // No account with the same name and issuer was found in the database,
             // insert the given account
             else {
-                viewModel.addAccount(account)
+                viewModel.insertAccount(account)
             }
-        }
-    }
-
-    /**
-     * Deletes the given [groups] and its related accounts
-     */
-    private fun deleteGroups(groups: List<AccountGroup>) {
-        lifecycleScope.launch {
-            adapter.removeGroups(groups)
-            adapter.reorderGroups()
-            adapter.notifyDataSetChanged()
-            viewModel.accountGroupDao.deleteGroupWithAccounts(groups)
-            viewModel.accountGroupDao.update(adapter.groups)
-        }
-    }
-
-    /**
-     * Deletes the given [accounts]
-     */
-    private fun deleteAccounts(accounts: List<Account>) {
-        lifecycleScope.launch {
-            val groupedAccounts = accounts.groupBy { it.groupId }
-
-            for (group in groupedAccounts) {
-                val groupPosition = adapter.getGroupPosition(group.key)
-
-                adapter.removeAccounts(groupPosition, group.value)
-                adapter.reorderAccounts(groupPosition)
-            }
-
-            adapter.notifyDataSetChanged()
-            viewModel.accountDao.delete(accounts)
-            viewModel.accountDao.update(adapter.accounts)
         }
     }
 }

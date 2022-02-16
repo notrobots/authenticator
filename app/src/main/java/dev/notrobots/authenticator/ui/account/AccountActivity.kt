@@ -9,7 +9,6 @@ import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.activities.ThemedActivity
 import dev.notrobots.androidstuff.extensions.hasErrors
-import dev.notrobots.androidstuff.extensions.setClearErrorOnType
 import dev.notrobots.androidstuff.extensions.setError
 import dev.notrobots.androidstuff.extensions.setErrorWhen
 import dev.notrobots.androidstuff.util.viewBindings
@@ -17,7 +16,6 @@ import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ActivityAccountBinding
 import dev.notrobots.authenticator.extensions.isOnlySpaces
 import dev.notrobots.authenticator.models.Account
-import dev.notrobots.authenticator.models.AccountExporter
 import dev.notrobots.authenticator.models.OTPType
 import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
 import dev.notrobots.authenticator.util.isValidBase32
@@ -39,7 +37,7 @@ class AccountActivity : ThemedActivity() {
 
         if (intent.hasExtra(EXTRA_ACCOUNT)) {
             account = intent.getSerializableExtra(EXTRA_ACCOUNT) as Account
-            sourceAccount = account.clone()
+            sourceAccount = account.copy()
             title = account.displayName
         } else {
             account = Account()
@@ -114,12 +112,6 @@ class AccountActivity : ThemedActivity() {
             text_account_counter_value.setText(it.counter.toString())
             binding.spinnerAccountType.setSelection(it.type)
         }
-
-        viewModel.groups.observe(this) {
-            spinner_account_group.entries = it.map { it.name }
-            spinner_account_group.values = it.map { it.id }
-            spinner_account_group.setSelection(account.groupId)
-        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -159,7 +151,6 @@ class AccountActivity : ThemedActivity() {
 
         if (!hasError()) {
             account.also {
-                it.groupId = spinner_account_group.selectedValue as Long
                 it.name = name
                 it.issuer = issuer
                 it.label = label
@@ -171,22 +162,17 @@ class AccountActivity : ThemedActivity() {
             }
 
             lifecycleScope.launch {
-                try {
+                if (viewModel.accountDao.exists(account.name, account.label, account.issuer)) {
+                    //TODO: More precise error
+                    layout_account_name.error = "An account with the same name, label or issuer already exists"
+                } else {
                     if (sourceAccount != null) {
-                        viewModel.updateAccount(
-                            account,
-                            sourceAccount!!.name == account.name &&
-                            sourceAccount!!.label == account.label &&
-                            sourceAccount!!.issuer == account.issuer
-                        )
+                        viewModel.updateAccount(account)
                     } else {
-                        viewModel.addAccount(account)
+                        viewModel.insertAccount(account)
                     }
 
                     finish()
-                } catch (e: Exception) {
-                    //FIXME: Could use a snackbar here
-                    layout_account_name.error = e.message
                 }
             }
         }

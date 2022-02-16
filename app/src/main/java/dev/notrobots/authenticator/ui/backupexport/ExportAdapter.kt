@@ -2,19 +2,15 @@ package dev.notrobots.authenticator.ui.backupexport
 
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import dev.notrobots.androidstuff.widget.BaseViewHolder
 import dev.notrobots.androidstuff.widget.BindableViewHolder
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ItemExportBinding
 import dev.notrobots.authenticator.models.Account
-import dev.notrobots.authenticator.models.AccountGroup
-import dev.notrobots.authenticator.models.BaseAccount
-import kotlin.reflect.KClass
 
 class ExportAdapter(
-    private val items: List<BaseAccount>
+    private val items: List<Account>
 ) : RecyclerView.Adapter<ExportAdapter.ViewHolder>() {
-    private val checkedStates = mutableMapOf<BaseAccount, Boolean>()
+    private val checkedStates = mutableMapOf<Account, Boolean>()
     val checkedItems
         get() = checkedStates
             .filter { it.value }
@@ -37,7 +33,6 @@ class ExportAdapter(
             checkedStates[item] = value
         }
         binding.item.text = when (item) {
-            is AccountGroup -> item.name
             is Account -> item.displayName
 
             else -> throw Exception("Type not supported")

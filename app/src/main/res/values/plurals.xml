@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="label_delete_account_title">
+        <item quantity="one">Remove account</item>
+        <item quantity="other">Remove accounts</item>
+    </plurals>
+    <plurals name="label_delete_account_description">
+        <item quantity="one"><![CDATA[You\'re about to <b>permanently delete</b> %d account<br/><br/>Deleting an account from the authenticator won\'t disable the 2 factor authentication.<br/><br/><b>Make sure to disable the 2FA on the website/service the account is tied to.</b>]]></item>
+        <item quantity="other"><![CDATA[You\'re about to <b>permanently delete</b> %d accounts<br/><br/>Deleting an account from the authenticator won\'t disable the 2 factor authentication.<br/><br/><b>Make sure to disable the 2FA on the website/service the account is tied to.</b>]]></item>
+    </plurals>
+</resources>
