@@ -36,6 +36,7 @@ class AccountListViewModel @Inject constructor(
 
         if (original != null) {
             account.id = original.id
+            account.order = original.order
             accountDao.update(account)
             logd("Updating account")
         } else {

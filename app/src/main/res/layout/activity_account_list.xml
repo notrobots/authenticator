@@ -21,11 +21,11 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+            android:gravity="center"
             android:text="Press the '+' to add an account"
-            android:gravity="center"/>
+            android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -48,21 +48,30 @@
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintEnd_toEndOf="parent"
+            app:menu_colorNormal="?attr/colorPrimary"
+            app:menu_colorPressed="?attr/colorPrimary"
+            app:menu_colorRipple="#99FFFFFF"
+            app:menu_icon="@drawable/ic_add_account">
 
             <com.github.clans.fab.FloatingActionButton
                 android:id="@+id/btn_add_account_qr"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_add"
+                android:src="@drawable/ic_add_account"
+                app:fab_colorNormal="?attr/colorPrimary"
+                app:fab_colorPressed="?attr/colorPrimary"
                 app:fab_label="QR"
-                app:fab_size="mini" />
+                app:fab_size="mini"
+                app:tint="?attr/colorOnPrimary" />
 
             <com.github.clans.fab.FloatingActionButton
                 android:id="@+id/btn_add_account_url"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_add"
+                android:src="@drawable/ic_add_account"
+                app:fab_colorNormal="?attr/colorPrimary"
+                app:fab_colorPressed="?attr/colorPrimary"
                 app:fab_label="URL"
                 app:fab_size="mini" />
 
@@ -70,7 +79,9 @@
                 android:id="@+id/btn_add_account_custom"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_add"
+                android:src="@drawable/ic_add_account"
+                app:fab_colorNormal="?attr/colorPrimary"
+                app:fab_colorPressed="?attr/colorPrimary"
                 app:fab_label="Custom"
                 app:fab_size="mini" />
 

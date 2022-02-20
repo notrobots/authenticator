@@ -2,18 +2,20 @@ package dev.notrobots.authenticator.dialogs
 
 import android.app.Dialog
 import android.os.Bundle
-import androidx.appcompat.app.AlertDialog
-import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.FragmentManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dev.notrobots.authenticator.R
 
-class ReplaceAccountDialog : DialogFragment() {
-    var onReplaceListener: () -> Unit = {}
-
+class ReplaceAccountDialog(
+    fragmentManager: FragmentManager,
+    val onReplaceListener: () -> Unit
+) : InstantDialog(fragmentManager) {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return AlertDialog.Builder(requireContext())
-            .setTitle("Account already exists")
-            .setMessage("An account with the same name already exists, do you wanna replace it?\n\nIf the previous account is still in use make sure to disable the 2 Factors Authentication on that account's website before overwriting this account")
-            .setPositiveButton("Replace") { _, _ -> onReplaceListener() }
-            .setNegativeButton("Cancel", null)
+        return MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.label_account_already_exists_title)
+            .setMessage(R.string.label_account_already_exists_description)
+            .setPositiveButton(R.string.label_replace) { _, _ -> onReplaceListener() }
+            .setNegativeButton(R.string.label_cancel, null)
             .create()
     }
 }

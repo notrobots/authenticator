@@ -5,13 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_account"
-    android:paddingTop="8dp">
+    android:paddingTop="6dp">
 
     <ImageView
         android:id="@+id/drag_handle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="-10dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="-12dp"
         android:contentDescription="@string/label_drag_handle"
         android:src="@drawable/ic_reorder"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -19,59 +19,65 @@
         app:layout_constraintTop_toTopOf="parent"
         app:tint="?attr/colorSecondary" />
 
-    <TextView
-        android:id="@+id/name"
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/dataLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:layout_marginEnd="12dp"
-        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-        android:textStyle="normal"
-        app:layout_constraintEnd_toStartOf="@+id/edit"
-        app:layout_constraintStart_toEndOf="@+id/icon"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="Label (Name)"
-        android:maxLines="1"
-        android:ellipsize="end"/>
-
-    <TextView
-        android:id="@+id/pin"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        android:letterSpacing="0.08"
-        android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
-        android:textColor="?attr/colorSecondary"
-        android:textStyle="normal"
+        android:layout_marginBottom="6dp"
+        android:orientation="vertical"
         app:layout_constraintBottom_toTopOf="@id/divider"
         app:layout_constraintEnd_toStartOf="@+id/edit"
-        app:layout_constraintStart_toStartOf="@+id/name"
-        app:layout_constraintTop_toBottomOf="@+id/name"
-        tools:text="123456"
-        android:maxLines="1"
-        android:ellipsize="end"/>
+        app:layout_constraintStart_toEndOf="@+id/icon"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/label"
+            style="@style/AccountLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toStartOf="@+id/edit"
+            app:layout_constraintStart_toEndOf="@+id/icon"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Google" />
+
+        <TextView
+            android:id="@+id/name"
+            style="@style/AccountName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="google@gmail.com" />
+
+        <TextView
+            android:id="@+id/pin"
+            style="@style/AccountPin.Medium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            tools:text="123 456" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
     <ImageView
         android:id="@+id/edit"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
         android:layout_marginEnd="12dp"
         android:contentDescription="@string/label_edit"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/generate"
+        app:layout_constraintEnd_toStartOf="@+id/next_pin"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_edit"
         app:tint="?attr/colorSecondary" />
 
     <ImageView
-        android:id="@+id/generate"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:id="@+id/next_pin"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="12dp"
         android:contentDescription="@string/label_generate_next_pin"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/indicator"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_refresh"
@@ -87,29 +93,32 @@
         app:indicatorSize="28dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
 
     <ImageView
         android:id="@+id/icon"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:contentDescription="@string/label_account_icon"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/name"
         app:layout_constraintStart_toEndOf="@+id/drag_handle"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/ic_palette"
-        app:tint="?attr/colorSecondary" />
+        app:tint="?attr/colorSecondary"
+        tools:visibility="visible" />
 
     <View
         android:id="@+id/divider"
         android:layout_width="0dp"
         android:layout_height="1dp"
         android:background="@drawable/bg_list_separator"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <!-- Edit mode -->
     <androidx.constraintlayout.widget.Group
@@ -117,13 +126,6 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:constraint_referenced_ids="edit, drag_handle"
-        tools:visibility="gone" />
-
-    <!-- Base -->
-    <androidx.constraintlayout.widget.Group
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:constraint_referenced_ids="icon"
         tools:visibility="gone" />
 
     <!-- TOTP -->
@@ -139,7 +141,7 @@
         android:id="@+id/group_hotp"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:constraint_referenced_ids="generate"
+        app:constraint_referenced_ids="next_pin"
         tools:visibility="gone" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

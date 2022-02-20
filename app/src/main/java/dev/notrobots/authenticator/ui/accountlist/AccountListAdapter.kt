@@ -7,6 +7,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
+import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemAdapter
@@ -14,17 +17,18 @@ import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemState
 import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemViewHolder
 import com.h6ah4i.android.widget.advrecyclerview.draggable.ItemDraggableRange
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractDraggableItemViewHolder
-import dev.notrobots.androidstuff.extensions.setTint
+import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.swap
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.data.KnownIssuers
 import dev.notrobots.authenticator.databinding.ItemAccountBinding
-import dev.notrobots.authenticator.extensions.find
+import dev.notrobots.authenticator.extensions.toDp
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.accountlist.AccountListAdapter.AccountViewHolder
 import dev.notrobots.authenticator.util.ViewUtil
 import java.util.*
 import java.util.concurrent.TimeUnit
+
 
 class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableItemAdapter<AccountViewHolder> {
     private var listener: Listener = object : Listener {}
@@ -70,16 +74,35 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         val account = items[position]
         val binding = holder.binding
         val id = account.id
-        val icon = KnownIssuers.find { k, _ ->
-            val rgx = Regex(k, RegexOption.IGNORE_CASE)
+        val icon = getIssuerIcon(account.issuer)
+        val generatePin = {
+            formatPin(OTPGenerator.generate(account))
+        }
+        val updateMarginAndConstraints = { view: View ->
+            view.updateLayoutParams {
+                this as ConstraintLayout.LayoutParams
 
-            rgx.matches(account.issuer)
-        }!!.value
+                topMargin = if (showPins) 8.toDp().toInt() else 0
+                verticalBias = if (showPins) 0F else 0.5F
+            }
+        }
 
         binding.icon.visibility = if (showIcons && !editMode) View.VISIBLE else View.GONE
         binding.icon.setImageResource(icon)
-        binding.pin.visibility = if (showPins) View.VISIBLE else View.INVISIBLE
-        binding.name.text = account.displayName
+        binding.pin.visibility = if (showPins) View.VISIBLE else View.GONE
+
+        updateMarginAndConstraints(binding.icon)
+        updateMarginAndConstraints(binding.indicator)
+        updateMarginAndConstraints(binding.nextPin)
+
+        if (account.label.isEmpty()) {
+            binding.label.text = account.name
+            binding.name.disable()
+        } else {
+            binding.name.text = account.name
+            binding.label.text = account.label
+            binding.name.show()
+        }
 
         view.isSelected = account.isSelected
         view.setOnClickListener {
@@ -119,7 +142,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                         }
 
                         override fun onValueChanged() {
-                            binding.pin.text = OTPGenerator.generate(account)
+                            binding.pin.text = generatePin()
                         }
                     })
                     timer.start()
@@ -129,12 +152,13 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                     binding.groupHotp.visibility = View.GONE
                 }
                 OTPType.HOTP -> {
-                    //view.text_account_pin.text = "- - - - - -"           // "-".repeat(account.digits)
-                    binding.generate.setOnClickListener {
+//                    binding.pin.text = "- ".repeat(account.digits)
+                    binding.pin.text = generatePin()
+                    binding.nextPin.setOnClickListener {
                         it as ImageView
 
                         account.counter++
-                        binding.pin.text = OTPGenerator.generate(account)
+                        binding.pin.text = generatePin()
                         it.isEnabled = false
                         it.setTint(Color.LTGRAY)    //FIXME: Use the app's colors
 
@@ -254,6 +278,43 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
 
     fun setListener(listener: Listener) {
         this.listener = listener
+    }
+
+    /**
+     * Returns the given [pin] formatted based on the given [divider] and [groupSize]
+     */
+    private fun formatPin(
+        pin: String,
+        groupSize: Int = 3,
+        divider: String = " "
+    ): String {
+        val rgx = Regex(".{1,${groupSize}}+")
+
+        return pin.replace(rgx, "$0$divider").trim()
+    }
+
+    /**
+     * Returns the resource used for the given [issuer]
+     */
+    private fun getIssuerIcon(issuer: String): Int {
+        val key = KnownIssuers.keys.find {
+            val rgx = Regex(it, RegexOption.IGNORE_CASE)
+
+            rgx.matches(issuer)
+        }
+
+        return KnownIssuers[key]!!
+    }
+
+    companion object {
+        private val GROUP_SIZES = mapOf(
+            4 to 4,
+            6 to 3,
+            8 to 4,
+            10 to 5,
+            12 to 4,
+            14 to 2
+        )
     }
 
     interface Listener {

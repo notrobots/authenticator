@@ -2,7 +2,6 @@ package dev.notrobots.authenticator.ui.accountlist
 
 import android.app.Activity
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.ActionMode
 import android.view.Menu
@@ -50,7 +49,7 @@ class AccountListActivity : BaseActivity() {
                 try {
                     import(data)
                 } catch (e: Exception) {
-                    showInfo("Error", e.message)
+                    showInfo(R.string.label_error, e.message)
                 }
             }
         }
@@ -64,7 +63,7 @@ class AccountListActivity : BaseActivity() {
                 }
                 actionMode?.title = adapter.selectedItemCount.toString()
             } else {
-                copyToClipboard(OTPGenerator.generate(account))
+                copyToClipboard(OTPGenerator.generate(account)) //TODO: Keep the value cached
                 makeToast("Copied!")
             }
         }
@@ -156,17 +155,14 @@ class AccountListActivity : BaseActivity() {
             btn_add_account.close(true)
         }
         binding.btnAddAccountUrl.setOnClickListener {
-            val dialog = AccountURLDialog()
-
-            dialog.onConfirmListener = {
+            AddAccountUriDialog(supportFragmentManager) { data, dialog ->
                 try {
-                    import(it)
+                    import(data)
                     dialog.dismiss()
                 } catch (e: Exception) {
                     dialog.error = e.message
                 }
             }
-            dialog.show(supportFragmentManager, null)
             btn_add_account.close(true)
         }
         binding.btnAddAccountCustom.setOnClickListener {
@@ -347,31 +343,19 @@ class AccountListActivity : BaseActivity() {
      */
     private fun addOrReplaceAccount(account: Account) {
         lifecycleScope.launch {
-            // If the count is greater than 0, that means there's one other account
-            // with the same name and issuer, ask the user if they want to overwrite it
             if (viewModel.accountDao.exists(account)) {
-                val dialog = ReplaceAccountDialog() //TODO Let the user keep both accounts
-
-                dialog.onReplaceListener = {
+                ReplaceAccountDialog(supportFragmentManager) {
                     lifecycleScope.launch {
                         // If the given account has the default id, we need to grab the id
                         // corresponding to the given account's name, issuer and label and set it
                         // to the given account so that it can be updated
                         if (account.id == 0L) {
-                            val id = viewModel.accountDao.getAccount(account.name, account.label, account.issuer)!!.id
-
-                            account.id = id
+                            viewModel.updateAccount(account)
                         }
-
-                        viewModel.accountDao.update(account)
                     }
                     logd("Replacing existing account: $account")
-                }
-                dialog.show(supportFragmentManager, null)
-            }
-            // No account with the same name and issuer was found in the database,
-            // insert the given account
-            else {
+                } //TODO Let the user keep both accounts
+            } else {
                 viewModel.insertAccount(account)
             }
         }

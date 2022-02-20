@@ -17,7 +17,7 @@ import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.extensions.viewBindings
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ActivityImportBinding
-import dev.notrobots.authenticator.dialogs.AccountURLDialog
+import dev.notrobots.authenticator.dialogs.AddAccountUriDialog
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
@@ -124,19 +124,14 @@ class ImportActivity : ThemedActivity() {
             "Input a string",
             R.drawable.ic_qr
         ) {
-            val dialog = AccountURLDialog()
-
-            dialog.onConfirmListener = {
+            AddAccountUriDialog(supportFragmentManager) { data, dialog ->
                 try {
-                    val data = AccountExporter.import(it)
-
-                    showResults(data)
+                    showResults(AccountExporter.import(data))
                     dialog.dismiss()
                 } catch (e: Exception) {
                     dialog.error = e.message
                 }
             }
-            dialog.show(supportFragmentManager, null)
         }
     }
 
