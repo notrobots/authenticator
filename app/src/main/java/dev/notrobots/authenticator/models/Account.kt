@@ -18,7 +18,7 @@ data class Account(
      * Account secret, should be a base32 string
      */
     var secret: String,
-) : Serializable {
+) : Serializable, Cloneable {
     /**
      * Room Id for this item
      */
@@ -79,6 +79,10 @@ data class Account(
         get() = if (label.isNotEmpty()) "$label ($name)" else name
 
     constructor() : this("", "")
+
+    public override fun clone(): Account {
+        return super.clone() as Account
+    }
 
     fun toggleSelected() {
         isSelected = !isSelected
