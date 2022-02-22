@@ -17,4 +17,7 @@
     <string name="label_account_already_exists_title">Account already exists</string>
     <string name="label_account_already_exists_description">An account with the same name already exists, do you want to replace it?\n\nIf the previous account is still in use make sure to disable the 2 Factors Authentication on that account\'s website before overwriting this account</string>
     <string name="label_ok">Ok</string>
+    <string name="label_show_advanced">Show advanced</string>
+    <string name="label_hide_advanced">Hide advanced</string>
+    <string name="label_add_account">Add account</string>
 </resources>

@@ -32,13 +32,14 @@ class ExportConfigActivity : AppCompatActivity() {
         }
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        binding.output.onSelectionChanged = { value, _ ->
+        binding.output.setOnSelectionChangeListener { value, _ ->
             binding.qrStyle.visibility = if (value == BackupOutput.QR) View.VISIBLE else View.GONE
         }
         binding.format.setValues<BackupFormat>()
         binding.output.setValues<BackupOutput>()
         binding.qrStyle.entries = qrStyles.map { it.key }
         binding.qrStyle.values = qrStyles.map { it.value }
+//        binding.qrStyle.visibility = if (value == BackupOutput.QR) View.VISIBLE else View.GONE
         binding.done.setOnClickListener {
             when (binding.output.selectedValue) {
                 BackupOutput.QR -> {

@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="8dp">
+    android:layout_height="match_parent">
+
+    <include
+        android:id="@+id/toolbar_layout"
+        layout="@layout/view_toolbar" />
 
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         android:layout_marginBottom="16dp"
+        android:padding="8dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:layout_constraintBottom_toTopOf="@+id/spinner_account_type"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -20,16 +25,28 @@
             android:orientation="vertical"
             android:padding="16dp">
 
+            <dev.notrobots.authenticator.views.BetterSpinner
+                android:id="@+id/spinner_account_type"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:spinnerEntries="@array/account_type"
+                app:spinnerLabel="Type"
+                app:spinnerValues="@array/account_type_values" />
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/layout_account_name"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
                 android:hint="Name"
                 app:errorEnabled="true"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                app:layout_constraintTop_toBottomOf="@id/spinner_account_type">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/text_account_name"
@@ -57,6 +74,24 @@
                     android:layout_height="wrap_content"
                     android:inputType="textPassword" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <Button
+                android:id="@+id/advanced_settings_toggle"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/label_show_advanced"
+                android:layout_marginTop="16dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/spinner_account_algorithm" />
+
+            <androidx.constraintlayout.widget.Group
+                android:id="@+id/advanced_settings"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:constraint_referenced_ids="layout_account_label, layout_account_issuer, layout_account_digits, period_counter_switcher, spinner_account_algorithm"
+                android:visibility="gone"/>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/layout_account_label"
@@ -129,12 +164,12 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:hint="Counter"
-                    app:errorEnabled="true"
-                    app:endIconMode="custom"
-                    app:startIconDrawable="@drawable/ic_remove"
                     app:endIconDrawable="@drawable/ic_add"
-                    app:startIconTint="?attr/colorSecondary"
-                    app:endIconTint="?attr/colorSecondary">
+                    app:endIconMode="custom"
+                    app:endIconTint="?attr/colorSecondary"
+                    app:errorEnabled="true"
+                    app:startIconDrawable="@drawable/ic_remove"
+                    app:startIconTint="?attr/colorSecondary">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/text_account_counter_value"
@@ -176,31 +211,6 @@
 
     </ScrollView>
 
-    <dev.notrobots.authenticator.views.BetterSpinner
-        android:id="@+id/spinner_account_type"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btn_account_confirm"
-        app:layout_constraintStart_toStartOf="parent"
-        app:spinnerEntries="@array/account_type"
-        app:spinnerLabel="Type"
-        app:spinnerValues="@array/account_type_values" />
 
-    <Button
-        android:id="@+id/btn_account_confirm"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="8dp"
-        android:text="Add"
-        app:layout_constraintBottom_toBottomOf="@+id/spinner_account_type"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/spinner_account_type"
-        app:layout_constraintTop_toTopOf="@+id/spinner_account_type" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
 

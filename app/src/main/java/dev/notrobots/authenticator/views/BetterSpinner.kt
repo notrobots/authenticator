@@ -7,6 +7,9 @@ import com.google.android.material.textfield.TextInputLayout
 import dev.notrobots.authenticator.R
 import kotlinx.android.synthetic.main.view_betterspinner.view.*
 
+typealias SelectionChangeListener = (value: Any?, spinner: BetterSpinner) -> Unit
+typealias ItemClickListener = (value: Any?, spinner: BetterSpinner) -> Unit
+
 class BetterSpinner(
     context: Context,
     attrs: AttributeSet?,
@@ -15,6 +18,16 @@ class BetterSpinner(
     private var adapter: ArrayAdapter<String>
     private var textView: AutoCompleteTextView? = null
     private var layout: TextInputLayout? = null
+
+    /**
+     * Invoked when an item is selected by the user
+     */
+    private var itemClickListener: ItemClickListener = { _, _ -> }
+
+    /**
+     * Invoked when the current selection changes
+     */
+    private var selectionChangeListener: SelectionChangeListener = { _, _ -> }
 
     /**
      * Values of this spinner, they will be used as entries if there's no entries specified
@@ -80,16 +93,6 @@ class BetterSpinner(
     val selectedItem: Item
         get() = Item(selectedEntry!!, selectedValue)
 
-    /**
-     * Invoked when an item is selected by the user
-     */
-    var onItemSelectedListener: (value: Any?, spinner: BetterSpinner) -> Unit = { _, _ -> }
-
-    /**
-     * Invoked when the current selection changes
-     */
-    var onSelectionChanged: (value: Any?, spinner: BetterSpinner) -> Unit = { _, _ -> }
-
     init {
         inflate(context, R.layout.view_betterspinner, this)
 
@@ -100,7 +103,7 @@ class BetterSpinner(
         textView!!.setAdapter(adapter)
         textView!!.setOnItemClickListener { _, _, position, _ ->
             setSelection(position)
-            onItemSelectedListener(selectedValue, this)
+            itemClickListener(selectedValue, this)
         }
 
         with(context.obtainStyledAttributes(attrs, R.styleable.BetterSpinner, defStyleAttr, 0)) {
@@ -131,19 +134,30 @@ class BetterSpinner(
     fun setItems(entries: Iterable<String>, values: Iterable<Any?>) {
         this.values = values.toList()
         this.entries = entries.toList()
+        setSelection(0)
     }
 
     inline fun <reified E : Enum<E>> setValues() {
         this.values = E::class.java.enumConstants.toList()
+        setSelection(0)
     }
 
     inline fun <reified E : Enum<E>> setEntries() {
         this.entries = E::class.java.enumConstants.map { it.name }
+        setSelection(0)
     }
 
     inline fun <reified E : Enum<E>> setItems() {
         setValues<E>()
         setEntries<E>()
+    }
+
+    fun setOnItemClickListener(listener: ItemClickListener) {
+        this.itemClickListener = listener
+    }
+
+    fun setOnSelectionChangeListener(listener: SelectionChangeListener) {
+        this.selectionChangeListener = listener
     }
 
     fun setSelection(value: Any?) {
@@ -153,7 +167,7 @@ class BetterSpinner(
     fun setSelection(index: Int) {
         selectedPosition = if (index >= 0) index else 0
         textView?.setText(selectedEntry, false)
-        onSelectionChanged(selectedValue, this)
+        selectionChangeListener(selectedValue, this)
     }
 
     private fun resetAdapter() {
