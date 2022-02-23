@@ -29,7 +29,6 @@ import dev.notrobots.authenticator.util.ViewUtil
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-
 class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableItemAdapter<AccountViewHolder> {
     private var listener: Listener = object : Listener {}
     private val handler = Handler(Looper.getMainLooper())
@@ -78,22 +77,16 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         val generatePin = {
             formatPin(OTPGenerator.generate(account))
         }
-        val updateMarginAndConstraints = { view: View ->
-            view.updateLayoutParams {
-                this as ConstraintLayout.LayoutParams
-
-                topMargin = if (showPins) 8.toDp().toInt() else 0
-                verticalBias = if (showPins) 0F else 0.5F
-            }
-        }
 
         binding.icon.visibility = if (showIcons && !editMode) View.VISIBLE else View.GONE
         binding.icon.setImageResource(icon)
-        binding.pin.visibility = if (showPins) View.VISIBLE else View.GONE
+        binding.pin.visibility = if (showPins && !editMode) View.VISIBLE else View.GONE
 
-        updateMarginAndConstraints(binding.icon)
-        updateMarginAndConstraints(binding.indicator)
-        updateMarginAndConstraints(binding.nextPin)
+        updateViewMarginsAndConstraints(binding.icon)
+        updateViewMarginsAndConstraints(binding.indicator)
+        updateViewMarginsAndConstraints(binding.nextPin)
+        updateViewMarginsAndConstraints(binding.dragHandle)
+        updateViewMarginsAndConstraints(binding.edit)
 
         if (account.label.isEmpty()) {
             binding.label.text = account.name
@@ -278,6 +271,19 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
 
     fun setListener(listener: Listener) {
         this.listener = listener
+    }
+
+    /**
+     * Updates the given [view]'s margins and constraints based on the
+     * app's state
+     */
+    private fun updateViewMarginsAndConstraints(view: View) {
+        view.updateLayoutParams {
+            this as ConstraintLayout.LayoutParams
+
+            topMargin = if (showPins) 8.toDp().toInt() else 0
+            verticalBias = if (showPins) 0F else 0.5F
+        }
     }
 
     /**

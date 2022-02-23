@@ -8,7 +8,6 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.activity.viewModels
-import androidx.core.content.edit
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,9 +19,12 @@ import dev.notrobots.androidstuff.activities.BaseActivity
 import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.authenticator.R
-import dev.notrobots.authenticator.data.Preferences
 import dev.notrobots.authenticator.databinding.ActivityAccountListBinding
 import dev.notrobots.authenticator.dialogs.*
+import dev.notrobots.authenticator.extensions.getShowIcons
+import dev.notrobots.authenticator.extensions.getShowPins
+import dev.notrobots.authenticator.extensions.setShowIcons
+import dev.notrobots.authenticator.extensions.setShowPins
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.backup.BackupActivity
@@ -258,24 +260,34 @@ class AccountListActivity : BaseActivity() {
                     accounts.forEach { viewModel.insertAccount(it) }
                 }
             }
+            R.id.menu_add_test_3 -> {
+                val accounts = listOf(
+                    Account("google@gmail.com", "22334455").apply { label = "Google"; issuer = "google.com" },
+                    Account("google@gmail.com", "33442255").apply { issuer = "discord"; type = OTPType.HOTP },
+                    Account("google@gmail.com", "66334422").apply { label = "Github"; issuer = "github" },
+                    Account("Account name", "22335544").apply { label = "Account label" }
+                )
+
+                lifecycleScope.launch {
+                    viewModel.accountDao.deleteAll()
+
+                    accounts.forEach { viewModel.insertAccount(it) }
+                }
+            }
             R.id.menu_account_list_edit -> {
                 binding.toolbarLayout.toolbar.startActionMode(actionModeCallback)
             }
             R.id.menu_account_list_toggle_pins -> {
-                val showPins = preferences.getBoolean(Preferences.SHOW_PINS, true)
+                val showPins = preferences.getShowPins(true)
 
                 adapter.showPins = !showPins
-                preferences.edit {
-                    putBoolean(Preferences.SHOW_PINS, !showPins)
-                }
+                preferences.setShowPins(!showPins)
             }
             R.id.menu_account_list_toggle_icons -> {
-                val showIcons = preferences.getBoolean(Preferences.SHOW_ICONS, true)
+                val showIcons = preferences.getShowIcons(true)
 
                 adapter.showIcons = !showIcons
-                preferences.edit {
-                    putBoolean(Preferences.SHOW_ICONS, !showIcons)
-                }
+                preferences.setShowIcons(!showIcons)
             }
             R.id.menu_account_list_backup -> {
                 startActivity(BackupActivity::class)
@@ -315,6 +327,8 @@ class AccountListActivity : BaseActivity() {
 
         adapter = AccountListAdapter()
         adapter.setListener(listAdapterListener)
+        adapter.showIcons = preferences.getShowIcons(true)
+        adapter.showPins = preferences.getShowPins(true)
 
         recyclerViewDragDropManager = RecyclerViewDragDropManager()
         recyclerViewDragDropManager.attachRecyclerView(list_accounts)

@@ -6,7 +6,7 @@
         android:id="@+id/menu_account_list_edit"
         android:icon="@drawable/ic_edit"
         android:title="Edit items"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/menu_account_list_toggle_pins"
@@ -21,12 +21,12 @@
     <item
         android:id="@+id/menu_account_list_backup"
         android:title="Backup"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/menu_account_list_settings"
         android:title="Settings"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom" />
 
     <item android:title="TEST MENU" />
 
@@ -45,4 +45,8 @@
     <item
         android:id="@+id/menu_add_test_2"
         android:title="Add test accounts 2" />
+
+    <item
+        android:id="@+id/menu_add_test_3"
+        android:title="Add test accounts 3" />
 </menu>
