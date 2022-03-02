@@ -278,9 +278,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
      * app's state
      */
     private fun updateViewMarginsAndConstraints(view: View) {
-        view.updateLayoutParams {
-            this as ConstraintLayout.LayoutParams
-
+        view.updateLayoutParams<ConstraintLayout.LayoutParams> {
             topMargin = if (showPins) 8.toDp().toInt() else 0
             verticalBias = if (showPins) 0F else 0.5F
         }

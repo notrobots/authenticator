@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Authenticator.ActionMode" parent="Widget.Material3.ActionMode">
+    <style name="ActionMode" parent="Widget.Material3.ActionMode">
         <item name="background">?attr/colorSurface</item>
     </style>
     <style name="IntroductionDescription">
@@ -53,5 +53,20 @@
     </style>
     <style name="AccountPin.Large">
         <item name="android:textSize">32sp</item>
+    </style>
+    <style name="PopupWindowContextMenuAnimation">
+        <item name="android:windowEnterAnimation">@anim/grow_from_top</item>
+        <item name="android:windowExitAnimation">@anim/shrink_from_bottom</item>
+    </style>
+    <style name="ContextMenuRow">
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">?android:attr/listPreferredItemPaddingStart</item>
+        <item name="android:paddingEnd">?android:attr/listPreferredItemPaddingEnd</item>
+        <item name="android:minHeight">?android:attr/listPreferredItemHeightSmall</item>
+    </style>
+    <style name="ContextMenuRow.Text">
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
     </style>
 </resources>

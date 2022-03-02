@@ -9,30 +9,90 @@
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/menu_account_list_toggle_pins"
-        android:title="Show/Hide pins"
-        app:showAsAction="ifRoom" />
+        android:id="@+id/menu_account_list_overflow"
+        android:icon="@drawable/ic_more"
+        android:title="More options"
+        app:showAsAction="always" />
 
-    <item
-        android:id="@+id/menu_account_list_toggle_icons"
-        android:title="Show/Hide icons"
-        app:showAsAction="ifRoom" />
+    <!--        <item-->
+    <!--            android:id="@+id/menu_account_list_toggle_pins"-->
+    <!--            android:title="Show/Hide pins"/>-->
 
-    <item
-        android:id="@+id/menu_account_list_backup"
-        android:title="Backup"
-        app:showAsAction="ifRoom" />
+    <!--    <item android:title="Sort mode">-->
+    <!--        <menu>-->
+    <!--            <group android:checkableBehavior="single">-->
+    <!--                <item-->
+    <!--                    android:id="@+id/menu_account_pin_show"-->
+    <!--                    android:title="Show" />-->
+    <!--                <item-->
+    <!--                    android:id="@+id/menu_account_pin_hide"-->
+    <!--                    android:title="Hide" />-->
+    <!--            </group>-->
+    <!--        </menu>-->
+    <!--    </item>-->
 
-    <item
-        android:id="@+id/menu_account_list_settings"
-        android:title="Settings"
-        app:showAsAction="ifRoom" />
+    <!--    <item android:title="Filter">-->
+    <!--        <menu>-->
+    <!--            <group android:checkableBehavior="single">-->
+    <!--                <item android:title="Tag1" />-->
+    <!--                <item android:title="Tag2" />-->
+    <!--                <item android:title="Tag3" />-->
+    <!--                <item android:title="Tag4" />-->
+    <!--                <item android:title="Tag5" />-->
+    <!--            </group>-->
+    <!--        </menu>-->
+    <!--    </item>-->
+
+    <!--    <item android:title="Pin visibility">-->
+    <!--        <menu>-->
+    <!--            <group android:checkableBehavior="single">-->
+    <!--                <item-->
+    <!--                    android:id="@+id/menu_account_pin_show"-->
+    <!--                    android:title="Show" />-->
+    <!--                <item-->
+    <!--                    android:id="@+id/menu_account_pin_hide"-->
+    <!--                    android:title="Hide" />-->
+    <!--            </group>-->
+    <!--        </menu>-->
+    <!--    </item>-->
+
+    <!--    <item android:title="Icon visibility">-->
+    <!--        <menu>-->
+    <!--            <group android:checkableBehavior="single">-->
+    <!--                <item-->
+    <!--                    android:id="@+id/menu_account_icon_show"-->
+    <!--                    android:title="Show" />-->
+    <!--                <item-->
+    <!--                    android:id="@+id/menu_account_icon_hide"-->
+    <!--                    android:title="Hide" />-->
+    <!--            </group>-->
+    <!--        </menu>-->
+    <!--    </item>-->
+
+    <!--    <item android:title="Backup">-->
+    <!--        <menu>-->
+    <!--            <item-->
+    <!--                android:id="@+id/menu_account_list_export"-->
+    <!--                android:title="Export" />-->
+    <!--            <item-->
+    <!--                android:id="@+id/menu_account_list_import"-->
+    <!--                android:title="Import" />-->
+    <!--        </menu>-->
+    <!--    </item>-->
+
+    <!--    <item-->
+    <!--        android:id="@+id/menu_account_list_settings"-->
+    <!--        android:title="Settings" />-->
 
     <item android:title="TEST MENU" />
 
     <item
         android:id="@+id/menu_clear"
         android:title="Clear" />
+
+    <item
+        android:id="@+id/menu_popup"
+        android:title="Popup test" />
 
     <item
         android:id="@+id/menu_refresh"

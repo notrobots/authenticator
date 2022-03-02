@@ -2,12 +2,14 @@ package dev.notrobots.authenticator.ui.accountlist
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.view.ActionMode
-import android.view.Menu
-import android.view.MenuItem
+import android.view.*
+import android.widget.LinearLayout
+import android.widget.PopupWindow
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.activity.viewModels
+import androidx.annotation.DrawableRes
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,18 +22,19 @@ import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ActivityAccountListBinding
+import dev.notrobots.authenticator.databinding.ViewAccountListOptionsBinding
 import dev.notrobots.authenticator.dialogs.*
-import dev.notrobots.authenticator.extensions.getShowIcons
-import dev.notrobots.authenticator.extensions.getShowPins
-import dev.notrobots.authenticator.extensions.setShowIcons
-import dev.notrobots.authenticator.extensions.setShowPins
+import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.backup.BackupActivity
 import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
+import dev.notrobots.authenticator.widget.GridMenu
+import dev.notrobots.authenticator.widget.GridMenuItem
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.coroutines.launch
+
 
 @AndroidEntryPoint
 class AccountListActivity : BaseActivity() {
@@ -94,7 +97,7 @@ class AccountListActivity : BaseActivity() {
     private var actionMode: ActionMode? = null
     private val actionModeCallback = object : ActionMode.Callback {
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-            menuInflater.inflate(R.menu.menu_account_list_item, menu)
+            menuInflater.inflate(R.menu.menu_account_list_edit, menu)
             actionMode = mode
             actionMode?.title = adapter.selectedItemCount.toString()
             adapter.editMode = true
@@ -147,7 +150,6 @@ class AccountListActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbarLayout.toolbar)
-
         doubleBackPressToExitEnabled = true
 
         binding.btnAddAccountQr.setOnClickListener {
@@ -202,23 +204,29 @@ class AccountListActivity : BaseActivity() {
     }
 
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
-        menu.findItem(R.id.menu_account_list_toggle_pins).title = if (adapter.showPins) {
-            "Hide pins"
-        } else {
-            "Show pins"
-        }
-
-        menu.findItem(R.id.menu_account_list_toggle_icons).title = if (adapter.showIcons) {
-            "Hide icons"
-        } else {
-            "Show icons"
-        }
+//        menu.findItem(R.id.menu_account_list_toggle_pins).title = if (adapter.showPins) {
+//            "Hide pins"
+//        } else {
+//            "Show pins"
+//        }
+//
+//        menu.findItem(R.id.menu_account_list_toggle_icons).title = if (adapter.showIcons) {
+//            "Hide icons"
+//        } else {
+//            "Show icons"
+//        }
 
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.menu_account_list_edit -> {
+                binding.toolbarLayout.toolbar.startActionMode(actionModeCallback)
+            }
+            R.id.menu_account_list_overflow -> {
+                showOptionsMenu()
+            }
             R.id.menu_clear -> {
                 lifecycleScope.launch {
                     viewModel.accountDao.deleteAll()
@@ -274,27 +282,45 @@ class AccountListActivity : BaseActivity() {
                     accounts.forEach { viewModel.insertAccount(it) }
                 }
             }
-            R.id.menu_account_list_edit -> {
-                binding.toolbarLayout.toolbar.startActionMode(actionModeCallback)
-            }
-            R.id.menu_account_list_toggle_pins -> {
-                val showPins = preferences.getShowPins(true)
-
-                adapter.showPins = !showPins
-                preferences.setShowPins(!showPins)
-            }
-            R.id.menu_account_list_toggle_icons -> {
-                val showIcons = preferences.getShowIcons(true)
-
-                adapter.showIcons = !showIcons
-                preferences.setShowIcons(!showIcons)
-            }
-            R.id.menu_account_list_backup -> {
-                startActivity(BackupActivity::class)
-            }
         }
 
         return true
+    }
+
+    /**
+     * Shows the custom options menu on the top right corner of the screen
+     */
+    private fun showOptionsMenu(): PopupWindow {
+        val popup = AccountListOptionsMenu(
+            this,
+            preferences.getSortMode(),
+            adapter.showIcons,
+            adapter.showPins
+        )
+
+        popup.setListener(object : AccountListOptionsMenu.Listener {
+            override fun onExport() {
+                //TODO: Bypass BackupActivity
+                startActivity(BackupActivity::class)
+            }
+
+            override fun onImport() {
+                //TODO: Bypass BackupActivity
+                startActivity(BackupActivity::class)
+            }
+        })
+        popup.setOnDismissListener {
+            preferences.setSortMode(popup.sortMode)
+            preferences.setShowIcons(popup.showIcons)
+            preferences.setShowPins(popup.showPins)
+
+            // adapter.sortMode = popup.sortMode
+            adapter.showIcons = popup.showIcons
+            adapter.showPins = popup.showPins
+        }
+        popup.show(binding.toolbarLayout.toolbar)
+
+        return popup
     }
 
     //endregion
@@ -329,6 +355,7 @@ class AccountListActivity : BaseActivity() {
         adapter.setListener(listAdapterListener)
         adapter.showIcons = preferences.getShowIcons(true)
         adapter.showPins = preferences.getShowPins(true)
+        //adapter.sortMode
 
         recyclerViewDragDropManager = RecyclerViewDragDropManager()
         recyclerViewDragDropManager.attachRecyclerView(list_accounts)
