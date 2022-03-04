@@ -1,6 +1,7 @@
 package dev.notrobots.authenticator.db
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.room.*
 import dev.notrobots.authenticator.models.Account
 
@@ -11,6 +12,27 @@ interface AccountDao {
 
     @Query("SELECT * FROM Account ORDER BY `order`")
     fun getAccountsLive(): LiveData<List<Account>>
+
+    @Query(
+        "SELECT * FROM Account ORDER BY " +
+        "CASE WHEN :direction = 0 THEN name END ASC," +
+        "CASE WHEN :direction = 1 THEN name END DESC"
+    )
+    fun getAccountsOrderedByName(direction: Int): LiveData<List<Account>>
+
+    @Query(
+        "SELECT * FROM Account ORDER BY " +
+        "CASE WHEN :direction = 0 THEN label END ASC," +
+        "CASE WHEN :direction = 1 THEN label END DESC"
+    )
+    fun getAccountsOrderedByLabel(direction: Int): LiveData<List<Account>>
+
+    @Query(
+        "SELECT * FROM Account ORDER BY " +
+        "CASE WHEN :direction = 0 THEN issuer END ASC," +
+        "CASE WHEN :direction = 1 THEN issuer END DESC"
+    )
+    fun getAccountsOrderedByIssuer(direction: Int): LiveData<List<Account>>
 
     @Query("SELECT * FROM Account WHERE id = :id")
     suspend fun getAccount(id: Long): Account?

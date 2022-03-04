@@ -176,6 +176,7 @@ class AccountListActivity : BaseActivity() {
 
         setupListAdapter()
 
+        viewModel.sortMode.value = preferences.getSortMode()
         viewModel.accounts.observe(this) {
             adapter.setItems(it)
         }
@@ -293,7 +294,7 @@ class AccountListActivity : BaseActivity() {
     private fun showOptionsMenu(): PopupWindow {
         val popup = AccountListOptionsMenu(
             this,
-            preferences.getSortMode(),
+            viewModel.sortMode.value ?: SortMode.Custom,
             adapter.showIcons,
             adapter.showPins
         )
@@ -314,9 +315,9 @@ class AccountListActivity : BaseActivity() {
             preferences.setShowIcons(popup.showIcons)
             preferences.setShowPins(popup.showPins)
 
-            // adapter.sortMode = popup.sortMode
             adapter.showIcons = popup.showIcons
             adapter.showPins = popup.showPins
+            viewModel.sortMode.value = popup.sortMode
         }
         popup.show(binding.toolbarLayout.toolbar)
 

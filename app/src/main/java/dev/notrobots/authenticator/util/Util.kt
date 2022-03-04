@@ -35,11 +35,3 @@ inline fun <reified T> lazyType(crossinline initializer: T.() -> Unit = {}): Laz
         emptyConstructor.call().apply(initializer)
     }
 }
-
-fun <T> makeLiveData(
-    context: CoroutineContext = EmptyCoroutineContext,
-    timeoutInMs: Long = 5000L,
-    block: suspend LiveDataScope<T>.() -> T
-): LiveData<T> = liveData(context, timeoutInMs) {
-    emit(block())
-}
