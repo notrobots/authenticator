@@ -47,77 +47,81 @@ class AccountListOptionsMenu(
         binding.sortOptions.selectionMode = GridMenu.SelectionMode.Single
         binding.sortOptions.addItem(
             "Name",
-            R.drawable.ic_sort_az,
+            SORT_NAME_ICON,
             SortModeChangeListener(
-                R.drawable.ic_sort_az_asc,
-                R.drawable.ic_sort_az_desc,
-                R.drawable.ic_sort_az,
+                SORT_NAME_ASC_ICON,
+                SORT_NAME_DESC_ICON,
+                SORT_NAME_ICON,
                 SortMode.NameAscending,
-                SortMode.NameDescending
+                SortMode.NameDescending,
+                sortMode
             )
         )
         binding.sortOptions.addItem(
             "Label",
-            R.drawable.ic_sort_az,
+            SORT_LABEL_ICON,
             SortModeChangeListener(
-                R.drawable.ic_sort_az_asc,
-                R.drawable.ic_sort_az_desc,
-                R.drawable.ic_sort_az,
+                SORT_LABEL_ASC_ICON,
+                SORT_LABEL_DESC_ICON,
+                SORT_LABEL_ICON,
                 SortMode.LabelAscending,
-                SortMode.LabelDescending
+                SortMode.LabelDescending,
+                sortMode
             )
         )
         binding.sortOptions.addItem(
             "Issuer",
-            R.drawable.ic_sort_az,
+            SORT_ISSUER_ICON,
             SortModeChangeListener(
-                R.drawable.ic_sort_az_asc,
-                R.drawable.ic_sort_az_desc,
-                R.drawable.ic_sort_az,
+                SORT_ISSUER_ASC_ICON,
+                SORT_ISSUER_DESC_ICON,
+                SORT_ISSUER_ICON,
                 SortMode.IssuerAscending,
-                SortMode.IssuerDescending
+                SortMode.IssuerDescending,
+                sortMode
             )
         )
         binding.sortOptions.addItem(   //FIXME: All items in the grid should have the same size
             "Custom",
-            R.drawable.ic_account,
+            SORT_CUSTOM_ICON,
             SortModeChangeListener(
-                R.drawable.ic_account,
-                R.drawable.ic_account,
-                R.drawable.ic_account,
+                SORT_CUSTOM_ICON,
+                SORT_CUSTOM_ICON,
+                SORT_CUSTOM_ICON,
                 SortMode.Custom,
-                SortMode.Custom
+                SortMode.Custom,
+                sortMode
             )
         )
 
         when (sortMode) {
             SortMode.Custom -> {
-                binding.sortOptions.setChecked(3)
-                binding.sortOptions.getItemAt(3).setIconResource(R.drawable.ic_account)
+                binding.sortOptions.setCheckedAt(3)
+                binding.sortOptions.getItemAt(3).setIconResource(SORT_CUSTOM_ICON)
             }
             SortMode.NameAscending -> {
-                binding.sortOptions.setChecked(0)
-                binding.sortOptions.getItemAt(0).setIconResource(R.drawable.ic_sort_az_asc)
+                binding.sortOptions.setCheckedAt(0)
+                binding.sortOptions.getItemAt(0).setIconResource(SORT_NAME_ASC_ICON)
             }
             SortMode.NameDescending -> {
-                binding.sortOptions.setChecked(0)
-                binding.sortOptions.getItemAt(0).setIconResource(R.drawable.ic_sort_az_desc)
+                binding.sortOptions.setCheckedAt(0)
+                binding.sortOptions.getItemAt(0).setIconResource(SORT_NAME_DESC_ICON)
             }
             SortMode.LabelAscending -> {
-                binding.sortOptions.setChecked(1)
-                binding.sortOptions.getItemAt(1).setIconResource(R.drawable.ic_sort_az_asc)
+                binding.sortOptions.setCheckedAt(1)
+                binding.sortOptions.getItemAt(1).setIconResource(SORT_LABEL_ASC_ICON)
             }
             SortMode.LabelDescending -> {
-                binding.sortOptions.setChecked(1)
-                binding.sortOptions.getItemAt(1).setIconResource(R.drawable.ic_sort_az_desc)
+                binding.sortOptions.setCheckedAt(1)
+                binding.sortOptions.getItemAt(1).setIconResource(SORT_LABEL_DESC_ICON)
             }
             SortMode.IssuerAscending -> {
-                binding.sortOptions.setChecked(2)
-                binding.sortOptions.getItemAt(2).setIconResource(R.drawable.ic_sort_az_asc)
+                binding.sortOptions.setCheckedAt(2)
+                binding.sortOptions.getItemAt(2).setIconResource(SORT_ISSUER_ASC_ICON)
             }
             SortMode.IssuerDescending -> {
-                binding.sortOptions.setChecked(2)
-                binding.sortOptions.getItemAt(2).setIconResource(R.drawable.ic_sort_az_desc)
+                binding.sortOptions.setCheckedAt(2)
+                binding.sortOptions.getItemAt(2).setIconResource(SORT_ISSUER_DESC_ICON)
             }
             SortMode.TagAscending -> TODO()
             SortMode.TagDescending -> TODO()
@@ -134,10 +138,10 @@ class AccountListOptionsMenu(
 
         binding.appearanceOptions.addItem(
             "Icons",
-            R.drawable.ic_image,
+            SHOW_ICONS_ICON,
             VisibilityToggleChangeListener(
-                R.drawable.ic_image,
-                R.drawable.ic_hide_image,
+                SHOW_ICONS_ICON,
+                HIDE_ICONS_ICON,
                 showIcons
             ) {
                 showIcons = it
@@ -145,17 +149,17 @@ class AccountListOptionsMenu(
         )
         binding.appearanceOptions.addItem(
             "Pins",
-            R.drawable.ic_image,
+            SHOW_PINS_ICON,
             VisibilityToggleChangeListener(
-                R.drawable.ic_image,
-                R.drawable.ic_hide_image,
+                SHOW_PINS_ICON,
+                HIDE_PINS_ICON,
                 showPins
             ) {
                 showPins = it
             }
         )
-        binding.appearanceOptions.getItemAt(0).setIconResource(if (showIcons) R.drawable.ic_image else R.drawable.ic_hide_image)
-        binding.appearanceOptions.getItemAt(1).setIconResource(if (showPins) R.drawable.ic_image else R.drawable.ic_hide_image)
+        binding.appearanceOptions.getItemAt(0).setIconResource(if (showIcons) SHOW_ICONS_ICON else HIDE_ICONS_ICON)
+        binding.appearanceOptions.getItemAt(1).setIconResource(if (showPins) SHOW_PINS_ICON else HIDE_PINS_ICON)
     }
 
     fun setListener(listener: Listener?) {
@@ -175,6 +179,20 @@ class AccountListOptionsMenu(
         private const val SORT_NONE = 0
         private const val SORT_ASCENDING = 1
         private const val SORT_DESCENDING = -1
+        private const val SHOW_ICONS_ICON = R.drawable.ic_image
+        private const val HIDE_ICONS_ICON = R.drawable.ic_hide_image
+        private const val SHOW_PINS_ICON = R.drawable.ic_image
+        private const val HIDE_PINS_ICON = R.drawable.ic_hide_image
+        private const val SORT_NAME_ICON = R.drawable.ic_sort_az
+        private const val SORT_NAME_ASC_ICON = R.drawable.ic_sort_az_asc
+        private const val SORT_NAME_DESC_ICON = R.drawable.ic_sort_az_desc
+        private const val SORT_LABEL_ICON = R.drawable.ic_sort_az
+        private const val SORT_LABEL_ASC_ICON = R.drawable.ic_sort_az_asc
+        private const val SORT_LABEL_DESC_ICON = R.drawable.ic_sort_az_desc
+        private const val SORT_ISSUER_ICON = R.drawable.ic_sort_az
+        private const val SORT_ISSUER_ASC_ICON = R.drawable.ic_sort_az_asc
+        private const val SORT_ISSUER_DESC_ICON = R.drawable.ic_sort_az_desc
+        private const val SORT_CUSTOM_ICON = R.drawable.ic_account
     }
 
     interface Listener {
@@ -183,8 +201,8 @@ class AccountListOptionsMenu(
     }
 
     private inner class VisibilityToggleChangeListener(
-        private @DrawableRes val visibleIcon: Int,
-        private @DrawableRes val hiddenIcon: Int,
+        @DrawableRes private val visibleIcon: Int,
+        @DrawableRes private val hiddenIcon: Int,
         initialState: Boolean,
         private val onUpdate: (value: Boolean) -> Unit
     ) : GridMenuItem.Listener {
@@ -202,14 +220,25 @@ class AccountListOptionsMenu(
     }
 
     private inner class SortModeChangeListener(
-        @DrawableRes val ascendingIcon: Int,
-        @DrawableRes val descendingIcon: Int,
-        @DrawableRes val uncheckedIcon: Int,
-        val ascendingSortMode: SortMode,
-        val descendingSortMode: SortMode
+        @DrawableRes private val ascendingIcon: Int,
+        @DrawableRes private val descendingIcon: Int,
+        @DrawableRes private val uncheckedIcon: Int,
+        private val ascendingSortMode: SortMode,
+        private val descendingSortMode: SortMode,
+        initialSortMode: SortMode
     ) : GridMenuItem.Listener {
-        private var sortDirection = SORT_ASCENDING
+        private var sortDirection: Int
         private var checkedState = false
+
+        init {
+            sortDirection = if (initialSortMode == ascendingSortMode) {
+                SORT_ASCENDING
+            } else if (initialSortMode == descendingSortMode) {
+                SORT_DESCENDING
+            } else {
+                SORT_ASCENDING
+            }
+        }
 
         override fun onItemChecked(item: GridMenuItem, checkedState: Boolean) {
             if (checkedState) {

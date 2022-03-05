@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.GridLayout
 import androidx.annotation.DrawableRes
+import androidx.annotation.IdRes
 import androidx.core.view.children
 
 /**
@@ -93,7 +94,15 @@ class GridMenu(
         })
     }
 
-    fun setChecked(position: Int) {
+    fun setChecked(@IdRes id: Int) {
+        val view = children.find { it.id == id }
+
+        requireNotNull(view) { "Cannot find a child with the given id" }
+
+        setChecked(view as GridMenuItem)
+    }
+
+    fun setCheckedAt(position: Int) {
         setChecked(getItemAt(position))
     }
 

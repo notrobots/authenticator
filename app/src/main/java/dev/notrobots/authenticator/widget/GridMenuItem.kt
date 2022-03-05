@@ -21,7 +21,7 @@ class GridMenuItem(
     private var isChecked = false
 
     /**
-     * Title of this menu item
+     * Title of this menu item.
      */
     var title: String
         get() = binding.title.text.toString()
@@ -30,13 +30,17 @@ class GridMenuItem(
         }
 
     /**
-     * Icon of this menu item
+     * Icon of this menu item.
      */
     var icon: Drawable?
         get() = binding.icon.drawable
         set(value) {
             binding.icon.setImageDrawable(value)
         }
+
+    /**
+     * This view's main listener.
+     */
     var listener: Listener? = null
 
     init {
