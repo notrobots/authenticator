@@ -177,6 +177,9 @@ class AccountListActivity : BaseActivity() {
         setupListAdapter()
 
         viewModel.sortMode.value = preferences.getSortMode()
+        viewModel.sortMode.observe(this) {
+            adapter.sortMode = it
+        }
         viewModel.accounts.observe(this) {
             adapter.setItems(it)
         }

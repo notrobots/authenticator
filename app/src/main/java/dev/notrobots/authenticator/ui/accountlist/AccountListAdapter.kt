@@ -40,6 +40,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
             field = value
             notifyDataSetChanged()
         }
+    var sortMode: SortMode = SortMode.Custom
     var showIcons: Boolean = true
         set(value) {
             field = value
@@ -174,6 +175,12 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
     //region Drag&Drop
 
     override fun onCheckCanStartDrag(holder: AccountViewHolder, position: Int, x: Int, y: Int): Boolean {
+        // Item can only be dragged if the sort mode is set to Custom
+        if (sortMode != SortMode.Custom) {
+            holder.itemView.context.makeToast("Change sort mode to Custom to reorder the items")
+            return false
+        }
+
         // Item can only be dragged if the adapter is in Item edit mode
         if (!editMode) {
             return false
