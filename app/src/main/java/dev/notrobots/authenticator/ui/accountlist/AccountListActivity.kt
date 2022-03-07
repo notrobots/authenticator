@@ -30,7 +30,6 @@ import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.coroutines.launch
 
-
 @AndroidEntryPoint
 class AccountListActivity : BaseActivity() {
     private val viewModel by viewModels<AccountListViewModel>()
