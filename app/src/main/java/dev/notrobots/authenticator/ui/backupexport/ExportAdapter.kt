@@ -4,12 +4,11 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import dev.notrobots.androidstuff.widget.BindableViewHolder
 import dev.notrobots.authenticator.R
-import dev.notrobots.authenticator.databinding.ItemExportBinding
+import dev.notrobots.authenticator.databinding.ItemExportRowBinding
 import dev.notrobots.authenticator.models.Account
 
-class ExportAdapter(
-    private val items: List<Account>
-) : RecyclerView.Adapter<ExportAdapter.ViewHolder>() {
+class ExportAdapter : RecyclerView.Adapter<ExportAdapter.ViewHolder>() {
+    private val items = mutableListOf<Account>()
     private val checkedStates = mutableMapOf<Account, Boolean>()
     val checkedItems
         get() = checkedStates
@@ -17,7 +16,7 @@ class ExportAdapter(
             .map { it.key }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(R.layout.item_export, parent)
+        return ViewHolder(R.layout.item_export_row, parent)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -43,9 +42,22 @@ class ExportAdapter(
         return items.size
     }
 
-    class ViewHolder(layoutRes: Int, parent: ViewGroup) : BindableViewHolder<ItemExportBinding>(
+    fun setItems(items: List<Account>) {
+        this.items.clear()
+        this.items.addAll(items)
+        notifyDataSetChanged()
+    }
+
+    fun selectAll() {
+        for (key in checkedStates.keys) {
+            checkedStates[key] = true
+        }
+        notifyDataSetChanged()
+    }
+
+    class ViewHolder(layoutRes: Int, parent: ViewGroup) : BindableViewHolder<ItemExportRowBinding>(
         layoutRes,
         parent,
-        ItemExportBinding::class
+        ItemExportRowBinding::class
     )
 }

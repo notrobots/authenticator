@@ -23,6 +23,7 @@ import dev.notrobots.authenticator.dialogs.*
 import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
+import dev.notrobots.authenticator.ui.backupexport.ExportActivity
 import dev.notrobots.authenticator.ui.backupexportconfig.ExportConfigActivity
 import dev.notrobots.authenticator.ui.backupimport.ImportActivity
 import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
@@ -282,16 +283,10 @@ class AccountListActivity : BaseActivity() {
 
         popup.setListener(object : AccountListOptionsMenu.Listener {
             override fun onExport() {
-                lifecycleScope.launch {
-                    val items = ArrayList(viewModel.accounts.value ?: emptyList())
-
-                    if (items.isNotEmpty()) {
-                        startActivity(ExportConfigActivity::class) {
-                            putExtra(ExportConfigActivity.EXTRA_ITEMS, items)
-                        }
-                    } else {
-                        makeSnackBar("Nothing to export", binding.root)
-                    }
+                if (viewModel.accounts.value?.isNotEmpty() == true) {
+                    startActivity(ExportActivity::class)
+                } else {
+                    makeSnackBar("Nothing to export", binding.root)
                 }
             }
 
