@@ -12,16 +12,14 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="18dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <TextView
             android:id="@+id/description"
             style="@style/IntroductionDescription"
-            android:layout_marginTop="6dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Select all the accounts that you want to export"
+            android:text="Select the accounts that you want to export"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -40,6 +38,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/label_next"
+            android:layout_margin="18dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 

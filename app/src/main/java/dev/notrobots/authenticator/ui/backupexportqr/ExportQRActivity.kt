@@ -11,12 +11,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.documentfile.provider.DocumentFile
 import dev.notrobots.androidstuff.extensions.*
-import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.androidstuff.util.now
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ActivityExportQrBinding
 import dev.notrobots.authenticator.models.QRCode
-import dev.notrobots.authenticator.models.QRCodeStyle
 import dev.notrobots.authenticator.views.ImageSlider
 import org.apache.commons.codec.binary.Base64
 import java.io.ByteArrayOutputStream
@@ -46,24 +44,20 @@ class ExportQRActivity : AppCompatActivity() {
     }
     private var qrCodes: List<QRCode> = emptyList()
     private var currentQRCode = 0
-    private var qrStyle = QRCodeStyle.Default
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
 
-        val uris = intent.getSerializableExtra(EXTRA_QR_CODES) as List<Uri>
-
-        qrStyle = intent.getSerializableExtra(EXTRA_QR_STYLE) as QRCodeStyle
-        qrCodes = uris.map { QRCode(it) }
+        qrCodes = intent.getSerializableExtra(EXTRA_QR_CODES) as List<QRCode>
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
         binding.imageSlider.indicatorView?.disable()
-        binding.imageSlider.setImageBitmaps(qrCodes.map { it.toBitmap(qrStyle) })
+        binding.imageSlider.setImageBitmaps(qrCodes.map { it.toBitmap() })
         binding.done.setOnClickListener {
             finish()    //FIXME: Back to MainActivity
         }
@@ -119,7 +113,7 @@ class ExportQRActivity : AppCompatActivity() {
      */
     private fun saveQRCode(qrCode: QRCode, location: Uri) {
         val stream = contentResolver.openOutputStream(location)
-        val bitmap = qrCode.toBitmap(qrStyle)
+        val bitmap = qrCode.toBitmap()
 
         try {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
@@ -167,6 +161,5 @@ class ExportQRActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_QR_CODES = "ExportQRActivity.QR_CODES"
-        const val EXTRA_QR_STYLE = "ExportQRActivity.QR_STYLE"
     }
 }

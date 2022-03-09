@@ -43,27 +43,19 @@ object AccountExporter {
     }
 
     fun exportText(accounts: List<Account>): String {
-        return exportProtobuf(accounts, 0).joinToString("\n")
+        return exportProtobuf(accounts, QR_MAX_BYTES).joinToString("\n")
     }
 
-    fun exportQRs(accounts: List<Account>): List<QRCode> {
-        return exportQRUris(accounts).map { QRCode(it.toString(), QR_BITMAP_SIZE) }
-    }
-
-    fun exportQRUris(accounts: List<Account>): List<Uri> {
-        return exportProtobuf(accounts, QR_MAX_BYTES)
+    fun exportQR(accounts: List<Account>): List<QRCode> {
+        return exportProtobuf(accounts).map { QRCode(it.toString(), QR_BITMAP_SIZE) }
     }
 
     fun exportPlainText(accounts: List<Account>): String {
         return exportUris(accounts).joinToString("\n")
     }
 
-    fun exportPlainQRs(accounts: List<Account>): List<QRCode> {
+    fun exportPlainQR(accounts: List<Account>): List<QRCode> {
         return exportUris(accounts).map { QRCode(it.toString(), QR_BITMAP_SIZE) }
-    }
-
-    fun exportPlainQRUris(accounts: List<Account>): List<Uri> {
-        return exportUris(accounts)
     }
 
     fun exportJson(accounts: List<Account>, tags: List<Any>): JSONObject {
@@ -313,7 +305,7 @@ object AccountExporter {
         return false
     }
 
-    private fun exportProtobuf(accounts: List<Account>, maxBytes: Int): List<Uri> {
+    private fun exportProtobuf(accounts: List<Account>, maxBytes: Int = 0): List<Uri> {
         val chunk = mutableSetOf<MessageLite>()
         var chunkSize = 0
         val uris = mutableListOf<Uri>()

@@ -12,6 +12,7 @@ enum class BackupFormat {
      * otpauth://backup?data={SERIALIZED_DATA}
      * ```
      */
+    @Deprecated("Use BackupFormat.QR")
     Text,
 
     /**

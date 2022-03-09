@@ -3,23 +3,26 @@
     <style name="ActionMode" parent="Widget.Material3.ActionMode">
         <item name="background">?attr/colorSurface</item>
     </style>
+    <!--    TODO: Rename to TutorialDescription -->
     <style name="IntroductionDescription">
         <item name="android:layout_gravity">center</item>
-        <item name="android:layout_marginStart">18dp</item>
+        <item name="android:layout_marginStart">26dp</item>
         <item name="android:layout_marginTop">18dp</item>
-        <item name="android:layout_marginEnd">18dp</item>
+        <item name="android:layout_marginEnd">26dp</item>
         <item name="android:paddingBottom">18dp</item>
         <item name="android:gravity">center</item>
         <item name="android:textAppearance">@style/TextAppearance.Material3.BodyLarge</item>
         <item name="android:textColor">@color/google_grey900</item>
         <item name="android:textSize">20sp</item>
     </style>
+
     <style name="IntroductionOptions">
-        <item name="android:layout_marginStart">16dp</item>
-        <item name="android:layout_marginEnd">16dp</item>
+        <item name="android:layout_marginStart">24dp</item>
+        <item name="android:layout_marginEnd">24dp</item>
         <item name="android:layout_marginTop">16dp</item>
         <item name="android:layout_marginBottom">24dp</item>
     </style>
+
     <style name="AccountLabel">
         <item name="android:includeFontPadding">false</item>
         <item name="android:fontFamily">sans-serif</item>
@@ -29,6 +32,7 @@
         <item name="android:textColor">?android:attr/textColorPrimary</item>
         <item name="android:textSize">18sp</item>
     </style>
+
     <style name="AccountName">
         <item name="android:includeFontPadding">false</item>
         <item name="android:fontFamily">sans-serif</item>
@@ -37,6 +41,7 @@
         <item name="android:letterSpacing">0.02</item>
         <item name="android:textSize">14sp</item>
     </style>
+
     <style name="AccountPin">
         <item name="android:textColor">?attr/colorPrimary</item>
         <item name="android:includeFontPadding">false</item>
@@ -45,25 +50,31 @@
         <item name="android:ellipsize">end</item>
         <item name="maxLines">1</item>
     </style>
+
     <style name="AccountPin.Small">
         <item name="android:textSize">20sp</item>
     </style>
+
     <style name="AccountPin.Medium">
         <item name="android:textSize">26sp</item>
     </style>
+
     <style name="AccountPin.Large">
         <item name="android:textSize">32sp</item>
     </style>
+
     <style name="PopupWindowContextMenuAnimation">
         <item name="android:windowEnterAnimation">@anim/grow_from_top</item>
         <item name="android:windowExitAnimation">@anim/shrink_from_bottom</item>
     </style>
+
     <style name="ContextMenuRow">
         <item name="android:gravity">center_vertical</item>
         <item name="android:paddingStart">?android:attr/listPreferredItemPaddingStart</item>
         <item name="android:paddingEnd">?android:attr/listPreferredItemPaddingEnd</item>
         <item name="android:minHeight">?android:attr/listPreferredItemHeightSmall</item>
     </style>
+
     <style name="ContextMenuRow.Text">
         <item name="android:background">?attr/selectableItemBackground</item>
         <item name="android:clickable">true</item>

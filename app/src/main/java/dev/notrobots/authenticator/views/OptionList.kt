@@ -26,7 +26,7 @@ class OptionList(
 ) : FrameLayout(context, attrs, defStyleAttr) {
     private val options = mutableListOf<Option>()
     private val adapter = OptionAdapter(context)
-    private val binding by viewBindings<ViewOptionlistBinding>(context)
+    private val binding: ViewOptionlistBinding
 
     /**
      * Text appearance of each of the option's title
@@ -56,12 +56,12 @@ class OptionList(
         }
 
     init {
+        binding = ViewOptionlistBinding.inflate(LayoutInflater.from(context), this, true)
+
         binding.optionList.adapter = adapter
         binding.optionList.setOnItemClickListener { _, _, position, _ ->
             options[position].listener()
         }
-
-        addView(binding.root)
 
         titleTextAppearance = titleTextAppearance
         descriptionTextAppearance = descriptionTextAppearance
@@ -78,6 +78,14 @@ class OptionList(
             getResourceIdOrNull(R.styleable.OptionList_option_descriptionTextAppearance)?.let {
                 descriptionTextAppearance = it
             }
+        }
+
+        if (isInEditMode) {
+            val description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed iaculis laoreet scelerisque. Quisque sed lorem ornare, sagittis erat et, finibus nisl. Cras ac finibus dolor. "
+
+            addOption("Option 1", description, R.drawable.ic_account)
+            addOption("Option 2", description, R.drawable.ic_file)
+            addOption("Option 3", description, R.drawable.ic_info)
         }
     }
 
