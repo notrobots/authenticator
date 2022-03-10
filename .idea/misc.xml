@@ -10,23 +10,31 @@
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_add.xml" value="0.1825" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_add_account.xml" value="0.228" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_back.xml" value="0.1825" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_check.xml" value="0.269" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_chevron_right.xml" value="0.235" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_database_export.xml" value="0.2375" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_database_import.xml" value="0.2375" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_dehaze.xml" value="0.1" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_discord.xml" value="0.1" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_edit.xml" value="0.1" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_error.xml" value="0.2375" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_eye.xml" value="0.235" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_file.xml" value="0.122" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_github.xml" value="0.1" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_google.xml" value="0.1" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_group.xml" value="0.2375" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_hide_image.xml" value="0.2345" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_image.xml" value="0.2345" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_info.xml" value="0.1" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_json.xml" value="0.1" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_launcher_background.xml" value="0.2375" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_more.xml" value="0.2095" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_replace.xml" value="0.2375" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_skip.xml" value="0.2375" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_sort_az.xml" value="0.235" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_sort_az_asc.xml" value="0.112" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_sort_az_desc.xml" value="0.1" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_steam.xml" value="0.112" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout-land/activity_backup.xml" value="0.2984375" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_account.xml" value="0.34831460674157305" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_account_list.xml" value="0.35520833333333335" />

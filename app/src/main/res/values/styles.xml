@@ -80,4 +80,18 @@
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
     </style>
+
+    <style name="FloatingActionMenu">
+        <item name="menu_colorNormal">?attr/colorPrimary</item>
+        <item name="menu_colorPressed">?attr/colorPrimary</item>
+        <item name="menu_colorRipple">#68FFFFFF</item>
+        <item name="android:layout_margin">16dp</item>
+    </style>
+
+    <style name="FloatingActionButton">
+        <item name="fab_colorNormal">?attr/colorPrimary</item>
+        <item name="fab_colorPressed">?attr/colorPrimary</item>
+        <item name="fab_colorRipple">#68FFFFFF</item>
+        <item name="android:layout_margin">16dp</item>
+    </style>
 </resources>
