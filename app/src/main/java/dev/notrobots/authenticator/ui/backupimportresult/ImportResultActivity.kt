@@ -2,6 +2,8 @@ package dev.notrobots.authenticator.ui.backupimportresult
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -11,6 +13,7 @@ import dev.notrobots.androidstuff.extensions.showChoice
 import dev.notrobots.androidstuff.extensions.showInfo
 import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.util.viewBindings
+import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ActivityImportResultBinding
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.util.AccountExporter
@@ -22,6 +25,8 @@ import kotlinx.coroutines.launch
 class ImportResultActivity : AppCompatActivity() {
     private val binding by viewBindings<ActivityImportResultBinding>(this)
     private val viewModel by viewModels<AccountListViewModel>()
+    private val importResults = mutableListOf<ImportResult>()
+    private val adapter = ImportResultAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,44 +34,12 @@ class ImportResultActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbarLayout.toolbar)
 
         val data = intent.getSerializableExtra(EXTRA_DATA) as AccountExporter.ImportedData
-        val importResults = mutableListOf<ImportResult>()
-        val adapter = ImportResultAdapter()
 
         title = null
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbarLayout.toolbar.setNavigationOnClickListener { finish() }
         binding.list.layoutManager = LinearLayoutManager(this@ImportResultActivity)
         binding.list.adapter = adapter
-
-        lifecycleScope.launch {
-            for (account in data.accounts) {
-                val result = ImportResult(
-                    account,
-                    viewModel.accountDao.exists(account)
-                )
-
-                importResults.add(result)
-            }
-
-            adapter.setItems(importResults)
-        }
-
-        binding.skipAll.setOnClickListener {
-            for (result in importResults) {
-                if (result.isDuplicate) {
-                    result.importStrategy = ImportStrategy.Skip
-                }
-            }
-            adapter.notifyDataSetChanged()
-        }
-        binding.replaceAll.setOnClickListener {
-            for (result in importResults) {
-                if (result.isDuplicate) {
-                    result.importStrategy = ImportStrategy.Replace
-                }
-            }
-            adapter.notifyDataSetChanged()
-        }
         binding.done.setOnClickListener {
             val isNotResolved = { r: ImportResult ->
                 r.isDuplicate && r.importStrategy == ImportStrategy.Default
@@ -86,6 +59,49 @@ class ImportResultActivity : AppCompatActivity() {
                 importItems(importResults)
             }
         }
+
+        lifecycleScope.launch {
+            for (account in data.accounts) {
+                val result = ImportResult(
+                    account,
+                    viewModel.accountDao.exists(account)
+                )
+
+                importResults.add(result)
+            }
+
+            adapter.setItems(importResults)
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_import_result, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.menu_import_skip_all -> {
+                for (result in importResults) {
+                    if (result.isDuplicate) {
+                        result.importStrategy = ImportStrategy.Skip
+                    }
+                }
+                adapter.notifyDataSetChanged()
+            }
+            R.id.menu_import_replace_all -> {
+                for (result in importResults) {
+                    if (result.isDuplicate) {
+                        result.importStrategy = ImportStrategy.Replace
+                    }
+                }
+                adapter.notifyDataSetChanged()
+            }
+
+            else -> return false
+        }
+
+        return true
     }
 
     private fun importItems(importResults: List<ImportResult>) {

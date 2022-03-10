@@ -112,7 +112,7 @@ class ImportActivity : ThemedActivity() {
         binding.options.addOption(
             "File",
             "Load a text or image file",
-            R.drawable.ic_qr
+            R.drawable.ic_file
         ) {
             val types = arrayOf(
                 "image/*",  //TODO: Specify the image type
@@ -124,7 +124,7 @@ class ImportActivity : ThemedActivity() {
         binding.options.addOption(
             "Text",
             "Input a string",
-            R.drawable.ic_qr
+            R.drawable.ic_link
         ) {
             AddAccountUriDialog(supportFragmentManager) { data, dialog ->
                 try {

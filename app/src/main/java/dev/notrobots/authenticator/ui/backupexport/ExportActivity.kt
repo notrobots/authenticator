@@ -6,22 +6,17 @@ import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.makeSnackBar
-import dev.notrobots.androidstuff.extensions.resolveColorAttribute
 import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.extensions.viewBindings
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ActivityExportBinding
-import dev.notrobots.authenticator.db.AccountDao
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
 import dev.notrobots.authenticator.ui.backupexportconfig.ExportConfigActivity
-import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ExportActivity : AppCompatActivity() {
@@ -61,7 +56,7 @@ class ExportActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_export_activity, menu)
+        menuInflater.inflate(R.menu.menu_export, menu)
 
         return true
     }
