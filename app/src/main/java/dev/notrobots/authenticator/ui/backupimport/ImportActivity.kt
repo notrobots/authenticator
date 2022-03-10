@@ -94,9 +94,11 @@ class ImportActivity : ThemedActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        setSupportActionBar(binding.toolbarLayout.toolbar)
 
-        title = "Import backup"
+        title = null
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        binding.toolbarLayout.toolbar.setNavigationOnClickListener { finish() }
 
         binding.options.addOption(
             "QR Code",
@@ -132,17 +134,6 @@ class ImportActivity : ThemedActivity() {
                     dialog.error = e.message
                 }
             }
-        }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            android.R.id.home -> {
-                finish()
-                true
-            }
-
-            else -> false
         }
     }
 

@@ -53,9 +53,7 @@ class ExportQRActivity : AppCompatActivity() {
         qrCodes = intent.getSerializableExtra(EXTRA_QR_CODES) as List<QRCode>
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        binding.toolbar.setNavigationOnClickListener {
-            finish()
-        }
+        binding.toolbar.setNavigationOnClickListener { onBackPressed() }    //TODO: Why onBackPressed?
         binding.imageSlider.indicatorView?.disable()
         binding.imageSlider.setImageBitmaps(qrCodes.map { it.toBitmap() })
         binding.done.setOnClickListener {
@@ -90,9 +88,6 @@ class ExportQRActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            android.R.id.home -> {
-                onBackPressed()
-            }
             R.id.menu_export_copy -> {
                 copyToClipboard(qrCodes.joinToString("\n"))
                 makeToast("Copied to clipboard")

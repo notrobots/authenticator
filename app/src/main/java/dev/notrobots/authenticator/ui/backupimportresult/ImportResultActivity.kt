@@ -26,11 +26,15 @@ class ImportResultActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        setSupportActionBar(binding.toolbarLayout.toolbar)
 
         val data = intent.getSerializableExtra(EXTRA_DATA) as AccountExporter.ImportedData
         val importResults = mutableListOf<ImportResult>()
         val adapter = ImportResultAdapter()
 
+        title = null
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        binding.toolbarLayout.toolbar.setNavigationOnClickListener { finish() }
         binding.list.layoutManager = LinearLayoutManager(this@ImportResultActivity)
         binding.list.adapter = adapter
 

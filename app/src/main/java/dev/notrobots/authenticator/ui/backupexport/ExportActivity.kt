@@ -33,8 +33,10 @@ class ExportActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbarLayout.toolbar)
+
         title = null
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        binding.toolbarLayout.toolbar.setNavigationOnClickListener { finish() }
 
         viewModel.accounts.observe(this, object : Observer<List<Account>> {
             override fun onChanged(t: List<Account>) {
@@ -66,9 +68,6 @@ class ExportActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            android.R.id.home -> {
-                finish()
-            }
             R.id.menu_export_select_all -> {
                 adapter.selectAll()
             }
