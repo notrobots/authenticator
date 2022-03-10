@@ -1,6 +1,7 @@
 package dev.notrobots.authenticator.models
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import dev.notrobots.authenticator.util.AccountExporter
 import org.junit.Test
 import org.junit.runner.RunWith
 

@@ -8,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -25,6 +24,7 @@ import dev.notrobots.authenticator.databinding.ItemAccountBinding
 import dev.notrobots.authenticator.extensions.toDp
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.accountlist.AccountListAdapter.AccountViewHolder
+import dev.notrobots.authenticator.util.OTPGenerator
 import dev.notrobots.authenticator.util.ViewUtil
 import java.util.*
 import java.util.concurrent.TimeUnit

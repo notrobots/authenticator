@@ -13,7 +13,7 @@ import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.util.viewBindings
 import dev.notrobots.authenticator.databinding.ActivityImportResultBinding
 import dev.notrobots.authenticator.models.Account
-import dev.notrobots.authenticator.models.AccountExporter
+import dev.notrobots.authenticator.util.AccountExporter
 import dev.notrobots.authenticator.ui.accountlist.AccountListActivity
 import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
 import kotlinx.coroutines.launch

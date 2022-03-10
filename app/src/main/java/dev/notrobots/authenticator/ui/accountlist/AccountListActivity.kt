@@ -24,10 +24,11 @@ import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.backupexport.ExportActivity
-import dev.notrobots.authenticator.ui.backupexportconfig.ExportConfigActivity
 import dev.notrobots.authenticator.ui.backupimport.ImportActivity
 import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
+import dev.notrobots.authenticator.util.AccountExporter
+import dev.notrobots.authenticator.util.OTPGenerator
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.coroutines.launch
 

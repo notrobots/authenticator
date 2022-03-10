@@ -10,6 +10,7 @@ import dev.notrobots.authenticator.databinding.ActivityExportConfigBinding
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.backupexportqr.ExportQRActivity
 import dev.notrobots.authenticator.ui.backupexporttext.ExportTextActivity
+import dev.notrobots.authenticator.util.AccountExporter
 
 class ExportConfigActivity : AppCompatActivity() {
     private val binding by viewBindings<ActivityExportConfigBinding>()

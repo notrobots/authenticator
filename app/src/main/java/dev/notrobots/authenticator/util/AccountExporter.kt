@@ -1,4 +1,4 @@
-package dev.notrobots.authenticator.models
+package dev.notrobots.authenticator.util
 
 import android.net.Uri
 import com.google.protobuf.ByteString
@@ -7,9 +7,11 @@ import dev.notrobots.androidstuff.util.parseEnum
 import dev.notrobots.authenticator.extensions.contains
 import dev.notrobots.authenticator.extensions.get
 import dev.notrobots.authenticator.extensions.isOnlySpaces
+import dev.notrobots.authenticator.models.Account
+import dev.notrobots.authenticator.models.OTPType
+import dev.notrobots.authenticator.models.QRCode
 import dev.notrobots.authenticator.proto.Authenticator.*
 import dev.notrobots.authenticator.proto.GoogleAuthenticator.*
-import dev.notrobots.authenticator.util.isValidBase32
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
 import org.apache.commons.codec.binary.Base32
 import org.apache.commons.codec.binary.Base64
@@ -39,7 +41,7 @@ object AccountExporter {
     const val OTP_ORDER = "order"
 
     fun exportUris(accounts: List<Account>): List<Uri> {
-        return accounts.map(::parseUri)
+        return accounts.map(AccountExporter::parseUri)
     }
 
     fun exportText(accounts: List<Account>): String {

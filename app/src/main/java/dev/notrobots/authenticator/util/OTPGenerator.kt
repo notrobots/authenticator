@@ -1,6 +1,8 @@
-package dev.notrobots.authenticator.models
+package dev.notrobots.authenticator.util
 
 import dev.notrobots.androidstuff.util.now
+import dev.notrobots.authenticator.models.Account
+import dev.notrobots.authenticator.models.OTPType
 import dev.turingcomplete.kotlinonetimepassword.*
 import org.apache.commons.codec.binary.Base32
 import java.util.concurrent.TimeUnit
