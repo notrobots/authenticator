@@ -1,16 +1,22 @@
 package dev.notrobots.authenticator.ui.barcode
 
 import android.Manifest
-import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.DisplayMetrics
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
 import androidx.activity.viewModels
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.marginEnd
+import androidx.core.view.updateLayoutParams
 import com.google.mlkit.vision.barcode.Barcode
 import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
@@ -18,7 +24,12 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import dev.notrobots.androidstuff.activities.ThemedActivity
 import dev.notrobots.androidstuff.extensions.makeToast
+import dev.notrobots.androidstuff.extensions.viewBindings
 import dev.notrobots.androidstuff.util.loge
+import dev.notrobots.authenticator.databinding.ActivityBarcodeScannerBinding
+import dev.notrobots.authenticator.databinding.ItemBarcodeScannerResultBinding
+import dev.notrobots.authenticator.extensions.toPx
+import dev.notrobots.authenticator.models.QRCode
 import kotlinx.android.synthetic.main.activity_barcode_scanner.*
 import java.util.concurrent.Executors
 import kotlin.math.abs
@@ -38,12 +49,15 @@ class BarcodeScannerActivity : ThemedActivity(), ImageAnalysis.Analyzer {
     private var imageAnalysis: ImageAnalysis? = null
     private var barcodeScanner: BarcodeScanner? = null
     private val viewModel by viewModels<BarcodeScannerViewModel>()
+    private val binding by viewBindings<ActivityBarcodeScannerBinding>()
     private val screenAspectRatio: Int
         get() {
             val metrics = DisplayMetrics().also { camera_preview.display.getRealMetrics(it) }
 
             return aspectRatio(metrics.widthPixels, metrics.heightPixels)
         }
+    private val scanResults = mutableSetOf<String?>()
+    private var multiScanEnabled = true
 
     override fun onResume() {
         super.onResume()
@@ -53,8 +67,26 @@ class BarcodeScannerActivity : ThemedActivity(), ImageAnalysis.Analyzer {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setFullscreen()
-        setContentView(dev.notrobots.authenticator.R.layout.activity_barcode_scanner)
+        setContentView(binding.root)
         setupCamera()
+
+        val multiScanVisibility = if (multiScanEnabled) View.VISIBLE else View.GONE
+
+        multiScanEnabled = intent.getBooleanExtra(EXTRA_MULTI_SCAN, false)
+
+        binding.scanResultList.visibility = multiScanVisibility
+        binding.importScanResult.visibility = multiScanVisibility
+        binding.importScanResult.setOnClickListener {
+            if (scanResults.isNotEmpty()) {
+                setResultsAndFinish()
+            } else {
+                makeToast("Please scan at least one QR code")
+            }
+        }
+        binding.scanResultScrollView.visibility = multiScanVisibility
+        binding.back.setOnClickListener {
+            finish()
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -73,7 +105,7 @@ class BarcodeScannerActivity : ThemedActivity(), ImageAnalysis.Analyzer {
         }
     }
 
-    @androidx.camera.core.ExperimentalGetImage
+    @ExperimentalGetImage
     override fun analyze(image: ImageProxy) {
         val inputImage = InputImage.fromMediaImage(image.image!!, image.imageInfo.rotationDegrees)
         val task = barcodeScanner?.process(inputImage)
@@ -81,12 +113,37 @@ class BarcodeScannerActivity : ThemedActivity(), ImageAnalysis.Analyzer {
         if (task != null) {
             task.addOnSuccessListener {
                 if (it.size >= 1) {
-                    val data = Intent().apply {
-                        putExtra(EXTRA_QR_DATA, it.first().rawValue)
-                    }
+                    val value = it.first().rawValue
 
-                    setResult(Activity.RESULT_OK, data)
-                    finish()
+                    if (multiScanEnabled) {
+                        if (value !in scanResults) {
+                            val importResultView = ItemBarcodeScannerResultBinding.inflate(layoutInflater)
+                            val qrCode = QRCode(value ?: "", 150)
+                            val params = LinearLayout.LayoutParams(
+                                60.toPx().toInt(),
+                                60.toPx().toInt()
+                            ).apply {
+                                marginStart = 4.toPx().toInt()
+                                marginEnd = 4.toPx().toInt()
+                            }
+
+                            importResultView.root.layoutParams = params
+                            importResultView.image.setImageBitmap(qrCode.toBitmap())
+                            importResultView.remove.setOnClickListener {
+                                binding.scanResultList.removeView(importResultView.root)
+                                scanResults.remove(value)
+                            }
+
+                            binding.scanResultList.post {
+                                binding.scanResultScrollView.fullScroll(View.FOCUS_RIGHT)
+                            }
+                            binding.scanResultList.addView(importResultView.root)
+                            scanResults.add(value)
+                        }
+                    } else {
+                        scanResults.add(value)
+                        setResultsAndFinish()
+                    }
                 }
             }
             task.addOnFailureListener {
@@ -190,10 +247,20 @@ class BarcodeScannerActivity : ThemedActivity(), ImageAnalysis.Analyzer {
         )
     }
 
+    private fun setResultsAndFinish() {
+        val data = Intent().apply {
+            putExtra(EXTRA_QR_LIST, ArrayList(scanResults))
+        }
+
+        setResult(RESULT_OK, data)
+        finish()
+    }
+
     companion object {
         private const val PERMISSION_CAMERA_REQUEST = 1000
         private const val RATIO_4_3_VALUE = 4.0 / 3.0
         private const val RATIO_16_9_VALUE = 16.0 / 9.0
-        const val EXTRA_QR_DATA = "BarcodeScannerActivity.QR_DATA"
+        const val EXTRA_QR_LIST = "BarcodeScannerActivity.QR_LIST"
+        const val EXTRA_MULTI_SCAN = "BarcodeScannerActivity.MULTI_SCAN"
     }
 }
