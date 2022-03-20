@@ -1,6 +1,7 @@
 package dev.notrobots.authenticator.models
 
 import android.net.Uri
+import dev.notrobots.authenticator.util.AccountExporter
 
 enum class BackupFormat {
     /**
@@ -12,7 +13,7 @@ enum class BackupFormat {
      * otpauth://backup?data={SERIALIZED_DATA}
      * ```
      */
-    @Deprecated("Use BackupFormat.QR")
+    @Deprecated("Use BackupFormat.QR or BackupFormat.PlainText instead")
     Text,
 
     /**
