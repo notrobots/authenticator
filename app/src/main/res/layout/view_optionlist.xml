@@ -5,10 +5,10 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@drawable/bg_list_separator" />
+<!--    <View-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="1dp"-->
+<!--        android:background="@drawable/bg_list_separator" />-->
 
     <ListView
         android:id="@+id/option_list"
@@ -17,9 +17,9 @@
         tools:listitem="@layout/item_list_option"
         android:divider="@drawable/bg_list_separator"/>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@drawable/bg_list_separator"/>
+<!--    <View-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="1dp"-->
+<!--        android:background="@drawable/bg_list_separator"/>-->
 
 </LinearLayout>

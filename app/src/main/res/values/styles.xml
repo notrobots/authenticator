@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <style name="ActionMode" parent="Widget.Material3.ActionMode">
         <item name="background">?attr/colorSurface</item>
     </style>
@@ -93,5 +94,16 @@
         <item name="fab_colorPressed">?attr/colorPrimary</item>
         <item name="fab_colorRipple">#68FFFFFF</item>
         <item name="android:layout_margin">16dp</item>
+    </style>
+
+    <style name="OptionList" />
+
+    <style name="OptionList.Title" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textColor">@color/google_grey900</item>
+        <item name="android:letterSpacing">0.04</item>
+    </style>
+
+    <style name="OptionList.Description" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">@color/google_grey600</item>
     </style>
 </resources>

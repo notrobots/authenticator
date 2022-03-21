@@ -1,19 +1,16 @@
 package dev.notrobots.authenticator.views
 
 import android.content.Context
-import android.graphics.Color
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.FrameLayout
-import androidx.core.content.res.getResourceIdOrThrow
 import dev.notrobots.androidstuff.extensions.resolveColorAttribute
 import dev.notrobots.androidstuff.extensions.resolveDrawable
 import dev.notrobots.androidstuff.extensions.resolveString
 import dev.notrobots.androidstuff.extensions.setTint
-import dev.notrobots.androidstuff.util.viewBindings
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ItemListOptionBinding
 import dev.notrobots.authenticator.databinding.ViewOptionlistBinding
@@ -29,27 +26,27 @@ class OptionList(
     private val binding: ViewOptionlistBinding
 
     /**
-     * Text appearance of each of the option's title
+     * Text appearance of the option's title
      */
-    var titleTextAppearance: Int = Color.TRANSPARENT
+    var titleTextAppearance: Int = 0
         set(value) {
             adapter.notifyDataSetChanged()
             field = value
         }
 
     /**
-     * Text appearance of each of the option's description
+     * Text appearance of the option's description
      */
-    var descriptionTextAppearance: Int = Color.TRANSPARENT
+    var descriptionTextAppearance: Int = 0
         set(value) {
             adapter.notifyDataSetChanged()
             field = value
         }
 
     /**
-     * Tint of each of the option's icon
+     * Tint of the option's icon
      */
-    var iconTint: Int = Color.TRANSPARENT
+    var iconTint: Int = 0
         set(value) {
             adapter.notifyDataSetChanged()
             field = value
@@ -58,19 +55,16 @@ class OptionList(
     init {
         binding = ViewOptionlistBinding.inflate(LayoutInflater.from(context), this, true)
 
-        binding.optionList.adapter = adapter
-        binding.optionList.setOnItemClickListener { _, _, position, _ ->
-            options[position].listener()
-        }
-
-        titleTextAppearance = titleTextAppearance
-        descriptionTextAppearance = descriptionTextAppearance
-        iconTint = iconTint
+        titleTextAppearance = R.style.OptionList_Title
+        descriptionTextAppearance = R.style.OptionList_Description
+        iconTint = context.resolveColorAttribute(R.attr.colorPrimary)
 
         with(context.obtainStyledAttributes(attrs, R.styleable.OptionList, defStyleAttr, 0)) {
-            val defaultTint = context.resolveColorAttribute(R.attr.colorPrimary)
+            val tint = getColor(R.styleable.OptionList_option_iconTint, 0)
 
-            iconTint = getColor(R.styleable.OptionList_option_iconTint, defaultTint)
+            if (tint != 0) {
+                iconTint = tint
+            }
 
             getResourceIdOrNull(R.styleable.OptionList_option_titleTextAppearance)?.let {
                 titleTextAppearance = it
@@ -78,6 +72,11 @@ class OptionList(
             getResourceIdOrNull(R.styleable.OptionList_option_descriptionTextAppearance)?.let {
                 descriptionTextAppearance = it
             }
+        }
+
+        binding.optionList.adapter = adapter
+        binding.optionList.setOnItemClickListener { _, _, position, _ ->
+            options[position].listener()
         }
 
         if (isInEditMode) {
