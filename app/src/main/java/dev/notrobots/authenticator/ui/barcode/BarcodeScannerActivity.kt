@@ -70,9 +70,9 @@ class BarcodeScannerActivity : ThemedActivity(), ImageAnalysis.Analyzer {
         setContentView(binding.root)
         setupCamera()
 
-        val multiScanVisibility = if (multiScanEnabled) View.VISIBLE else View.GONE
-
         multiScanEnabled = intent.getBooleanExtra(EXTRA_MULTI_SCAN, false)
+
+        val multiScanVisibility = if (multiScanEnabled) View.VISIBLE else View.GONE
 
         binding.scanResultList.visibility = multiScanVisibility
         binding.importScanResult.visibility = multiScanVisibility
