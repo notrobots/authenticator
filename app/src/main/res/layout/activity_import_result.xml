@@ -33,26 +33,6 @@
             app:layout_constraintStart_toStartOf="parent"
             style="@style/FloatingActionButton" />
 
-        <Button
-            android:id="@+id/skip_all"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Skip all"
-            app:layout_constraintBottom_toBottomOf="@+id/done"
-            app:layout_constraintEnd_toStartOf="@+id/done"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/done" />
-
-        <Button
-            android:id="@+id/replace_all"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Replace all"
-            app:layout_constraintBottom_toBottomOf="@+id/done"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/done"
-            app:layout_constraintTop_toTopOf="@+id/done" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

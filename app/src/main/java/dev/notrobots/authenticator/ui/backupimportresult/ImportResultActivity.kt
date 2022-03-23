@@ -25,7 +25,8 @@ import kotlinx.coroutines.launch
 class ImportResultActivity : AppCompatActivity() {
     private val binding by viewBindings<ActivityImportResultBinding>(this)
     private val viewModel by viewModels<AccountListViewModel>()
-    private val importResults = mutableListOf<ImportResult>()
+    private val importResults = mutableMapOf<Any, ImportResult>()
+    private val importedData = mutableListOf<AccountExporter.ImportedData>()
     private val adapter = ImportResultAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,10 +34,9 @@ class ImportResultActivity : AppCompatActivity() {
         setContentView(binding.root)
         setSupportActionBar(binding.toolbarLayout.toolbar)
 
-        val data = intent.getSerializableExtra(EXTRA_DATA) as AccountExporter.ImportedData
-
-        title = null
+        title = "Imported backup"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        importedData.addAll(intent.getSerializableExtra(EXTRA_DATA) as List<AccountExporter.ImportedData>)
         binding.toolbarLayout.toolbar.setNavigationOnClickListener { finish() }
         binding.list.layoutManager = LinearLayoutManager(this@ImportResultActivity)
         binding.list.adapter = adapter
@@ -45,32 +45,31 @@ class ImportResultActivity : AppCompatActivity() {
                 r.isDuplicate && r.importStrategy == ImportStrategy.Default
             }
 
-            if (importResults.any(isNotResolved)) {
+            if (importResults.values.any(isNotResolved)) {
                 showChoice(
                     "Import conflicts",
                     "There are still some conflicts left, are you sure you want to proceed?\n\nNOTE: By default conflicting items will be skipped",
                     "Proceed",
                     positiveCallback = {
-                        importItems(importResults)
+                        importItems()
                     },
                     "Cancel"
                 )
             } else {
-                importItems(importResults)
+                importItems()
             }
         }
 
         lifecycleScope.launch {
-            for (account in data.accounts) {
-                val result = ImportResult(
-                    account,
+            for (account in importedData.flatMap { it.accounts }) {
+                importResults[account] = ImportResult(
+                    account.displayName,
+                    R.drawable.ic_account,
                     viewModel.accountDao.exists(account)
                 )
-
-                importResults.add(result)
             }
 
-            adapter.setItems(importResults)
+            adapter.setItems(importResults.values.toList())
         }
     }
 
@@ -82,7 +81,7 @@ class ImportResultActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_import_skip_all -> {
-                for (result in importResults) {
+                for (result in importResults.values) {
                     if (result.isDuplicate) {
                         result.importStrategy = ImportStrategy.Skip
                     }
@@ -90,7 +89,7 @@ class ImportResultActivity : AppCompatActivity() {
                 adapter.notifyDataSetChanged()
             }
             R.id.menu_import_replace_all -> {
-                for (result in importResults) {
+                for (result in importResults.values) {
                     if (result.isDuplicate) {
                         result.importStrategy = ImportStrategy.Replace
                     }
@@ -104,17 +103,17 @@ class ImportResultActivity : AppCompatActivity() {
         return true
     }
 
-    private fun importItems(importResults: List<ImportResult>) {
+    private fun importItems() {
         var skipped = 0
         var added = 0
         var replaced = 0
 
         lifecycleScope.launch {
-            for (importResult in importResults) {
-                if (importResult.isDuplicate) {
-                    when (importResult.importStrategy) {
+            for (entry in importResults) {
+                if (entry.value.isDuplicate) {
+                    when (entry.value.importStrategy) {
                         ImportStrategy.Replace -> {
-                            when (val i = importResult.item) {
+                            when (val i = entry.key) {
                                 is Account -> viewModel.updateAccount(i)
                             }
                             replaced++
@@ -143,7 +142,7 @@ class ImportResultActivity : AppCompatActivity() {
                         ImportStrategy.Skip -> skipped++
                     }
                 } else {
-                    when (val i = importResult.item) {
+                    when (val i = entry.key) {
                         is Account -> viewModel.insertAccount(i)
                     }
                     added++

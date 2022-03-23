@@ -45,10 +45,10 @@ class AccountListActivity : BaseActivity() {
     private val scanBarcode = registerForActivityResult(StartActivityForResult()) {
         if (it.resultCode == Activity.RESULT_OK) {
             if (it.data != null) {
-                val data = it.data!!.getStringExtra(BarcodeScannerActivity.EXTRA_QR_DATA) ?: ""
+                val data = it.data!!.getStringArrayListExtra(BarcodeScannerActivity.EXTRA_QR_LIST) ?: listOf<String>()
 
                 try {
-                    import(data)
+                    import(data.first())
                 } catch (e: Exception) {
                     showInfo(R.string.label_error, e.message)
                 }
@@ -155,7 +155,7 @@ class AccountListActivity : BaseActivity() {
             btn_add_account.close(true)
         }
         binding.btnAddAccountUrl.setOnClickListener {
-            AddAccountUriDialog(supportFragmentManager) { data, dialog ->
+            AccountUriDialog(supportFragmentManager, R.string.label_add_account) { data, dialog ->
                 try {
                     import(data)
                     dialog.dismiss()
@@ -319,7 +319,7 @@ class AccountListActivity : BaseActivity() {
 
         if (importedData.accounts.size > 1 || AccountExporter.isBackup(data)) {
             startActivity(ImportResultActivity::class) {
-                putExtra(ImportResultActivity.EXTRA_DATA, importedData)
+                putExtra(ImportResultActivity.EXTRA_DATA, arrayListOf(importedData))
             }
             logd("QR: Importing backup of size: ${importedData.accounts}")
         } else {

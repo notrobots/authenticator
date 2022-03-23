@@ -22,7 +22,7 @@ class ExportConfigActivity : AppCompatActivity() {
 
         val accounts = intent.getSerializableExtra(EXTRA_ITEMS) as List<Account>
 
-        title = null
+        title = "Export method"
         binding.toolbarLayout.toolbar.setNavigationOnClickListener {
             finish()
         }

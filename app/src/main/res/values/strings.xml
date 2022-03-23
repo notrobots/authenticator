@@ -28,4 +28,10 @@
     <string name="label_finish">Finish</string>
     <string name="accessibility_qr_code">QR Code</string>
     <string name="accessibility_remove_qr_code">Remove QR Code</string>
+    <string name="label_file_import_title">File</string>
+    <string name="label_file_import_description">Load a text or image file</string>
+    <string name="label_text_import_title">Text</string>
+    <string name="label_text_import_description">Input a single uri or text</string>
+    <string name="error_empty_field">Field cannot be empty</string>
+    <string name="label_uri_or_text">URI or text</string>
 </resources>

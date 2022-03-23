@@ -118,8 +118,8 @@ object AccountExporter {
         } catch (e: Exception) {
         }
 
-        val uris = text.split("\n").map {
-            Uri.parse(it)
+        val uris = text.lines().map {
+            Uri.parse(it.trim())
         }
 
         return import(uris)

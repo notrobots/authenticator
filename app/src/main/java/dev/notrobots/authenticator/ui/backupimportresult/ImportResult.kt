@@ -1,9 +1,10 @@
 package dev.notrobots.authenticator.ui.backupimportresult
 
-import dev.notrobots.authenticator.models.Account
+import androidx.annotation.DrawableRes
 
 data class ImportResult(
-    val item: Account,
+    val title: String,
+    @DrawableRes val icon: Int,
     val isDuplicate: Boolean = false,
     var importStrategy: ImportStrategy = ImportStrategy.Default
 )

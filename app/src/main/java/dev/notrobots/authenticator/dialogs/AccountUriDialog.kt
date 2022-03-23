@@ -4,27 +4,30 @@ import android.app.Dialog
 import android.os.Bundle
 import androidx.fragment.app.FragmentManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dev.notrobots.androidstuff.extensions.resolveString
 import dev.notrobots.androidstuff.extensions.setClearErrorOnType
+import dev.notrobots.androidstuff.extensions.setError
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.DialogAccountUriBinding
 import dev.notrobots.authenticator.extensions.inflate
 
-class AddAccountUriDialog(
+class AccountUriDialog(
     fragmentManager: FragmentManager,
-    var onConfirmListener: (String, AddAccountUriDialog) -> Unit
+    val title: Any? = null,
+    var onConfirmListener: (String, AccountUriDialog) -> Unit
 ) : InstantDialog(fragmentManager) {
+    private var binding: DialogAccountUriBinding? = null
     var error: String? = null
         set(value) {
             field = value
             binding?.layoutAccountUrl?.error = value
         }
-    var binding: DialogAccountUriBinding? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        binding = DialogAccountUriBinding.bind(layoutInflater.inflate(R.layout.dialog_account_uri))
+        binding = DialogAccountUriBinding.inflate(layoutInflater)
 
         val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Add account")
+            .setTitle(context?.resolveString(title))
             .setView(binding!!.root)
             .setPositiveButton(R.string.label_ok, null)
             .setNeutralButton(R.string.label_cancel, null)
@@ -38,7 +41,7 @@ class AddAccountUriDialog(
                 val text = binding!!.textAccountUrl.text.toString()
 
                 if (text.isBlank()) {
-                    binding!!.layoutAccountUrl.error = "Field is empty"
+                    binding!!.layoutAccountUrl.setError(R.string.error_empty_field)
                 } else {
                     onConfirmListener(text, this)
                 }

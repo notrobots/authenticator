@@ -3,15 +3,25 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable-v24/bg_barcode_action_2.xml" value="0.242" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.2375" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/bg_account.xml" value="0.2375" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/bg_barcode_action.xml" value="0.235" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/bg_barcode_action_1.xml" value="0.235" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/bg_barcode_action_2.xml" value="0.242" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/bg_barcode_crosshair.xml" value="0.3415" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/bg_barcode_scan_crosshair.xml" value="0.235" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/bg_list_separator.xml" value="0.3215" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/bg_qr_scan_crosshair.xml" value="0.235" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/bg_qr_scan_delete.xml" value="0.235" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_account.xml" value="0.2175" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_add.xml" value="0.1825" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_add_account.xml" value="0.228" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_back.xml" value="0.1825" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_check.xml" value="0.269" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_chevron_right.xml" value="0.235" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_close.xml" value="0.3605" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_confirm_import.xml" value="0.294" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_database_export.xml" value="0.2375" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_database_import.xml" value="0.2375" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/ic_dehaze.xml" value="0.1" />
@@ -40,23 +50,27 @@
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_account.xml" value="0.34831460674157305" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_account_list.xml" value="0.35520833333333335" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_backup.xml" value="0.5560165975103735" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_barcode_scanner.xml" value="0.35520833333333335" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_export.xml" value="0.34831460674157305" />
-        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_export_config.xml" value="0.5" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_export_config.xml" value="0.33" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_export_detail.xml" value="0.35520833333333335" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_export_qr.xml" value="0.34831460674157305" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_export_text.xml" value="0.34831460674157305" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_import.xml" value="0.35520833333333335" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_import_result.xml" value="0.34831460674157305" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/dialog_account_group.xml" value="0.35520833333333335" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/dialog_account_uri.xml" value="0.35520833333333335" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/dialog_account_url.xml" value="0.35520833333333335" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_account.xml" value="0.5" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_account_group.xml" value="0.5" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_barcode_import_result.xml" value="1.0" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_barcode_scanner_result.xml" value="0.5" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_export.xml" value="0.3472222222222222" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_export_row.xml" value="0.5" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_export_text.xml" value="0.33" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_import_option.xml" value="0.34831460674157305" />
-        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_import_result.xml" value="0.17135416666666667" />
-        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_list_option.xml" value="0.35520833333333335" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_import_result.xml" value="0.33" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_list_option.xml" value="0.75" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/view_account_list_options.xml" value="0.34831460674157305" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/view_buttongrid.xml" value="0.337037037037037" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/view_buttongrid_button.xml" value="0.67" />
