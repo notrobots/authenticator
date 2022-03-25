@@ -63,10 +63,32 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         return items[position].id
     }
 
+    override fun getItemViewType(position: Int): Int {
+        val item = items[position]
+
+        return when (item.type) {
+            OTPType.TOTP -> VIEW_TYPE_TOTP
+            OTPType.HOTP -> VIEW_TYPE_HOTP
+        }
+    }
+
+    override fun onViewRecycled(holder: AccountViewHolder) {
+        super.onViewRecycled(holder)
+
+        if (holder is TimerAccountViewHolder) {
+            holder.stop()
+        }
+    }
+
     //region Rendering
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AccountViewHolder {
-        return AccountViewHolder(parent)
+        return when (viewType) {
+            VIEW_TYPE_HOTP -> AccountViewHolder(parent)
+            VIEW_TYPE_TOTP -> TimerAccountViewHolder(parent)
+
+            else -> throw Exception("Unkown view type")
+        }
     }
 
     override fun onBindViewHolder(holder: AccountViewHolder, position: Int) {
@@ -75,9 +97,6 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         val binding = holder.binding
         val id = account.id
         val icon = getIssuerIcon(account.issuer)
-        val generatePin = {
-            formatPin(OTPGenerator.generate(account))
-        }
 
         binding.icon.visibility = if (showIcons && !editMode) View.VISIBLE else View.GONE
         binding.icon.setImageResource(icon)
@@ -128,31 +147,20 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
 
             when (account.type) {
                 OTPType.TOTP -> {
-                    val timer = TotpTimer(account.period)
-
-                    timer.setListener(object : TotpTimer.Listener {
-                        override fun onTick(timeLeft: Long) {
-                            binding.indicator.progress = timeLeft.toInt()
-                        }
-
-                        override fun onValueChanged() {
-                            binding.pin.text = generatePin()
-                        }
-                    })
-                    timer.start()
-
+                    holder as TimerAccountViewHolder
+                    holder.start(account)
                     binding.indicator.max = TimeUnit.SECONDS.toMillis(account.period).toInt()
                     binding.groupTotp.visibility = View.VISIBLE
                     binding.groupHotp.visibility = View.GONE
                 }
                 OTPType.HOTP -> {
 //                    binding.pin.text = "- ".repeat(account.digits)
-                    binding.pin.text = generatePin()
+                    binding.pin.text = generatePin(account)
                     binding.nextPin.setOnClickListener {
                         it as ImageView
 
                         account.counter++
-                        binding.pin.text = generatePin()
+                        binding.pin.text = generatePin(account)
                         it.isEnabled = false
                         it.setTint(Color.LTGRAY)    //FIXME: Use the app's colors
 
@@ -249,8 +257,8 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
 
                 override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
                     return oldList[oldItemPosition].name == items[newItemPosition].name &&
-                            oldList[oldItemPosition].label == items[newItemPosition].label &&
-                            oldList[oldItemPosition].issuer == items[newItemPosition].issuer
+                           oldList[oldItemPosition].label == items[newItemPosition].label &&
+                           oldList[oldItemPosition].issuer == items[newItemPosition].issuer
                 }
             })
 
@@ -292,6 +300,13 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
     }
 
     /**
+     * Generates the current pin for the given [account]
+     */
+    private fun generatePin(account: Account): String {
+        return formatPin(OTPGenerator.generate(account))
+    }
+
+    /**
      * Returns the given [pin] formatted based on the given [divider] and [groupSize]
      */
     private fun formatPin(
@@ -318,6 +333,8 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
     }
 
     companion object {
+        const val VIEW_TYPE_HOTP = 0
+        const val VIEW_TYPE_TOTP = 1
         private val GROUP_SIZES = mapOf(
             4 to 4,
             6 to 3,
@@ -336,8 +353,8 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         fun onItemMoved(fromPosition: Int, toPosition: Int) = Unit
     }
 
-    class AccountViewHolder(parent: ViewGroup) : AbstractDraggableItemViewHolder(
-        LayoutInflater.from(parent.context).inflate(R.layout.item_account, parent, false)
+    open class AccountViewHolder(parent: ViewGroup) : AbstractDraggableItemViewHolder(
+        ViewUtil.inflate(R.layout.item_account, parent)
     ), DraggableItemViewHolder {
         private val dragState = DraggableItemState()
         val binding = ItemAccountBinding.bind(itemView)
@@ -353,6 +370,31 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
 
         override fun getDragState(): DraggableItemState {
             return dragState
+        }
+    }
+
+    inner class TimerAccountViewHolder(parent: ViewGroup) : AccountViewHolder(parent) {
+        var timer: TotpTimer? = null
+            private set
+
+        fun start(account: Account) {
+            timer = TotpTimer(account.period)
+            timer!!.setListener(object : TotpTimer.Listener {
+                override fun onTick(timeLeft: Long) {
+                    binding.indicator.progress = timeLeft.toInt()
+                }
+
+                override fun onValueChanged() {
+                    binding.pin.text = generatePin(account)
+                }
+            })
+            timer!!.start()
+        }
+
+        fun stop() {
+            if (timer != null) {
+                timer!!.stop()
+            }
         }
     }
 }

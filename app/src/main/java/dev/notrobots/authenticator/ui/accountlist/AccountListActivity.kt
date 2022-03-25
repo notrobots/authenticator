@@ -170,8 +170,6 @@ class AccountListActivity : BaseActivity() {
             btn_add_account.close(true)
         }
 
-        setupListAdapter()
-
         viewModel.sortMode.value = preferences.getSortMode()
         viewModel.sortMode.observe(this) {
             adapter.sortMode = it
@@ -179,6 +177,17 @@ class AccountListActivity : BaseActivity() {
         viewModel.accounts.observe(this) {
             adapter.setItems(it)
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        setupListAdapter()
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        binding.listAccounts.adapter = null
     }
 
     override fun onDestroy() {
