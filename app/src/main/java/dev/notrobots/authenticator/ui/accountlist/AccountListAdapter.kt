@@ -183,12 +183,6 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
     //region Drag&Drop
 
     override fun onCheckCanStartDrag(holder: AccountViewHolder, position: Int, x: Int, y: Int): Boolean {
-        // Item can only be dragged if the sort mode is set to Custom
-        if (sortMode != SortMode.Custom) {
-            holder.itemView.context.makeToast("Change sort mode to Custom to reorder the items")
-            return false
-        }
-
         // Item can only be dragged if the adapter is in Item edit mode
         if (!editMode) {
             return false
@@ -196,6 +190,12 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
 
         // Item can only be dragged by its drag handle
         if (!ViewUtil.hitTest(holder.dragHandle, x, y)) {
+            return false
+        }
+
+        // Item can only be dragged if the sort mode is set to Custom
+        if (sortMode != SortMode.Custom) {
+            holder.itemView.context.makeToast("Change sort mode to Custom to reorder the items")
             return false
         }
 
