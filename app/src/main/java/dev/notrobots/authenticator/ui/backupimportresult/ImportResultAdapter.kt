@@ -1,6 +1,5 @@
 package dev.notrobots.authenticator.ui.backupimportresult
 
-import android.graphics.Color
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.view.View
@@ -12,7 +11,6 @@ import dev.notrobots.androidstuff.extensions.setTint
 import dev.notrobots.androidstuff.widget.BindableViewHolder
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ItemImportResultBinding
-
 
 class ImportResultAdapter : RecyclerView.Adapter<ImportResultAdapter.ViewHolder>() {
     private var items = listOf<ImportResult>()
@@ -30,7 +28,7 @@ class ImportResultAdapter : RecyclerView.Adapter<ImportResultAdapter.ViewHolder>
                 ImportStrategy.Default -> R.color.error
                 ImportStrategy.Skip -> R.color.blue
                 ImportStrategy.Replace -> R.color.warning
-//                    ImportStrategy.KeepBoth -> R.color.blue
+                ImportStrategy.KeepBoth -> R.color.success
             }
         )
 
@@ -42,7 +40,7 @@ class ImportResultAdapter : RecyclerView.Adapter<ImportResultAdapter.ViewHolder>
                 ImportStrategy.Default -> R.drawable.ic_error
                 ImportStrategy.Skip -> R.drawable.ic_skip
                 ImportStrategy.Replace -> R.drawable.ic_replace
-//                ImportStrategy.KeepBoth -> R.drawable.ic_copy
+                ImportStrategy.KeepBoth -> R.drawable.ic_copy
             }
         )
         binding.status.setTint(tint)
@@ -53,11 +51,14 @@ class ImportResultAdapter : RecyclerView.Adapter<ImportResultAdapter.ViewHolder>
                 popupMenu.inflate(R.menu.menu_import_strategy)
 
                 val infoMenuItem = popupMenu.menu.findItem(R.id.menu_strategy_info)
-                val title = SpannableString(when(item.importStrategy) {
-                    ImportStrategy.Default -> "Already exists"
-                    ImportStrategy.Skip -> "Will be ignored"
-                    ImportStrategy.Replace -> "Will replace the old one"    //TODO: Improve this text
-                })
+                val title = SpannableString(
+                    when (item.importStrategy) {
+                        ImportStrategy.Default -> "Already exists"
+                        ImportStrategy.Skip -> "Will be ignored"
+                        ImportStrategy.Replace -> "Will replace the old one"    //TODO: Improve this text
+                        ImportStrategy.KeepBoth -> "Will keep both"
+                    }
+                )
 
                 title.setSpan(ForegroundColorSpan(tint), 0, title.length, 0)
                 infoMenuItem.title = title
@@ -66,7 +67,7 @@ class ImportResultAdapter : RecyclerView.Adapter<ImportResultAdapter.ViewHolder>
                     when (it.itemId) {
                         R.id.menu_strategy_skip -> item.importStrategy = ImportStrategy.Skip
                         R.id.menu_strategy_replace -> item.importStrategy = ImportStrategy.Replace
-//                    R.id.menu_strategy_keep_both -> item.importStrategy = ImportStrategy.KeepBoth
+                        R.id.menu_strategy_keep_both -> item.importStrategy = ImportStrategy.KeepBoth
 
                         else -> return@setOnMenuItemClickListener false
                     }

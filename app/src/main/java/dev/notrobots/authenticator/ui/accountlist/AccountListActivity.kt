@@ -370,17 +370,26 @@ class AccountListActivity : BaseActivity() {
     private fun addOrReplaceAccount(account: Account) {
         lifecycleScope.launch {
             if (viewModel.accountDao.exists(account)) {
-                ReplaceAccountDialog(supportFragmentManager) {
-                    lifecycleScope.launch {
-                        // If the given account has the default id, we need to grab the id
-                        // corresponding to the given account's name, issuer and label and set it
-                        // to the given account so that it can be updated
-                        if (account.id == 0L) {
-                            viewModel.updateAccount(account)
+                ReplaceAccountDialog(supportFragmentManager, object : ReplaceAccountDialog.Listener {
+                    override fun onReplace() {
+                        lifecycleScope.launch {
+                            // If the given account has the default id, we need to grab the id
+                            // corresponding to the given account's name, issuer and label and set it
+                            // to the given account so that it can be updated
+                            if (account.id == 0L) {
+                                viewModel.updateAccount(account)
+                            }
                         }
+                        logd("Replacing existing account: $account")
                     }
-                    logd("Replacing existing account: $account")
-                } //TODO Let the user keep both accounts
+
+                    override fun onKeepBoth() {
+                        lifecycleScope.launch {
+                            viewModel.insertAccountWithSameName(account)
+                        }
+                        logd("Keeping both accounts: $account")
+                    }
+                })
             } else {
                 viewModel.insertAccount(account)
             }

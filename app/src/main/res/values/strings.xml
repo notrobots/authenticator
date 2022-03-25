@@ -34,4 +34,5 @@
     <string name="label_text_import_description">Input a single uri or text</string>
     <string name="error_empty_field">Field cannot be empty</string>
     <string name="label_uri_or_text">URI or text</string>
+    <string name="label_keep_both">Keep both</string>
 </resources>

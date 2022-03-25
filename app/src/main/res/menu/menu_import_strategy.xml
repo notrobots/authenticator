@@ -16,9 +16,9 @@
         android:icon="@drawable/ic_replace"
         android:title="Replace" />
 
-<!--    <item-->
-<!--        android:id="@+id/menu_strategy_keep_both"-->
-<!--        android:icon="@drawable/ic_copy"-->
-<!--        android:title="Keep both" />-->
+    <item
+        android:id="@+id/menu_strategy_keep_both"
+        android:icon="@drawable/ic_copy"
+        android:title="Keep both" />
 
 </menu>

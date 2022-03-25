@@ -12,6 +12,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.showChoice
 import dev.notrobots.androidstuff.extensions.showInfo
 import dev.notrobots.androidstuff.extensions.startActivity
+import dev.notrobots.androidstuff.extensions.viewBindings
 import dev.notrobots.androidstuff.util.viewBindings
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ActivityImportResultBinding
@@ -19,11 +20,12 @@ import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.util.AccountExporter
 import dev.notrobots.authenticator.ui.accountlist.AccountListActivity
 import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
+import dev.notrobots.authenticator.util.TextUtil
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ImportResultActivity : AppCompatActivity() {
-    private val binding by viewBindings<ActivityImportResultBinding>(this)
+    private val binding by viewBindings<ActivityImportResultBinding>()
     private val viewModel by viewModels<AccountListViewModel>()
     private val importResults = mutableMapOf<Any, ImportResult>()
     private val importedData = mutableListOf<AccountExporter.ImportedData>()
@@ -96,6 +98,14 @@ class ImportResultActivity : AppCompatActivity() {
                 }
                 adapter.notifyDataSetChanged()
             }
+            R.id.menu_import_keep_all -> {
+                for (result in importResults.values) {
+                    if (result.isDuplicate) {
+                        result.importStrategy = ImportStrategy.KeepBoth
+                    }
+                }
+                adapter.notifyDataSetChanged()
+            }
 
             else -> return false
         }
@@ -118,26 +128,14 @@ class ImportResultActivity : AppCompatActivity() {
                             }
                             replaced++
                         }
-//                        ImportStrategy.KeepBoth -> {  //TODO: Add this later
-//                            val name = importResult.item.getNextName()
-//
-//                            when (val i = importResult.item) {
-//                                is AccountGroup -> {
-//                                    val group = AccountGroup(name).apply {
-//                                        isExpanded = i.isExpanded
-//                                        order = i.order
-//                                    }
-//                                    viewModel.addGroup(group)
-//                                }
-//                                is Account -> {
-//                                    val account = i.clone().apply {
-//                                        this.name = name
-//                                    }
-//                                    viewModel.accountDao.insert(account)
-//                                }
-//                            }
-//                            added++
-//                        }
+                        ImportStrategy.KeepBoth -> {
+                            when (val i = entry.key) {  //TODO: ImportResult should only be used for accounts, tags should just be imported automatically
+                                is Account -> {
+                                    viewModel.insertAccountWithSameName(i)
+                                }
+                            }
+                            added++
+                        }
                         ImportStrategy.Default,
                         ImportStrategy.Skip -> skipped++
                     }

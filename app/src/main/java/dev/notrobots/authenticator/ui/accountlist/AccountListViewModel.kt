@@ -6,6 +6,7 @@ import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.authenticator.db.AccountDao
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.SortMode
+import dev.notrobots.authenticator.util.TextUtil
 import javax.inject.Inject
 
 @HiltViewModel
@@ -52,5 +53,29 @@ class AccountListViewModel @Inject constructor(
         } else {
             logd("Cannot update account: Not found")
         }
+    }
+
+    /**
+     * Inserts the given [account] and changes its name so that it doesn't collide with
+     * another existing account.
+     */
+    suspend fun insertAccountWithSameName(account: Account) {
+        var name = TextUtil.getNextName(account.name)
+
+        //FIXME: This is not optimized
+        //TODO: Handle max value too
+        do {
+            val oldAccount = accountDao.getAccount(name, account.label, account.issuer)
+
+            if (oldAccount == null) {
+                val newAccount = account.clone().apply {  //FIXME: If the account is imported it doesn't need to be copied
+                    this.name = name
+                }
+                insertAccount(newAccount)
+                break
+            }
+
+            name = TextUtil.getNextName(oldAccount.name)
+        } while (true)
     }
 }

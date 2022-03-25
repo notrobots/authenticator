@@ -110,6 +110,9 @@ object AccountExporter {
      *
      * Used by:
      * + [BackupFormat.PlainText]
+     * + [BackupFormat.PlaintQR]
+     * + [BackupFormat.QR]
+     * + [BackupFormat.GoogleAuthenticator]
      * + [BackupFormat.Json]
      */
     fun import(text: String): ImportedData {
