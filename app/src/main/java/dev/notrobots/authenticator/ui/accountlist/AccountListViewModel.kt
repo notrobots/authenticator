@@ -3,6 +3,7 @@ package dev.notrobots.authenticator.ui.accountlist
 import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.notrobots.androidstuff.util.logd
+import dev.notrobots.androidstuff.util.loge
 import dev.notrobots.authenticator.db.AccountDao
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.SortMode
@@ -14,6 +15,11 @@ class AccountListViewModel @Inject constructor(
     val accountDao: AccountDao
 ) : ViewModel() {
     val sortMode = MutableLiveData(SortMode.Custom)
+//    var sortMode: SortMode
+//        get() = _sortMode.value ?: SortMode.Custom
+//        set(value) {
+//            _sortMode.value = value
+//        }
     val accounts = sortMode.switchMap {
         when (it) {
             SortMode.Custom -> accountDao.getAccountsLive()
@@ -43,16 +49,28 @@ class AccountListViewModel @Inject constructor(
      * Updates the given [account].
      */
     suspend fun updateAccount(account: Account) {
-        val original = accountDao.getAccount(account.name, account.label, account.issuer)
+        val stored = accountDao.getAccount(account.name, account.label, account.issuer)
 
-        if (original != null) {
-            account.id = original.id
-            account.order = original.order
-            accountDao.update(account)
-            logd("Updating account")
-        } else {
-            logd("Cannot update account: Not found")
+        if (account.id == Account.DEFAULT_ID) {
+            if (stored != null) {
+                account.id = stored.id
+            } else {
+                loge("Cannot update id: Account not found")
+                return
+            }
         }
+
+        if (account.order == Account.DEFAULT_ORDER) {
+            if (stored != null) {
+                account.order = stored.order
+            } else {
+                loge("Cannot update order: Account not found")
+                return
+            }
+        }
+
+        accountDao.update(account)
+        logd("Updating account")
     }
 
     /**

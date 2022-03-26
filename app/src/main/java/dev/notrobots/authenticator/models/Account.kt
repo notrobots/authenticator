@@ -89,7 +89,7 @@ data class Account(
     }
 
     companion object {
-        const val DEFAULT_ORDER = -1L   //FIXME: Change to 0
+        const val DEFAULT_ORDER = 0L
         const val DEFAULT_ID = 0L
         val DEFAULT_TYPE = OTPType.TOTP
         const val DEFAULT_DIGITS = 6

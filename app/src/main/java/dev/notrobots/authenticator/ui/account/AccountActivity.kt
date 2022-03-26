@@ -20,7 +20,6 @@ import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.OTPType
 import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
 import dev.notrobots.authenticator.util.isValidBase32
-import dev.notrobots.authenticator.views.BetterSpinner
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
 import kotlinx.coroutines.launch
 
@@ -165,17 +164,26 @@ class AccountActivity : ThemedActivity() {
             }
 
             lifecycleScope.launch {
-                if (viewModel.accountDao.exists(account.name, account.label, account.issuer)) {
-                    //TODO: More precise error
-                    binding.layoutAccountName.error = "An account with the same name, label or issuer already exists"
-                } else {
-                    if (sourceAccount != null) {
-                        viewModel.updateAccount(account)
-                    } else {
-                        viewModel.insertAccount(account)
-                    }
+                val sameNames = account.name == sourceAccount?.name &&
+                                account.label == sourceAccount?.label &&
+                                account.issuer == sourceAccount?.issuer
 
-                    finish()
+                if (sourceAccount != null) {
+                    if (sameNames || !viewModel.accountDao.exists(account.name, account.label, account.issuer)) {
+                        viewModel.updateAccount(account)
+                        finish()
+                    } else {
+                        //TODO: More precise error
+                        binding.layoutAccountName.error = "An account with the same name, label or issuer already exists"
+                    }
+                } else {
+                    if (!viewModel.accountDao.exists(account.name, account.label, account.issuer)) {
+                        viewModel.insertAccount(account)
+                        finish()
+                    } else {
+                        //TODO: More precise error
+                        binding.layoutAccountName.error = "An account with the same name, label or issuer already exists"
+                    }
                 }
             }
         }

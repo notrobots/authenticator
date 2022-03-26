@@ -170,7 +170,9 @@ class AccountListActivity : BaseActivity() {
             btn_add_account.close(true)
         }
 
-        viewModel.sortMode.value = preferences.getSortMode()
+        setupListAdapter()
+
+        viewModel.sortMode(preferences.getSortMode())
         viewModel.sortMode.observe(this) {
             adapter.sortMode = it
         }
@@ -181,7 +183,7 @@ class AccountListActivity : BaseActivity() {
 
     override fun onStart() {
         super.onStart()
-        setupListAdapter()
+        binding.listAccounts.adapter = adapterWrapper
     }
 
     override fun onStop() {
@@ -286,7 +288,7 @@ class AccountListActivity : BaseActivity() {
     private fun showOptionsMenu(): PopupWindow {
         val popup = AccountListOptionsMenu(
             this,
-            viewModel.sortMode.value ?: SortMode.Custom,
+            viewModel.sortMode() ?: SortMode.Custom,
             adapter.showIcons,
             adapter.showPins
         )
@@ -311,7 +313,7 @@ class AccountListActivity : BaseActivity() {
 
             adapter.showIcons = popup.showIcons
             adapter.showPins = popup.showPins
-            viewModel.sortMode.value = popup.sortMode
+            viewModel.sortMode(popup.sortMode)
         }
         popup.show(binding.toolbarLayout.toolbar)
 
@@ -361,7 +363,7 @@ class AccountListActivity : BaseActivity() {
 
         adapterWrapper = recyclerViewDragDropManager.createWrappedAdapter(adapter)
         binding.listAccounts.layoutManager = layoutManager
-        binding.listAccounts.adapter = adapterWrapper
+//        binding.listAccounts.adapter = adapterWrapper
         binding.listAccounts.itemAnimator = animator
         binding.listAccounts.setEmptyView(binding.emptyView)
 
@@ -382,12 +384,7 @@ class AccountListActivity : BaseActivity() {
                 ReplaceAccountDialog(supportFragmentManager, object : ReplaceAccountDialog.Listener {
                     override fun onReplace() {
                         lifecycleScope.launch {
-                            // If the given account has the default id, we need to grab the id
-                            // corresponding to the given account's name, issuer and label and set it
-                            // to the given account so that it can be updated
-                            if (account.id == 0L) {
-                                viewModel.updateAccount(account)
-                            }
+                            viewModel.updateAccount(account)
                         }
                         logd("Replacing existing account: $account")
                     }

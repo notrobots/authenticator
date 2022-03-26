@@ -148,7 +148,9 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
             when (account.type) {
                 OTPType.TOTP -> {
                     holder as TimerAccountViewHolder
+                    holder.stop()
                     holder.start(account)
+
                     binding.indicator.max = TimeUnit.SECONDS.toMillis(account.period).toInt()
                     binding.groupTotp.visibility = View.VISIBLE
                     binding.groupHotp.visibility = View.GONE
@@ -394,6 +396,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         fun stop() {
             if (timer != null) {
                 timer!!.stop()
+                timer = null
             }
         }
     }
