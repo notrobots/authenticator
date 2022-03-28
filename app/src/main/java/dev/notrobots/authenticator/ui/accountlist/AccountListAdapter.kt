@@ -3,7 +3,6 @@ package dev.notrobots.authenticator.ui.accountlist
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -122,22 +121,24 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
             if (editMode) {
                 account.toggleSelected()
                 view.isSelected = account.isSelected
+                listener.onItemSelectionChange(account, position, account.id, this)
+            } else {
+                listener.onItemClick(account, position, id, this)
             }
-
-            listener.onItemClick(account, id, this)
         }
         view.setOnLongClickListener {
             if (!editMode) {
                 account.toggleSelected()
                 view.isSelected = account.isSelected
+                listener.onItemSelectionChange(account, position, account.id, this)
             }
 
-            listener.onItemLongClick(account, id, this)
+            listener.onItemLongClick(account, position, id, this)
         }
 
         if (editMode) {
             binding.edit.setOnClickListener {
-                listener.onItemEditClick(account, id, this)
+                listener.onItemEditClick(account, position, id, this)
             }
             binding.groupEdit.visibility = View.VISIBLE
             binding.groupTotp.visibility = View.GONE
@@ -171,7 +172,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                             it.setTint(Color.BLUE)
                         }, Account.HOTP_CODE_INTERVAL)
 
-                        listener.onItemCounterIncrement(account, id, this)
+                        listener.onItemHOTPCounterChange(account, position, id, this)
                     }
                     binding.groupHotp.visibility = View.VISIBLE
                     binding.groupTotp.visibility = View.GONE
@@ -348,11 +349,41 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
     }
 
     interface Listener {
-        fun onItemClick(account: Account, id: Long, adapter: AccountListAdapter) = Unit
-        fun onItemLongClick(account: Account, id: Long, adapter: AccountListAdapter): Boolean = false
-        fun onItemEditClick(account: Account, id: Long, adapter: AccountListAdapter) = Unit
-        fun onItemCounterIncrement(account: Account, id: Long, adapter: AccountListAdapter) = Unit
+        /**
+         * Invoked when an item is clicked.
+         *
+         * This is only invoked when [editMode] is set to false.
+         */
+        fun onItemClick(account: Account, position: Int, id: Long, adapter: AccountListAdapter) = Unit
+
+        /**
+         * Invoked when an item is long clicked.
+         */
+        fun onItemLongClick(account: Account, position: Int, id: Long, adapter: AccountListAdapter): Boolean = false
+
+        /**
+         * Invoked when an item needs to be edited.
+         *
+         * This is only invoked when [editMode] is set to true.
+         */
+        fun onItemEditClick(account: Account, position: Int, id: Long, adapter: AccountListAdapter) = Unit
+
+        /**
+         * Invoked when an item's counter is incremented.
+         *
+         * This is only invoked when [editMode] is set to false.
+         */
+        fun onItemHOTPCounterChange(account: Account, position: Int, id: Long, adapter: AccountListAdapter) = Unit
+
+        /**
+         * Invoked when an item is moved.
+         */
         fun onItemMoved(fromPosition: Int, toPosition: Int) = Unit
+
+        /**
+         * Invoked when an item selection has changed.
+         */
+        fun onItemSelectionChange(account: Account, position: Int, id: Long, adapter: AccountListAdapter) = Unit
     }
 
     open class AccountViewHolder(parent: ViewGroup) : AbstractDraggableItemViewHolder(

@@ -39,6 +39,9 @@ class AccountListActivity : BaseActivity() {
     private lateinit var adapter: AccountListAdapter
     private lateinit var recyclerViewDragDropManager: RecyclerViewDragDropManager
     private lateinit var adapterWrapper: RecyclerView.Adapter<*>
+    private val toolbar by lazy {
+        binding.toolbarLayout.toolbar
+    }
     private val preferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(this)
     }
@@ -56,28 +59,18 @@ class AccountListActivity : BaseActivity() {
         }
     }
     private val listAdapterListener = object : AccountListAdapter.Listener {
-        override fun onItemClick(account: Account, id: Long, adapter: AccountListAdapter) {
-            if (adapter.editMode) {
-                if (!account.isSelected && adapter.selectedItemCount == 0) {
-                    actionMode?.finish()
-                    return
-                }
-                actionMode?.title = adapter.selectedItemCount.toString()
-            } else {
-                copyToClipboard(OTPGenerator.generate(account)) //TODO: Keep the value cached
-                makeToast("Copied!")
-            }
+        override fun onItemClick(account: Account, position: Int, id: Long, adapter: AccountListAdapter) {
+            copyToClipboard(OTPGenerator.generate(account)) //TODO: Keep the value cached
+            makeToast("Copied!")
         }
 
-        override fun onItemLongClick(account: Account, id: Long, adapter: AccountListAdapter): Boolean {
-            if (actionMode == null) {
-                binding.toolbarLayout.toolbar.startActionMode(actionModeCallback)
-            }
+        override fun onItemLongClick(account: Account, position: Int, id: Long, adapter: AccountListAdapter): Boolean {
+            toolbar.startActionMode(actionModeCallback)
 
             return true
         }
 
-        override fun onItemEditClick(account: Account, id: Long, adapter: AccountListAdapter) {
+        override fun onItemEditClick(account: Account, position: Int, id: Long, adapter: AccountListAdapter) {
             startActivity(AccountActivity::class) {
                 putExtra(AccountActivity.EXTRA_ACCOUNT, account)
             }
@@ -87,6 +80,16 @@ class AccountListActivity : BaseActivity() {
         override fun onItemMoved(fromPosition: Int, toPosition: Int) {
             lifecycleScope.launch {
                 viewModel.accountDao.update(adapter.items)
+            }
+        }
+
+        override fun onItemSelectionChange(account: Account, position: Int, id: Long, adapter: AccountListAdapter) {
+            val count = adapter.selectedItemCount
+
+            if (count == 0 && adapter.editMode) {
+                actionMode?.finish()
+            } else {
+                actionMode?.title = adapter.selectedItemCount.toString()
             }
         }
     }
