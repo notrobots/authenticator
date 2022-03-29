@@ -84,13 +84,7 @@ class AccountListActivity : BaseActivity() {
         }
 
         override fun onItemSelectionChange(account: Account, position: Int, id: Long, adapter: AccountListAdapter) {
-            val count = adapter.selectedItemCount
-
-            if (count == 0 && adapter.editMode) {
-                actionMode?.finish()
-            } else {
-                actionMode?.title = adapter.selectedItemCount.toString()
-            }
+            actionMode?.title = adapter.selectedItemCount.toString()
         }
     }
     private var actionMode: ActionMode? = null
@@ -115,7 +109,7 @@ class AccountListActivity : BaseActivity() {
                     if (adapter.selectedItemCount > 0) {
                         DeleteAccountDialog(adapter.selectedItemCount, supportFragmentManager) {
                             lifecycleScope.launch {
-                                viewModel.accountDao.delete(adapter.selectedItems)
+                                viewModel.accountDao.delete(adapter.selectedItems.toList())
                             }
                             actionMode?.finish()
                         }

@@ -26,12 +26,6 @@ data class Account(
     var id: Long = DEFAULT_ID
 
     /**
-     * Whether or not this item is selected
-     */
-    @Ignore
-    var isSelected: Boolean = false
-
-    /**
      * Account issuer, should be the company's website
      */
     var issuer: String = ""
@@ -82,10 +76,6 @@ data class Account(
 
     public override fun clone(): Account {
         return super.clone() as Account
-    }
-
-    fun toggleSelected() {
-        isSelected = !isSelected
     }
 
     companion object {
