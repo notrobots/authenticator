@@ -54,12 +54,12 @@ class ViewSwitcher(
 
     fun hideAll() {
         for (view in views) {
-            view.visibility = View.INVISIBLE
+            view.visibility = View.GONE
         }
     }
 
     private fun showView(view: View) {
-        visibleView?.visibility = View.INVISIBLE
+        visibleView?.visibility = View.GONE
         visibleView = view
         visibleView!!.visibility = View.VISIBLE
     }

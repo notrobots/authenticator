@@ -293,7 +293,8 @@ class AccountListActivity : BaseActivity() {
             this,
             viewModel.sortMode() ?: SortMode.Custom,
             adapter.showIcons,
-            adapter.showPins
+            adapter.showPins,
+            adapter.totpIndicatorType
         )
 
         popup.setListener(object : AccountListOptionsMenu.Listener {
@@ -313,9 +314,11 @@ class AccountListActivity : BaseActivity() {
             preferences.setSortMode(popup.sortMode)
             preferences.setShowIcons(popup.showIcons)
             preferences.setShowPins(popup.showPins)
+            preferences.setTotpIndicatorType(popup.totpIndicatorType)
 
             adapter.showIcons = popup.showIcons
             adapter.showPins = popup.showPins
+            adapter.totpIndicatorType = popup.totpIndicatorType
             viewModel.sortMode(popup.sortMode)
         }
         popup.show(binding.toolbarLayout.toolbar)
@@ -355,6 +358,7 @@ class AccountListActivity : BaseActivity() {
         adapter.setListener(listAdapterListener)
         adapter.showIcons = preferences.getShowIcons(true)
         adapter.showPins = preferences.getShowPins(true)
+        adapter.totpIndicatorType = preferences.getTotpIndicatorType()
 
         recyclerViewDragDropManager = RecyclerViewDragDropManager()
         recyclerViewDragDropManager.attachRecyclerView(list_accounts)

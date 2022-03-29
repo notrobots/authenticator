@@ -27,6 +27,7 @@ import dev.notrobots.authenticator.util.OTPGenerator
 import dev.notrobots.authenticator.util.ViewUtil
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.math.ceil
 
 class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableItemAdapter<AccountViewHolder> {
     private var listener: Listener = object : Listener {}
@@ -40,6 +41,11 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
             notifyDataSetChanged()
         }
     var sortMode: SortMode = SortMode.Custom
+    var totpIndicatorType: TotpIndicatorType = TotpIndicatorType.Text
+        set(value) {
+            field = value
+            notifyDataSetChanged()
+        }
     var showIcons: Boolean = true
         set(value) {
             field = value
@@ -100,13 +106,13 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         binding.icon.visibility = if (showIcons && !editMode) View.VISIBLE else View.GONE
         binding.icon.setImageResource(icon)
         binding.pin.visibility = if (showPins && !editMode) View.VISIBLE else View.GONE
+        binding.dragHandle.visibility = if (editMode) View.VISIBLE else View.GONE
 
         updateViewMarginsAndConstraints(binding.icon)
-        updateViewMarginsAndConstraints(binding.indicator)
-        updateViewMarginsAndConstraints(binding.nextPin)
+//        updateViewMarginsAndConstraints(binding.indicators)
         updateViewMarginsAndConstraints(binding.dragHandle)
-        updateViewMarginsAndConstraints(binding.edit)
 
+        // Label & Name
         if (account.label.isEmpty()) {
             binding.label.text = account.name
             binding.name.disable()
@@ -116,6 +122,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
             binding.name.show()
         }
 
+        // Selection state and click events
         view.isSelected = account.isSelected
         view.setOnClickListener {
             if (editMode) {
@@ -140,26 +147,35 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
             binding.edit.setOnClickListener {
                 listener.onItemEditClick(account, position, id, this)
             }
-            binding.groupEdit.visibility = View.VISIBLE
-            binding.groupTotp.visibility = View.GONE
-            binding.groupHotp.visibility = View.GONE
+            binding.indicators.showView(R.id.edit)
         } else {
-            binding.groupEdit.visibility = View.GONE
-
             when (account.type) {
                 OTPType.TOTP -> {
                     holder as TimerAccountViewHolder
                     holder.stop()
                     holder.start(account)
 
-                    binding.indicator.max = TimeUnit.SECONDS.toMillis(account.period).toInt()
-                    binding.groupTotp.visibility = View.VISIBLE
-                    binding.groupHotp.visibility = View.GONE
+                    when (totpIndicatorType) {
+                        TotpIndicatorType.Circular -> {
+                            binding.indicators.showView(R.id.totp_circular_indicator)
+                            binding.totpCircularIndicator.max = TimeUnit.SECONDS.toMillis(account.period).toInt()
+                            holder.setOnUpdate {
+                                binding.totpCircularIndicator.progress = it.toInt()
+                            }
+                        }
+                        TotpIndicatorType.Text -> {
+                            binding.indicators.showView(R.id.totp_text_indicator)
+                            holder.setOnUpdate {
+                                binding.totpTextIndicator.text = ceil(it / 1000F).toInt().toString()
+                            }
+                        }
+                    }
                 }
                 OTPType.HOTP -> {
 //                    binding.pin.text = "- ".repeat(account.digits)
                     binding.pin.text = generatePin(account)
-                    binding.nextPin.setOnClickListener {
+                    binding.indicators.showView(R.id.hotp_indicator)
+                    binding.hotpIndicator.setOnClickListener {
                         it as ImageView
 
                         account.counter++
@@ -174,8 +190,6 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
 
                         listener.onItemHOTPCounterChange(account, position, id, this)
                     }
-                    binding.groupHotp.visibility = View.VISIBLE
-                    binding.groupTotp.visibility = View.GONE
                 }
             }
         }
@@ -407,14 +421,18 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
     }
 
     inner class TimerAccountViewHolder(parent: ViewGroup) : AccountViewHolder(parent) {
-        var timer: TotpTimer? = null
-            private set
+        private var onUpdate: (timeLeft: Long) -> Unit = {}
+        private var timer: TotpTimer? = null
+
+        fun setOnUpdate(onUpdate: (timeLeft: Long) -> Unit) {
+            this.onUpdate = onUpdate
+        }
 
         fun start(account: Account) {
             timer = TotpTimer(account.period)
             timer!!.setListener(object : TotpTimer.Listener {
                 override fun onTick(timeLeft: Long) {
-                    binding.indicator.progress = timeLeft.toInt()
+                    onUpdate(timeLeft)
                 }
 
                 override fun onValueChanged() {

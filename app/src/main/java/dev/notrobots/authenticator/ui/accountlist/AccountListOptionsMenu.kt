@@ -13,6 +13,7 @@ import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ViewAccountListOptionsBinding
 import dev.notrobots.authenticator.extensions.toPx
 import dev.notrobots.authenticator.models.SortMode
+import dev.notrobots.authenticator.models.TotpIndicatorType
 import dev.notrobots.authenticator.widget.GridMenu
 import dev.notrobots.authenticator.widget.GridMenuItem
 
@@ -20,12 +21,15 @@ class AccountListOptionsMenu(
     context: Context,
     _sortMode: SortMode,
     _showIcons: Boolean,
-    _showPins: Boolean
+    _showPins: Boolean,
+    _totpIndicatorType: TotpIndicatorType
 ) : PopupWindow() {
     private val layoutInflater = LayoutInflater.from(context)
     private val binding = ViewAccountListOptionsBinding.inflate(layoutInflater)
     private val contentView = binding.root
     private var listener: Listener? = null
+    var totpIndicatorType: TotpIndicatorType = _totpIndicatorType
+        private set
     var sortMode: SortMode = _sortMode
         private set
     var showIcons: Boolean = _showIcons
@@ -158,8 +162,14 @@ class AccountListOptionsMenu(
                 showPins = it
             }
         )
+        binding.appearanceOptions.addItem(
+            "TOTP",
+            TOTP_INDICATOR_ICON,
+            TotpIndicatorChangeListener()
+        )
         binding.appearanceOptions.getItemAt(0).setIconResource(if (showIcons) SHOW_ICONS_ICON else HIDE_ICONS_ICON)
         binding.appearanceOptions.getItemAt(1).setIconResource(if (showPins) SHOW_PINS_ICON else HIDE_PINS_ICON)
+        binding.appearanceOptions.getItemAt(2).setIconResource(TOTP_INDICATOR_ICONS[totpIndicatorType.ordinal])
     }
 
     fun setListener(listener: Listener?) {
@@ -193,6 +203,12 @@ class AccountListOptionsMenu(
         private const val SORT_ISSUER_ASC_ICON = R.drawable.ic_sort_az_asc
         private const val SORT_ISSUER_DESC_ICON = R.drawable.ic_sort_az_desc
         private const val SORT_CUSTOM_ICON = R.drawable.ic_account
+        private const val TOTP_INDICATOR_ICON = R.drawable.ic_account
+        private val TOTP_INDICATOR_ICONS = arrayOf(
+            R.drawable.ic_account,
+            R.drawable.ic_account,
+            R.drawable.ic_account
+        )
     }
 
     interface Listener {
@@ -204,7 +220,7 @@ class AccountListOptionsMenu(
         @DrawableRes private val visibleIcon: Int,
         @DrawableRes private val hiddenIcon: Int,
         initialState: Boolean,
-        private val onUpdate: (value: Boolean) -> Unit
+        private val onUpdate: (value: Boolean) -> Unit  //TODO Make this abstract and simply extend it when you call addItem, so you don't need the onUpdate() callback
     ) : GridMenuItem.Listener {
         private var state: Boolean = initialState
 
@@ -279,6 +295,16 @@ class AccountListOptionsMenu(
 
         private fun toggleSortDirection() {
             sortDirection *= -1
+        }
+    }
+
+    private inner class TotpIndicatorChangeListener : GridMenuItem.Listener {
+        override fun onItemChecked(item: GridMenuItem, checkedState: Boolean) {
+            val next = (totpIndicatorType.ordinal + 1) % TotpIndicatorType.values().size
+            val icon = TOTP_INDICATOR_ICONS[next]
+
+            totpIndicatorType = TotpIndicatorType.values()[next]
+            item.setIconResource(icon)
         }
     }
 }
