@@ -12,7 +12,7 @@
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorSecondaryContainer">@color/google_blue700</item>
         <item name="colorOnSecondaryContainer">@color/white</item>
-        <item name="android:textColorSecondary">@color/google_grey900</item>
+        <item name="android:textColorSecondary">@color/google_grey600</item>
 
         <!-- Surface & background -->
         <item name="colorSurface">@color/white</item>

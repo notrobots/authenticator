@@ -181,6 +181,9 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                     }
                 }
                 OTPType.HOTP -> {
+                    val primaryColor = view.context.resolveColorAttribute(R.attr.colorPrimary)
+                    val textColorSecondary = view.context.resolveColorAttribute(android.R.attr.textColorSecondary)
+
 //                    binding.pin.text = "- ".repeat(account.digits)
                     binding.pin.text = generatePin(account)
                     binding.indicators.showView(R.id.hotp_indicator)
@@ -190,11 +193,11 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                         account.counter++
                         binding.pin.text = generatePin(account)
                         it.isEnabled = false
-                        it.setTint(Color.LTGRAY)    //FIXME: Use the app's colors
+                        it.setTint(textColorSecondary)
 
                         handler.postDelayed({
                             it.isEnabled = true
-                            it.setTint(Color.BLUE)
+                            it.setTint(primaryColor)
                         }, Account.HOTP_CODE_INTERVAL)
 
                         listener.onItemHOTPCounterChange(account, position, id, this)
