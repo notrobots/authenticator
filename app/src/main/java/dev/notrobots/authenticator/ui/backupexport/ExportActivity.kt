@@ -1,75 +1,100 @@
 package dev.notrobots.authenticator.ui.backupexport
 
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import dev.notrobots.androidstuff.extensions.makeSnackBar
+import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.extensions.viewBindings
 import dev.notrobots.authenticator.R
-import dev.notrobots.authenticator.databinding.ActivityExportBinding
-import dev.notrobots.authenticator.models.Account
+import dev.notrobots.authenticator.databinding.ActivityExportConfigBinding
+import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
-import dev.notrobots.authenticator.ui.backupexportconfig.ExportConfigActivity
+import dev.notrobots.authenticator.ui.backupexportqr.ExportQRActivity
+import dev.notrobots.authenticator.ui.backupexporttext.ExportTextActivity
+import dev.notrobots.authenticator.util.AccountExporter
 
 @AndroidEntryPoint
 class ExportActivity : AppCompatActivity() {
-    private val binding by viewBindings<ActivityExportBinding>()
+    private val binding by viewBindings<ActivityExportConfigBinding>()
     private val viewModel by viewModels<AccountListViewModel>()
-    private val adapter = ExportAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbarLayout.toolbar)
 
-        title = null
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        binding.toolbarLayout.toolbar.setNavigationOnClickListener { finish() }
-
-        viewModel.accounts.observe(this, object : Observer<List<Account>> {
-            override fun onChanged(t: List<Account>) {
-                adapter.setItems(t)
-                binding.list.layoutManager = LinearLayoutManager(this@ExportActivity)
-                binding.list.adapter = adapter
-                binding.next.setOnClickListener {
-                    val checked = adapter.checkedItems
-
-                    if (checked.isNotEmpty()) {
-                        startActivity(ExportConfigActivity::class) {
-                            putExtra(ExportConfigActivity.EXTRA_ITEMS, ArrayList(checked))
-                        }
-                    } else {
-                        val sb = makeSnackBar("No items selected", binding.root, Snackbar.LENGTH_SHORT)
-                        sb.anchorView = binding.next
-                    }
-                }
-                viewModel.accounts.removeObserver(this)
-            }
-        })
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_export, menu)
-
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.menu_export_select_all -> {
-                adapter.selectAll()
-            }
-
-            else -> return false
+        title = "Export method"
+        binding.toolbarLayout.toolbar.setNavigationOnClickListener {
+            finish()
         }
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        return true
+        viewModel.accounts.observe(this) {
+            val accounts = it
+
+            binding.exportOptions.addOption(
+                "QR",
+                "Export one or more QR codes containing the accounts. This will try and create as little qr codes as possible",
+                R.drawable.ic_qr
+            ) {
+                val export = AccountExporter.exportQR(accounts)
+
+                startActivity(ExportQRActivity::class) {
+                    putExtra(ExportQRActivity.EXTRA_QR_CODES, ArrayList(export))
+                }
+            }
+
+            binding.exportOptions.addOption(
+                "QR Plain",
+                "Export each account a single QR code. All available OTP Authenticators should be able to import this code.",
+                R.drawable.ic_qr
+            ) {
+                val export = AccountExporter.exportPlainQR(accounts)
+
+                startActivity(ExportQRActivity::class) {
+                    putExtra(ExportQRActivity.EXTRA_QR_CODES, ArrayList(export))
+                }
+            }
+
+            binding.exportOptions.addOption(
+                "Plain text",
+                "Export all accounts in a single text file, where each line is an account. All available OTP Authenticators should be able to import these accounts.",
+                R.drawable.ic_file
+            ) {
+                val export = AccountExporter.exportUris(accounts)
+
+                startActivity(ExportTextActivity::class) {
+                    putExtra(ExportTextActivity.EXTRA_URIS, ArrayList(export))
+                }
+            }
+
+            binding.exportOptions.addOption(
+                "Json",
+                "Export all accounts and tags in a single json file. Some OTP Authenticators might be able to import this file.",
+                R.drawable.ic_json
+            ) {
+//            val export = AccountExporter.exportJson(accounts)
+
+//            startActivity(ExportTextActivity::class) {
+//                putExtra(ExportTextActivity.EXTRA_URIS, ArrayList(export))
+//            }
+                makeToast("Not implemented yet")
+            }
+
+            binding.exportOptions.addOption(
+                "Google Authenticator",
+                "Export the accounts so that they can be imported by Google Authenticator.",
+                R.drawable.ic_google
+            ) {
+//            val export = AccountExporter.exportGoogleAuthenticator(accounts)
+
+//            startActivity(ExportTextActivity::class) {
+//                putExtra(ExportTextActivity.EXTRA_URIS, ArrayList(export))
+//            }
+                makeToast("Not implemented yet")
+            }
+        }
     }
 }

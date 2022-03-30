@@ -31,8 +31,7 @@
             android:name=".ui.account.AccountActivity"
             android:screenOrientation="portrait" />
 
-        <activity android:name=".ui.backup.BackupActivity" />
-        <activity android:name=".ui.backupexportconfig.ExportConfigActivity" />
+        <activity android:name=".ui.backupexport.ExportActivity" />
 
         <activity
             android:name=".ui.backupimport.ImportActivity"
@@ -42,7 +41,6 @@
             android:name=".ui.backupimportresult.ImportResultActivity"
             android:screenOrientation="portrait" />
 
-        <activity android:name=".ui.backupexport.ExportActivity" />
         <activity android:name=".ui.backupexportqr.ExportQRActivity" />
         <activity
             android:name=".ui.backupexporttext.ExportTextActivity"
