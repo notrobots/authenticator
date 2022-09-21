@@ -285,9 +285,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                 }
 
                 override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                    return oldList[oldItemPosition].name == items[newItemPosition].name &&
-                           oldList[oldItemPosition].label == items[newItemPosition].label &&
-                           oldList[oldItemPosition].issuer == items[newItemPosition].issuer
+                    return oldList[oldItemPosition] == items[newItemPosition]
                 }
             })
 

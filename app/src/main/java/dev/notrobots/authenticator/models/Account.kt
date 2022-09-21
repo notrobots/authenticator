@@ -78,6 +78,21 @@ data class Account(
         return super.clone() as Account
     }
 
+    override fun equals(other: Any?): Boolean {
+        return other is Account &&
+               other.name == name &&
+               other.label == label &&
+               other.issuer == issuer &&
+               other.secret == secret &&
+               other.id == id &&
+               other.type == type &&
+               other.counter == counter &&
+               other.digits == digits &&
+               other.period == period &&
+               other.algorithm == algorithm &&
+               other.order == order
+    }
+
     companion object {
         const val DEFAULT_ORDER = 0L
         const val DEFAULT_ID = 0L

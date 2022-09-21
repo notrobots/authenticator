@@ -183,6 +183,11 @@ class AccountListActivity : BaseActivity() {
         binding.listAccounts.adapter = adapterWrapper
     }
 
+    override fun onResume() {
+        super.onResume()
+//        adapter.notifyDataSetChanged()
+    }
+
     override fun onStop() {
         super.onStop()
 
