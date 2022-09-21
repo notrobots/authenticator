@@ -181,6 +181,7 @@ class AccountListActivity : BaseActivity() {
     override fun onStart() {
         super.onStart()
         binding.listAccounts.adapter = adapterWrapper
+        adapter.totpTimer?.start()
     }
 
     override fun onResume() {
@@ -191,6 +192,7 @@ class AccountListActivity : BaseActivity() {
     override fun onStop() {
         super.onStop()
 
+        adapter.totpTimer?.stop()
         binding.listAccounts.adapter = null
     }
 
@@ -358,6 +360,14 @@ class AccountListActivity : BaseActivity() {
         adapter.showIcons = preferences.getShowIcons(true)
         adapter.showPins = preferences.getShowPins(true)
         adapter.totpIndicatorType = preferences.getTotpIndicatorType()
+        adapter.totpTimer = TotpTimer()
+        adapter.totpTimer?.setListener(object : TotpTimer.Listener {
+            override fun onTick(currentTime: Long) {
+                adapter.notifyDataSetChanged()
+                //TODO: Only update the visible ones
+            }
+        })
+        adapter.totpTimer?.start()
 
         recyclerViewDragDropManager = RecyclerViewDragDropManager()
         recyclerViewDragDropManager.attachRecyclerView(list_accounts)

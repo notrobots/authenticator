@@ -1,6 +1,5 @@
 package dev.notrobots.authenticator.ui.accountlist
 
-import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
 import android.view.View
@@ -22,6 +21,7 @@ import dev.notrobots.authenticator.data.KnownIssuers
 import dev.notrobots.authenticator.databinding.ItemAccountBinding
 import dev.notrobots.authenticator.extensions.toDp
 import dev.notrobots.authenticator.models.*
+import dev.notrobots.authenticator.models.TotpTimer
 import dev.notrobots.authenticator.ui.accountlist.AccountListAdapter.AccountViewHolder
 import dev.notrobots.authenticator.util.OTPGenerator
 import dev.notrobots.authenticator.util.ViewUtil
@@ -54,6 +54,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
     val selectedItems = mutableSetOf<Account>()
     val selectedItemCount
         get() = selectedItems.size
+    var totpTimer: TotpTimer? = null
 
     init {
         setHasStableIds(true)
@@ -73,14 +74,6 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         return when (item.type) {
             OTPType.TOTP -> VIEW_TYPE_TOTP
             OTPType.HOTP -> VIEW_TYPE_HOTP
-        }
-    }
-
-    override fun onViewRecycled(holder: AccountViewHolder) {
-        super.onViewRecycled(holder)
-
-        if (holder is TimerAccountViewHolder) {
-            holder.stop()
         }
     }
 
@@ -161,20 +154,22 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
             when (account.type) {
                 OTPType.TOTP -> {
                     holder as TimerAccountViewHolder
-                    holder.stop()
-                    holder.start(account)
+                    holder.setCounter(account)
+                    binding.pin.text = generatePin(account)
 
                     when (totpIndicatorType) {
                         TotpIndicatorType.Circular -> {
                             binding.indicators.showView(R.id.totp_circular_indicator)
                             binding.totpCircularIndicator.max = TimeUnit.SECONDS.toMillis(account.period).toInt()
-                            holder.setOnUpdate {
+                            holder.totpCounter?.getTimeUntilNextCounter()?.let {
+                                binding.pin.text = generatePin(account)
                                 binding.totpCircularIndicator.progress = it.toInt()
                             }
                         }
                         TotpIndicatorType.Text -> {
                             binding.indicators.showView(R.id.totp_text_indicator)
-                            holder.setOnUpdate {
+                            holder.totpCounter?.getTimeUntilNextCounter()?.let {
+                                binding.pin.text = generatePin(account)
                                 binding.totpTextIndicator.text = ceil(it / 1000F).toInt().toString()
                             }
                         }
@@ -404,7 +399,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         fun onItemSelectionChange(account: Account, position: Int, id: Long, adapter: AccountListAdapter) = Unit
     }
 
-    open class AccountViewHolder(parent: ViewGroup) : AbstractDraggableItemViewHolder(
+    open inner class AccountViewHolder(parent: ViewGroup) : AbstractDraggableItemViewHolder(
         ViewUtil.inflate(R.layout.item_account, parent)
     ), DraggableItemViewHolder {
         private val dragState = DraggableItemState()
@@ -425,34 +420,13 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
     }
 
     inner class TimerAccountViewHolder(parent: ViewGroup) : AccountViewHolder(parent) {
-        private var onUpdate: (timeLeft: Long) -> Unit = {}
-        private var timer: TotpTimer? = null
+        var totpCounter: TotpCounter? = null
+            private set
 
-        fun setOnUpdate(onUpdate: (timeLeft: Long) -> Unit) {
-            this.onUpdate = onUpdate
-        }
-
-        fun start(account: Account) {
-            timer = TotpTimer(account.period)
-            timer!!.setListener(object : TotpTimer.Listener {
-                override fun onTick(timeLeft: Long) {
-                    onUpdate(timeLeft)
-                }
-
-                override fun onValueChanged() {
-                    binding.pin.text = generatePin(account)
-                }
-            })
-            timer!!.start()
-        }
-
-        fun stop() {
-            if (timer != null) {
-                timer!!.stop()
-                timer = null
+        fun setCounter(account: Account) {
+            if (totpCounter?.timeStep != account.period) {
+                totpCounter = TotpCounter(account.period)
             }
         }
     }
-
-
 }

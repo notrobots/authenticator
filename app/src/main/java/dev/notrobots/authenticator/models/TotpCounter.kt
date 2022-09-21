@@ -15,6 +15,7 @@
  */
 package dev.notrobots.authenticator.models
 
+import dev.notrobots.androidstuff.util.now
 import java.util.concurrent.TimeUnit
 
 /**
@@ -54,25 +55,14 @@ class TotpCounter(
     }
 
     /**
-     * Gets the value of this counter at the specified time.
-     *
-     * @param time time instant (seconds since UNIX epoch) for which to obtain the value.
-     *
-     * @return value of the counter at the `time`.
-     */
-    fun getValueAtTime(time: Long): Long {
-        return getValueAtTime(time, TimeUnit.SECONDS)
-    }
-
-    /**
-     * Gets the value of this counter at the specified time.
+     * Gets the counter at the specified time.
      *
      * @param time time instant for which to obtain the value.
-     * @param unit Time unit of the given [time] value
+     * @param unit time unit of [time] ([TimeUnit.MILLISECONDS] by default).
      *
-     * @return value of the counter at the `time`.
+     * @return counter at `time`.
      */
-    fun getValueAtTime(time: Long, unit: TimeUnit): Long {
+    fun getCounterAtTime(time: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): Long {
         val time = unit.toSeconds(time)
 
         assertValidTime(time)
@@ -100,14 +90,33 @@ class TotpCounter(
     }
 
     /**
-     * Gets the time when the counter assumes the specified value.
+     * Gets the start time for the specified counter value.
      *
-     * @param value value.
+     * @param counter value.
      *
-     * @return earliest time instant (seconds since UNIX epoch) when the counter assumes the value.
+     * @return earliest time instant (seconds since UNIX epoch) for the given counter value.
      */
-    fun getValueStartTime(value: Long): Long {
-        return value * timeStep
+    fun getCounterStartTime(counter: Long): Long {
+        return counter * timeStep
+    }
+
+    /**
+     * Gets the time (seconds since UNIX epoch) until the next counter value.
+     *
+     * @param time time instant  for which to perform the query.
+     * @param inputUnit time unit of [time].
+     *
+     * @return time left (in milliseconds since epoch) until the next counter value .
+     */
+    fun getTimeUntilNextCounter(
+        time: Long = now(),
+        inputUnit: TimeUnit = TimeUnit.MILLISECONDS
+    ): Long {
+        val current = getCounterAtTime(time, inputUnit)
+        val next = current + 1
+        val nextStart = TimeUnit.SECONDS.toMillis(getCounterStartTime(next))
+
+        return nextStart - inputUnit.toMillis(time)
     }
 
     companion object {
