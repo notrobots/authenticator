@@ -84,7 +84,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
             VIEW_TYPE_HOTP -> AccountViewHolder(parent)
             VIEW_TYPE_TOTP -> TimerAccountViewHolder(parent)
 
-            else -> throw Exception("Unkown view type")
+            else -> throw Exception("Unknown view type")
         }
     }
 
