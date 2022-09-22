@@ -1,6 +1,8 @@
 package dev.notrobots.authenticator
 
 import android.app.Application
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import dagger.hilt.android.HiltAndroidApp
@@ -11,6 +13,7 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)  //TODO: Remove after you're done testing
         LogUtil.setTag(TAG)
     }
 
