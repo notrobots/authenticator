@@ -5,13 +5,11 @@ import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.PopupWindow
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.activity.viewModels
 import androidx.appcompat.widget.SearchView
-import androidx.core.view.MenuItemCompat.setOnActionExpandListener
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -72,7 +70,7 @@ class AccountListActivity : BaseActivity() {
         }
 
         override fun onItemLongClick(account: Account, position: Int, id: Long, adapter: AccountListAdapter): Boolean {
-            toolbar.startActionMode(actionModeCallback)
+            toolbar.startActionMode(editActionModeCallback)
 
             return true
         }
@@ -95,7 +93,7 @@ class AccountListActivity : BaseActivity() {
         }
     }
     private var actionMode: ActionMode? = null
-    private val actionModeCallback = object : ActionMode.Callback {
+    private val editActionModeCallback = object : ActionMode.Callback {
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
             menuInflater.inflate(R.menu.menu_account_list_edit, menu)
             actionMode = mode
@@ -282,7 +280,7 @@ class AccountListActivity : BaseActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_account_list_edit -> {
-                toolbar.startActionMode(actionModeCallback)
+                toolbar.startActionMode(editActionModeCallback)
             }
             R.id.menu_account_list_overflow -> {
                 showOptionsMenu()
