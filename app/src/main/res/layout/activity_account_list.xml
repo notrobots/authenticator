@@ -19,10 +19,11 @@
         <!--   TODO Improve this screen  -->
 
         <TextView
+            android:id="@+id/empty_view_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="Press the '+' to add an account"
+            android:text="@string/empty_view_no_accounts"
             android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

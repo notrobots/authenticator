@@ -1,12 +1,17 @@
 package dev.notrobots.authenticator.ui.accountlist
 
 import android.app.Activity
+import android.app.SearchManager
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.PopupWindow
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.activity.viewModels
+import androidx.appcompat.widget.SearchView
+import androidx.core.view.MenuItemCompat.setOnActionExpandListener
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,6 +24,7 @@ import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ActivityAccountListBinding
+import dev.notrobots.authenticator.databinding.ViewToolbarSearchBinding
 import dev.notrobots.authenticator.dialogs.*
 import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.models.*
@@ -31,6 +37,7 @@ import dev.notrobots.authenticator.util.AccountExporter
 import dev.notrobots.authenticator.util.OTPGenerator
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.coroutines.launch
+
 
 @AndroidEntryPoint
 class AccountListActivity : BaseActivity() {
@@ -136,13 +143,67 @@ class AccountListActivity : BaseActivity() {
             adapter.clearSelected()
         }
     }
+    private val searchActionModeCallback = object : ActionMode.Callback {
+        override fun onCreateActionMode(mode: ActionMode, menu: Menu?): Boolean {
+            val viewBinding = ViewToolbarSearchBinding.inflate(layoutInflater)
+            val searchManager = getSystemService(Context.SEARCH_SERVICE) as SearchManager
+            val searchView = viewBinding.searchView
+
+            actionMode = mode
+            actionMode?.customView = viewBinding.root
+
+            binding.emptyViewText.setText(R.string.empty_view_no_results)
+            binding.btnAddAccount.visibility = View.INVISIBLE
+            searchView.setSearchableInfo(searchManager.getSearchableInfo(componentName))
+            searchView.setIconifiedByDefault(false)
+            searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String): Boolean {
+                    return true
+                }
+
+                override fun onQueryTextChange(newText: String): Boolean {
+                    viewModel.accounts.value?.let {
+                        val accounts = it.filter {
+                            it.name.contains(newText) ||
+                            it.label.contains(newText) ||
+                            it.issuer.contains(newText)
+                        }
+
+                        adapter.setItems(accounts)
+                    }
+                    return true
+                }
+            })
+            searchView.requestFocus()
+
+            return true
+        }
+
+        override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?): Boolean {
+            return false
+        }
+
+        override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
+            return false
+        }
+
+        override fun onDestroyActionMode(mode: ActionMode?) {
+            actionMode = null
+            viewModel.accounts.value?.let {
+                adapter.setItems(it)
+            }
+            binding.btnAddAccount.visibility = View.VISIBLE
+            binding.emptyViewText.setText(R.string.empty_view_no_accounts)
+        }
+
+    }
 
     //region Activity lifecycle
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        setSupportActionBar(binding.toolbarLayout.toolbar)
+        setSupportActionBar(toolbar)
         doubleBackPressToExitEnabled = true
 
         binding.btnAddAccountQr.setOnClickListener {
@@ -221,10 +282,13 @@ class AccountListActivity : BaseActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_account_list_edit -> {
-                binding.toolbarLayout.toolbar.startActionMode(actionModeCallback)
+                toolbar.startActionMode(actionModeCallback)
             }
             R.id.menu_account_list_overflow -> {
                 showOptionsMenu()
+            }
+            R.id.menu_account_list_search -> {
+                toolbar.startActionMode(searchActionModeCallback)
             }
             R.id.menu_clear -> {
                 lifecycleScope.launch {

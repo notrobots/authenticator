@@ -35,4 +35,6 @@
     <string name="error_empty_field">Field cannot be empty</string>
     <string name="label_uri_or_text">URI or text</string>
     <string name="label_keep_both">Keep both</string>
+    <string name="empty_view_no_results">No accounts found</string>
+    <string name="empty_view_no_accounts">Press the \'+\' to add an account</string>
 </resources>

@@ -3,16 +3,34 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/menu_account_list_search"
+        android:icon="@drawable/ic_search"
+        android:title="Search"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/menu_account_list_edit"
         android:icon="@drawable/ic_edit"
         android:title="Edit items"
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/menu_account_list_sort"
+        android:icon="@drawable/ic_sort_az"
+        android:title="Sort"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_account_list_filter"
+        android:icon="@drawable/ic_sort_az"
+        android:title="Filter"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/menu_account_list_overflow"
         android:icon="@drawable/ic_more"
         android:title="More options"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
 
     <!--        <item-->
     <!--            android:id="@+id/menu_account_list_toggle_pins"-->
