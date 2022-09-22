@@ -310,6 +310,14 @@ class AccountListActivity : BaseActivity() {
             R.id.menu_account_list_sort_issuer_az_asc -> updateSortModeAndCheckItem(SortMode.IssuerAscending)
             R.id.menu_account_list_sort_issuer_az_desc -> updateSortModeAndCheckItem(SortMode.IssuerDescending)
             R.id.menu_account_list_sort_custom -> updateSortModeAndCheckItem(SortMode.Custom)
+            R.id.menu_account_list_backup_export -> {
+                if (viewModel.accounts.value?.isNotEmpty() == true) {
+                    startActivity(ExportActivity::class)
+                } else {
+                    makeSnackBar("Nothing to export", binding.root)
+                }
+            }
+            R.id.menu_account_list_backup_import -> startActivity(ImportActivity::class)
             R.id.menu_clear -> {
                 lifecycleScope.launch {
                     viewModel.accountDao.deleteAll()
