@@ -18,7 +18,33 @@
         android:id="@+id/menu_account_list_sort"
         android:icon="@drawable/ic_sort_az"
         android:title="Sort"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/menu_account_list_sort_name_az_asc"
+                    android:title="Name A-Z"/>
+                <item
+                    android:id="@+id/menu_account_list_sort_name_az_desc"
+                    android:title="Name Z-A"/>
+                <item
+                    android:id="@+id/menu_account_list_sort_label_az_asc"
+                    android:title="Label A-Z"/>
+                <item
+                    android:id="@+id/menu_account_list_sort_label_az_desc"
+                    android:title="Label Z-A"/>
+                <item
+                    android:id="@+id/menu_account_list_sort_issuer_az_asc"
+                    android:title="Issuer A-Z"/>
+                <item
+                    android:id="@+id/menu_account_list_sort_issuer_az_desc"
+                    android:title="Issuer Z-A"/>
+                <item
+                    android:id="@+id/menu_account_list_sort_custom"
+                    android:title="Custom"/>
+            </group>
+        </menu>
+    </item>
 
     <item
         android:id="@+id/menu_account_list_filter"

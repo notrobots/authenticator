@@ -270,7 +270,29 @@ class AccountListActivity : BaseActivity() {
         return true
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        when (preferences.getSortMode()) {
+            SortMode.Custom -> menu.findItem(R.id.menu_account_list_sort_custom).isChecked = true
+            SortMode.NameAscending -> menu.findItem(R.id.menu_account_list_sort_name_az_asc).isChecked = true
+            SortMode.NameDescending -> menu.findItem(R.id.menu_account_list_sort_name_az_desc).isChecked = true
+            SortMode.LabelAscending -> menu.findItem(R.id.menu_account_list_sort_label_az_asc).isChecked = true
+            SortMode.LabelDescending -> menu.findItem(R.id.menu_account_list_sort_label_az_desc).isChecked = true
+            SortMode.IssuerAscending -> menu.findItem(R.id.menu_account_list_sort_issuer_az_asc).isChecked = true
+            SortMode.IssuerDescending -> menu.findItem(R.id.menu_account_list_sort_issuer_az_desc).isChecked = true
+//            SortMode.TagAscending -> menu.findItem(R.id.menu_account_list_sort_custom).isChecked = true
+//            SortMode.TagDescending -> menu.findItem(R.id.menu_account_list_sort_custom).isChecked = true
+        }
+
+        return true
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val updateSortModeAndCheckItem = { sortMode: SortMode ->
+            preferences.setSortMode(sortMode)
+            viewModel.sortMode(sortMode)
+            item.isChecked = true
+        }
+
         when (item.itemId) {
             R.id.menu_account_list_edit -> {
                 toolbar.startActionMode(editActionModeCallback)
@@ -281,6 +303,13 @@ class AccountListActivity : BaseActivity() {
             R.id.menu_account_list_search -> {
                 toolbar.startActionMode(searchActionModeCallback)
             }
+            R.id.menu_account_list_sort_name_az_asc -> updateSortModeAndCheckItem(SortMode.NameAscending)
+            R.id.menu_account_list_sort_name_az_desc -> updateSortModeAndCheckItem(SortMode.NameDescending)
+            R.id.menu_account_list_sort_label_az_asc -> updateSortModeAndCheckItem(SortMode.LabelAscending)
+            R.id.menu_account_list_sort_label_az_desc -> updateSortModeAndCheckItem(SortMode.LabelDescending)
+            R.id.menu_account_list_sort_issuer_az_asc -> updateSortModeAndCheckItem(SortMode.IssuerAscending)
+            R.id.menu_account_list_sort_issuer_az_desc -> updateSortModeAndCheckItem(SortMode.IssuerDescending)
+            R.id.menu_account_list_sort_custom -> updateSortModeAndCheckItem(SortMode.Custom)
             R.id.menu_clear -> {
                 lifecycleScope.launch {
                     viewModel.accountDao.deleteAll()
