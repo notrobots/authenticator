@@ -4,6 +4,8 @@ import android.os.Handler
 import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Filter
+import android.widget.Filterable
 import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.updateLayoutParams
@@ -29,7 +31,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.math.ceil
 
-class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableItemAdapter<AccountViewHolder> {
+class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableItemAdapter<AccountViewHolder>, Filterable {
     private var listener: Listener = object : Listener {}
     private val handler = Handler(Looper.getMainLooper())
     var items = mutableListOf<Account>()    //FIXME: private
@@ -65,16 +67,20 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
     }
 
     override fun getItemId(position: Int): Long {
-        return items[position].id
+        return getItem(position).id
     }
 
     override fun getItemViewType(position: Int): Int {
-        val item = items[position]
+        val item = getItem(position)
 
         return when (item.type) {
             OTPType.TOTP -> VIEW_TYPE_TOTP
             OTPType.HOTP -> VIEW_TYPE_HOTP
         }
+    }
+
+    fun getItem(position: Int): Account {
+        return items[position]
     }
 
     //region Rendering
@@ -260,9 +266,47 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
 
     //endregion
 
+    //region Filtering
+
+    override fun getFilter(): Filter {
+        return AccountFilter(items.toList())
+    }
+
+    inner class AccountFilter(private val source: List<Account>): Filter() {
+        //TODO: If an item is added while a filter is "active", the source will be out of sync
+
+        override fun performFiltering(constraint: CharSequence?): FilterResults {
+            val input = constraint.toString().lowercase()
+            val results = FilterResults()
+
+            if (input.isNotBlank()) {
+                results.values = source.filter {
+                    it.name.lowercase().contains(input) ||
+                    it.label.lowercase().contains(input) ||
+                    it.issuer.lowercase().contains(input)
+                }
+            } else {
+                results.values = source
+            }
+
+            return results
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        override fun publishResults(constraint: CharSequence?, results: FilterResults) {
+            setItems(results.values as List<Account>)
+        }
+
+        fun reset() {
+            setItems(source)
+        }
+    }
+
+    //endregion
+
     fun setItems(items: List<Account>) {
         if (this.items.isEmpty()) {
-            this.items = items.toMutableList()
+            this.items.addAll(items)
             notifyDataSetChanged()
         } else {
             val oldList = this.items
@@ -284,8 +328,8 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                 }
             })
 
-            this.items.clear()
-            this.items.addAll(items)
+            oldList.clear()
+            oldList.addAll(items)
             result.dispatchUpdatesTo(this)
         }
     }

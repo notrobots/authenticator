@@ -142,6 +142,8 @@ class AccountListActivity : BaseActivity() {
         }
     }
     private val searchActionModeCallback = object : ActionMode.Callback {
+        private var filter: AccountListAdapter.AccountFilter? = null
+
         override fun onCreateActionMode(mode: ActionMode, menu: Menu?): Boolean {
             val viewBinding = ViewToolbarSearchBinding.inflate(layoutInflater)
             val searchManager = getSystemService(Context.SEARCH_SERVICE) as SearchManager
@@ -149,6 +151,7 @@ class AccountListActivity : BaseActivity() {
 
             actionMode = mode
             actionMode?.customView = viewBinding.root
+            filter = adapter.filter as AccountListAdapter.AccountFilter
 
             binding.emptyViewText.setText(R.string.empty_view_no_results)
             binding.btnAddAccount.visibility = View.INVISIBLE
@@ -160,15 +163,7 @@ class AccountListActivity : BaseActivity() {
                 }
 
                 override fun onQueryTextChange(newText: String): Boolean {
-                    viewModel.accounts.value?.let {
-                        val accounts = it.filter {
-                            it.name.contains(newText) ||
-                            it.label.contains(newText) ||
-                            it.issuer.contains(newText)
-                        }
-
-                        adapter.setItems(accounts)
-                    }
+                    filter?.filter(newText)
                     return true
                 }
             })
@@ -187,13 +182,11 @@ class AccountListActivity : BaseActivity() {
 
         override fun onDestroyActionMode(mode: ActionMode?) {
             actionMode = null
-            viewModel.accounts.value?.let {
-                adapter.setItems(it)
-            }
+            filter?.reset()
+            filter = null
             binding.btnAddAccount.visibility = View.VISIBLE
             binding.emptyViewText.setText(R.string.empty_view_no_accounts)
         }
-
     }
 
     //region Activity lifecycle
