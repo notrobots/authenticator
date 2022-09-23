@@ -30,9 +30,9 @@ fun <E : Enum<E>> SharedPreferences.Editor.putEnum(name: String, value: E?) {
     putString(name, value.toString())
 }
 
-fun SharedPreferences.getShowPins(default: Boolean = false): Boolean = getBoolean(Preferences.SHOW_PINS, default)
+fun SharedPreferences.getShowPins(default: Boolean = true): Boolean = getBoolean(Preferences.SHOW_PINS, default)
 fun SharedPreferences.setShowPins(value: Boolean) = edit { putBoolean(Preferences.SHOW_PINS, value) }
-fun SharedPreferences.getShowIcons(default: Boolean = false): Boolean = getBoolean(Preferences.SHOW_ICONS, default)
+fun SharedPreferences.getShowIcons(default: Boolean = true): Boolean = getBoolean(Preferences.SHOW_ICONS, default)
 fun SharedPreferences.setShowIcons(value: Boolean) = edit { putBoolean(Preferences.SHOW_ICONS, value) }
 fun SharedPreferences.getSortMode(default: SortMode = SortMode.Custom): SortMode = getEnum(Preferences.SORT_MODE, default) ?: SortMode.Custom
 fun SharedPreferences.setSortMode(value: SortMode) = edit { putEnum(Preferences.SORT_MODE, value) }

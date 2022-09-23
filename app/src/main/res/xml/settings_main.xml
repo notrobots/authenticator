@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory android:title="Appearance">
+        <ListPreference
+            android:key="app_theme"
+            android:summary="Force Light"
+            android:title="Theme" />
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="show_pins"
+            android:summary="If disabled it will completely hide the pin"
+            android:title="Show pins" />
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="show_icons"
+            android:summary="If disabled it will completely hide the icon"
+            android:title="Show icons" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Privacy">
+        <SwitchPreference
+            android:dependency="show_pins"
+            android:key="hide_pins"
+            android:summary="Replace the pin with a sequence of symbols"
+            android:title="Hide pins" />
+        <!--        <SwitchPreference-->
+        <!--            android:key="hide_pins_on_start"-->
+        <!--            android:title="Hide pins on start"-->
+        <!--            android:dependency="show_pins" />-->
+
+        <!--
+            TODO: You might want to remove this option and simply reveal on press by default,
+                    since a list of obfuscate pins is useless
+        -->
+        <SwitchPreference
+            android:dependency="show_pins"
+            android:key="show_pin_on_press"
+            android:summary="Reveal the pin on press"
+            android:title="Show pin on press" />
+
+        <SwitchPreference
+            android:dependency="show_pins"
+            android:key="hide_pins_automatically"
+            android:title="Hide pins automatically" />
+
+        <EditTextPreference
+            android:dialogLayout="@layout/view_preference_edit_text_numeric"
+            android:key="hide_pins_delay"
+            android:summary="10"
+            android:title="Pin hide delay" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Backup">
+        <Preference android:title="Export" />
+        <Preference android:title="Import" />
+        <SwitchPreference android:title="Automatic backup" />
+        <Preference android:title="Automatic Backup frequency" />
+        <MultiSelectListPreference android:title="Automatic Backup locations" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Info">
+        <Preference android:title="Open Source Licenses" />
+        <Preference
+            android:enabled="false"
+            android:summary="0.1.0"
+            android:title="Version" />
+    </PreferenceCategory>
+</PreferenceScreen>

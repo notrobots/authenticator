@@ -31,6 +31,7 @@ import dev.notrobots.authenticator.ui.backupexport.ExportActivity
 import dev.notrobots.authenticator.ui.backupimport.ImportActivity
 import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
+import dev.notrobots.authenticator.ui.settings.SettingsActivity
 import dev.notrobots.authenticator.util.AccountExporter
 import dev.notrobots.authenticator.util.OTPGenerator
 import kotlinx.android.synthetic.main.activity_account_list.*
@@ -318,6 +319,7 @@ class AccountListActivity : BaseActivity() {
                 }
             }
             R.id.menu_account_list_backup_import -> startActivity(ImportActivity::class)
+            R.id.menu_account_list_settings -> startActivity(SettingsActivity::class)
             R.id.menu_clear -> {
                 lifecycleScope.launch {
                     viewModel.accountDao.deleteAll()
