@@ -20,6 +20,7 @@ class TotpTimer(
         if (isStopped) {
             return
         }
+
         listener?.onTick(now())
         handler.postDelayed(this, updateDelay)
     }
@@ -35,7 +36,8 @@ class TotpTimer(
      * Starts the timer
      */
     fun start() {
-        if (!isStopped) {
+        if (isStopped) {
+            isStopped = false
             run()
         }
     }

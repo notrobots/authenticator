@@ -233,13 +233,20 @@ class AccountListActivity : BaseActivity() {
 
     override fun onStart() {
         super.onStart()
-        binding.listAccounts.adapter = adapterWrapper
-        adapter.totpTimer?.start()
     }
 
     override fun onResume() {
         super.onResume()
-//        adapter.notifyDataSetChanged()
+
+        binding.listAccounts.adapter = adapterWrapper
+        adapter.totpTimer?.start()
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        adapter.totpTimer?.stop()
+        binding.listAccounts.adapter = null
     }
 
     override fun onStop() {
