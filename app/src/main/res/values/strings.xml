@@ -37,4 +37,15 @@
     <string name="label_keep_both">Keep both</string>
     <string name="empty_view_no_results">No accounts found</string>
     <string name="empty_view_no_accounts">Press the \'+\' to add an account</string>
+    <string name="pref_show_pins">Show pins</string>
+    <string name="pref_show_pins_summary">If disabled you can still click the account to copy the pin</string>
+    <string name="pref_show_icons">Show icons</string>
+    <string name="pref_appearance">Appearance</string>
+    <string name="pref_privacy">Privacy</string>
+    <string name="pref_backup">Backup</string>
+    <string name="pref_info">Info</string>
+    <string name="pref_export">Export</string>
+    <string name="pref_export_summary">Export your data</string>
+    <string name="pref_import">Import</string>
+    <string name="pref_import_summary">Import your data</string>
 </resources>
