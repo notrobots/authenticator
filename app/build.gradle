@@ -8,17 +8,23 @@ plugins {
 }
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 33
     buildToolsVersion "30.0.3"
 
     defaultConfig {
         applicationId "dev.notrobots.authenticator"
         minSdkVersion 23
-        targetSdkVersion 31
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
     }
 
     buildTypes {
@@ -154,6 +160,16 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.4-alpha03'
     androidTestImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+
+    /**
+     * Preferences 2
+     */
+    var pref2 = 'com.github.notrobots.preferences2'
+    var pref2Version = '1.0.0'
+
+    implementation "$pref2:preferences2:$pref2Version"
+    implementation "$pref2:preferences2-annotations:$pref2Version"
+    kapt "$pref2:preferences2-processor:$pref2Version"
 
     /**
      * Others

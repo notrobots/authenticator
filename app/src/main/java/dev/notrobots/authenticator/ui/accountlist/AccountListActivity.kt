@@ -34,9 +34,9 @@ import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import dev.notrobots.authenticator.ui.settings.SettingsActivity
 import dev.notrobots.authenticator.util.AccountExporter
 import dev.notrobots.authenticator.util.OTPGenerator
+import dev.notrobots.preferences2.*
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.coroutines.launch
-
 
 @AndroidEntryPoint
 class AccountListActivity : BaseActivity() {
@@ -222,7 +222,7 @@ class AccountListActivity : BaseActivity() {
 
         setupListAdapter()
 
-        viewModel.sortMode(preferences.getSortMode())
+        viewModel.sortMode(preferences.getSortMode<SortMode>())
         viewModel.sortMode.observe(this) {
             adapter.sortMode = it
         }
@@ -240,6 +240,7 @@ class AccountListActivity : BaseActivity() {
 
         binding.listAccounts.adapter = adapterWrapper
         adapter.totpTimer?.start()
+        updateAdapterPreferences()
     }
 
     override fun onPause() {
@@ -279,7 +280,7 @@ class AccountListActivity : BaseActivity() {
     }
 
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
-        when (preferences.getSortMode()) {
+        when (preferences.getSortMode<SortMode>()) {
             SortMode.Custom -> menu.findItem(R.id.menu_account_list_sort_custom).isChecked = true
             SortMode.NameAscending -> menu.findItem(R.id.menu_account_list_sort_name_az_asc).isChecked = true
             SortMode.NameDescending -> menu.findItem(R.id.menu_account_list_sort_name_az_desc).isChecked = true
@@ -296,7 +297,7 @@ class AccountListActivity : BaseActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val updateSortModeAndCheckItem = { sortMode: SortMode ->
-            preferences.setSortMode(sortMode)
+            preferences.putSortMode(sortMode)
             viewModel.sortMode(sortMode)
             item.isChecked = true
         }
@@ -413,10 +414,10 @@ class AccountListActivity : BaseActivity() {
             }
         })
         popup.setOnDismissListener {
-            preferences.setSortMode(popup.sortMode)
-            preferences.setShowIcons(popup.showIcons)
-            preferences.setShowPins(popup.showPins)
-            preferences.setTotpIndicatorType(popup.totpIndicatorType)
+            preferences.putSortMode(popup.sortMode)
+            preferences.putShowIcons(popup.showIcons)
+            preferences.putShowPins(popup.showPins)
+            preferences.putTotpIndicator(popup.totpIndicatorType)
 
             adapter.showIcons = popup.showIcons
             adapter.showPins = popup.showPins
@@ -450,7 +451,7 @@ class AccountListActivity : BaseActivity() {
     }
 
     /**
-     * Sets up the the [RecyclerView] that shows the accounts and its adapter
+     * Sets up the the [RecyclerView] that shows the accounts and its adapter.
      */
     private fun setupListAdapter() {
         val animator = DraggableItemAnimator()
@@ -458,9 +459,7 @@ class AccountListActivity : BaseActivity() {
 
         adapter = AccountListAdapter()
         adapter.setListener(listAdapterListener)
-        adapter.showIcons = preferences.getShowIcons(true)
-        adapter.showPins = preferences.getShowPins(true)
-        adapter.totpIndicatorType = preferences.getTotpIndicatorType()
+        updateAdapterPreferences()
         adapter.totpTimer = TotpTimer()
         adapter.totpTimer?.setListener(object : TotpTimer.Listener {
             override fun onTick(currentTime: Long) {
@@ -490,6 +489,15 @@ class AccountListActivity : BaseActivity() {
 //            mRecyclerView.addItemDecoration(ItemShadowDecorator((ContextCompat.getDrawable(requireContext(), R.drawable.material_shadow_z1) as NinePatchDrawable?)!!))
 //        }
 //        binding.listAccounts.addItemDecoration(SimpleListDividerDecorator(ContextCompat.getDrawable(requireContext(), R.drawable.list_divider_h), true))
+    }
+
+    /**
+     * Updates some of the adapter's settings based on the user's preferences.
+     */
+    private fun updateAdapterPreferences() {
+        adapter.showIcons = preferences.getShowIcons()
+        adapter.showPins = preferences.getShowPins()
+        adapter.totpIndicatorType = preferences.getTotpIndicator()
     }
 
     /**
