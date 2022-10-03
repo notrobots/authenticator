@@ -21,11 +21,13 @@
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_privacy">
-<!--        <SwitchPreference-->
-<!--            android:dependency="show_pins"-->
-<!--            android:key="hide_pins"-->
-<!--            android:summary="Replace the pin with a sequence of symbols"-->
-<!--            android:title="Hide pins" />-->
+        <SwitchPreference
+            android:defaultValue="true"
+            android:dependency="show_pins"
+            android:key="clear_text_pins"
+            android:summary="@string/pref_clear_text_pins_summary"
+            android:title="@string/pref_clear_text_pins" />
+
         <!--        <SwitchPreference-->
         <!--            android:key="hide_pins_on_start"-->
         <!--            android:title="Hide pins on start"-->
@@ -35,44 +37,44 @@
             TODO: You might want to remove this option and simply reveal on press by default,
                     since a list of obfuscate pins is useless
         -->
-<!--        <SwitchPreference-->
-<!--            android:dependency="show_pins"-->
-<!--            android:key="show_pin_on_press"-->
-<!--            android:summary="Reveal the pin on press"-->
-<!--            android:title="Show pin on press" />-->
+        <!--        <SwitchPreference-->
+        <!--            android:dependency="show_pins"-->
+        <!--            android:key="show_pin_on_press"-->
+        <!--            android:summary="Reveal the pin on press"-->
+        <!--            android:title="Show pin on press" />-->
 
-<!--        <SwitchPreference-->
-<!--            android:dependency="show_pins"-->
-<!--            android:key="hide_pins_automatically"-->
-<!--            android:title="Hide pins automatically" />-->
+        <!--        <SwitchPreference-->
+        <!--            android:dependency="show_pins"-->
+        <!--            android:key="hide_pins_automatically"-->
+        <!--            android:title="Hide pins automatically" />-->
 
-<!--        <EditTextPreference-->
-<!--            android:defaultValue="30"-->
-<!--            android:dialogLayout="@layout/view_preference_edit_text_numeric"-->
-<!--            android:key="hide_pins_delay"-->
-<!--            android:title="Pin hide delay"-->
-<!--            app:useSimpleSummaryProvider="true" />-->
+        <!--        <EditTextPreference-->
+        <!--            android:defaultValue="30"-->
+        <!--            android:dialogLayout="@layout/view_preference_edit_text_numeric"-->
+        <!--            android:key="hide_pins_delay"-->
+        <!--            android:title="Pin hide delay"-->
+        <!--            app:useSimpleSummaryProvider="true" />-->
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_backup">
         <Preference
             android:key="backup_export"
             android:summary="@string/pref_export_summary"
-            android:title="@string/pref_export"/>
+            android:title="@string/pref_export" />
         <Preference
             android:key="backup_import"
             android:summary="@string/pref_import_summary"
-            android:title="@string/pref_import"/>
+            android:title="@string/pref_import" />
         <!--        <SwitchPreference android:title="Automatic backup" />-->
         <!--        <Preference android:title="Automatic Backup frequency" />-->
         <!--        <MultiSelectListPreference android:title="Automatic Backup locations" />-->
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_info">
-<!--        <Preference android:title="Open Source Licenses" />-->
-<!--        <Preference-->
-<!--            android:enabled="false"-->
-<!--            android:summary="0.1.0"-->
-<!--            android:title="Version" />-->
+        <!--        <Preference android:title="Open Source Licenses" />-->
+        <!--        <Preference-->
+        <!--            android:enabled="false"-->
+        <!--            android:summary="0.1.0"-->
+        <!--            android:title="Version" />-->
     </PreferenceCategory>
 </PreferenceScreen>

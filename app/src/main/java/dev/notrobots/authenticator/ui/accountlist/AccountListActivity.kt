@@ -346,8 +346,6 @@ class AccountListActivity : BaseActivity() {
                     Account("Account 6", "22774477").apply { }
                 )
                 lifecycleScope.launch {
-                    viewModel.accountDao.deleteAll()
-
                     accounts.forEach { viewModel.insertAccount(it) }
                 }
             }
@@ -364,8 +362,6 @@ class AccountListActivity : BaseActivity() {
                 )
 
                 lifecycleScope.launch {
-                    viewModel.accountDao.deleteAll()
-
                     accounts.forEach { viewModel.insertAccount(it) }
                 }
             }
@@ -378,8 +374,6 @@ class AccountListActivity : BaseActivity() {
                 )
 
                 lifecycleScope.launch {
-                    viewModel.accountDao.deleteAll()
-
                     accounts.forEach { viewModel.insertAccount(it) }
                 }
             }
@@ -498,6 +492,7 @@ class AccountListActivity : BaseActivity() {
         adapter.showIcons = preferences.getShowIcons()
         adapter.showPins = preferences.getShowPins()
         adapter.totpIndicatorType = preferences.getTotpIndicator()
+        adapter.clearTextEnabled = preferences.getClearTextPins()
     }
 
     /**

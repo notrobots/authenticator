@@ -1,5 +1,6 @@
 package dev.notrobots.authenticator.ui.accountlist
 
+import android.annotation.SuppressLint
 import android.os.Handler
 import android.os.Looper
 import android.view.View
@@ -34,6 +35,7 @@ import kotlin.math.ceil
 class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableItemAdapter<AccountViewHolder>, Filterable {
     private var listener: Listener = object : Listener {}
     private val handler = Handler(Looper.getMainLooper())
+    private var forcedClearTextItems = mutableListOf<Account>()
     var items = mutableListOf<Account>()    //FIXME: private
         private set
     var editMode: Boolean = false
@@ -51,6 +53,12 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
     var showIcons: Boolean = true
         set(value) {
             field = value
+            notifyDataSetChanged()
+        }
+    var clearTextEnabled: Boolean = true
+        set(value) {
+            field = value
+            forcedClearTextItems.clear()
             notifyDataSetChanged()
         }
     val selectedItems = mutableSetOf<Account>()
@@ -100,6 +108,9 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         val binding = holder.binding
         val id = account.id
         val icon = getIssuerIcon(account.issuer)
+        val newPin = {
+            generateFormattedPin(account, clearText = clearTextEnabled || (account in forcedClearTextItems))
+        }
 
         binding.icon.visibility = if (showIcons && !editMode) View.VISIBLE else View.GONE
         binding.icon.setImageResource(icon)
@@ -128,10 +139,15 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                 } else {
                     selectedItems.add(account)
                 }
-                view.isSelected = account in selectedItems
 
+                view.isSelected = account in selectedItems
                 listener.onItemSelectionChange(account, position, account.id, this)
             } else {
+                if (!clearTextEnabled && account !in forcedClearTextItems) {
+                    forcedClearTextItems.add(account)
+                    binding.pin.text = newPin()
+                }
+
                 listener.onItemClick(account, position, id, this)
             }
         }
@@ -161,21 +177,29 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                 OTPType.TOTP -> {
                     holder as TimerAccountViewHolder
                     holder.setCounter(account)
-                    binding.pin.text = generatePin(account)
+                    binding.pin.text = newPin()
 
                     when (totpIndicatorType) {
                         TotpIndicatorType.Circular -> {
                             binding.indicators.showView(R.id.totp_circular_indicator)
                             binding.totpCircularIndicator.max = TimeUnit.SECONDS.toMillis(account.period).toInt()
                             holder.totpCounter?.getTimeUntilNextCounter()?.let {
-                                binding.pin.text = generatePin(account)
+//                                if (account in forcedClearTextItems) {        //xxx: Only do this when the pin has changed
+//                                    forcedClearTextItems.remove(account)
+//                                }
+
+                                binding.pin.text = newPin()
                                 binding.totpCircularIndicator.progress = it.toInt()
                             }
                         }
                         TotpIndicatorType.Text -> {
                             binding.indicators.showView(R.id.totp_text_indicator)
                             holder.totpCounter?.getTimeUntilNextCounter()?.let {
-                                binding.pin.text = generatePin(account)
+//                                if (account in forcedClearTextItems) {    //xxx: Only do this when the pin has changed
+//                                    forcedClearTextItems.remove(account)
+//                                }
+
+                                binding.pin.text = newPin()
                                 binding.totpTextIndicator.text = ceil(it / 1000F).toInt().toString()
                             }
                         }
@@ -186,13 +210,13 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                     val textColorSecondary = view.context.resolveColorAttribute(android.R.attr.textColorSecondary)
 
 //                    binding.pin.text = "- ".repeat(account.digits)
-                    binding.pin.text = generatePin(account)
+                    binding.pin.text = newPin()
                     binding.indicators.showView(R.id.hotp_indicator)
                     binding.hotpIndicator.setOnClickListener {
                         it as ImageView
 
                         account.counter++
-                        binding.pin.text = generatePin(account)
+                        binding.pin.text = newPin()
                         it.isEnabled = false
                         it.setTint(textColorSecondary)
 
@@ -272,7 +296,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         return AccountFilter(items.toList())
     }
 
-    inner class AccountFilter(private val source: List<Account>): Filter() {
+    inner class AccountFilter(private val source: List<Account>) : Filter() {
         //TODO: If an item is added while a filter is "active", the source will be out of sync
 
         override fun performFiltering(constraint: CharSequence?): FilterResults {
@@ -304,9 +328,11 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
 
     //endregion
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setItems(items: List<Account>) {
         if (this.items.isEmpty()) {
             this.items.addAll(items)
+            forcedClearTextItems.clear()
             notifyDataSetChanged()
         } else {
             val oldList = this.items
@@ -327,6 +353,10 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                     return oldList[oldItemPosition] == items[newItemPosition]
                 }
             })
+
+            forcedClearTextItems = forcedClearTextItems.filter {
+                it in items
+            }.toMutableList()
 
             oldList.clear()
             oldList.addAll(items)
@@ -363,20 +393,27 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
      * Generates the current pin for the given [account]
      */
     private fun generatePin(account: Account): String {
-        return formatPin(OTPGenerator.generate(account))
+        return OTPGenerator.generate(account)
     }
 
     /**
-     * Returns the given [pin] formatted based on the given [divider] and [groupSize]
+     * Generates the current pin for the given [account] and formats it
+     * based on the given options.
      */
-    private fun formatPin(
-        pin: String,
+    private fun generateFormattedPin(
+        account: Account,
         groupSize: Int = 3,
-        divider: String = " "
+        divider: String = " ",
+        clearText: Boolean = true
     ): String {
         val rgx = Regex(".{1,${groupSize}}+")
+        val pin = generatePin(account)
 
-        return pin.replace(rgx, "$0$divider").trim()
+        return if (clearText) {
+            pin
+        } else {
+            pin.replace(Regex("."), "-")
+        }.replace(rgx, "$0$divider").trim()
     }
 
     /**

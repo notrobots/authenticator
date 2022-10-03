@@ -8,6 +8,8 @@ object Preferences {
     const val SHOW_PINS = "show_pins"
     @BooleanPreference(true)
     const val SHOW_ICONS = "show_icons"
+    @BooleanPreference(true)
+    const val CLEAR_TEXT_PINS = "clear_text_pins"
     @EnumPreference
     const val SORT_MODE = "sort_mode"
     @EnumPreference

@@ -7,7 +7,7 @@
     <string name="label_done">Done</string>
     <string name="label_drag_handle">Drag handle</string>
     <string name="label_account_icon">Account icon</string>
-    <string name="label_generate_next_pin">Generate next pin</string>
+    <string name="label_generate_next_pin">Generate next PIN</string>
     <string name="label_edit">Edit</string>
     <string name="label_delete">Delete</string>
     <string name="label_cancel">Cancel</string>
@@ -37,8 +37,8 @@
     <string name="label_keep_both">Keep both</string>
     <string name="empty_view_no_results">No accounts found</string>
     <string name="empty_view_no_accounts">Press the \'+\' to add an account</string>
-    <string name="pref_show_pins">Show pins</string>
-    <string name="pref_show_pins_summary">If disabled you can still click the account to copy the pin</string>
+    <string name="pref_show_pins">Show PINs</string>
+    <string name="pref_show_pins_summary">If disabled you can still click the account to copy the PIN</string>
     <string name="pref_show_icons">Show icons</string>
     <string name="pref_appearance">Appearance</string>
     <string name="pref_privacy">Privacy</string>
@@ -48,4 +48,6 @@
     <string name="pref_export_summary">Export your data</string>
     <string name="pref_import">Import</string>
     <string name="pref_import_summary">Import your data</string>
+    <string name="pref_clear_text_pins">Clear-text PINs</string>
+    <string name="pref_clear_text_pins_summary">Show the PINs in clear-text.\n\nWhen disabled replaces the PINs with a sequence of symbols. You will still be able to click to reveal the PIN</string>
 </resources>
