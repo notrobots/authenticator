@@ -13,7 +13,7 @@ class TotpTimer(
     val updateDelay: Long = DEFAULT_UPDATE_DELAY
 ) : Runnable {
     private val handler = Handler(Looper.getMainLooper())
-    private var isStopped = false
+    private var isStopped = true
     private var listener: Listener? = null
 
     override fun run() {
