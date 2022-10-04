@@ -457,11 +457,12 @@ class AccountListActivity : BaseActivity() {
         adapter.totpTimer = TotpTimer()
         adapter.totpTimer?.setListener(object : TotpTimer.Listener {
             override fun onTick(currentTime: Long) {
-                adapter.notifyDataSetChanged()
-                //TODO: Only update the visible ones
+                if (!adapter.editMode) {
+                    adapter.notifyDataSetChanged()
+                    //TODO: Only update the visible ones
+                }
             }
         })
-        adapter.totpTimer?.start()
 
         recyclerViewDragDropManager = RecyclerViewDragDropManager()
         recyclerViewDragDropManager.attachRecyclerView(list_accounts)
