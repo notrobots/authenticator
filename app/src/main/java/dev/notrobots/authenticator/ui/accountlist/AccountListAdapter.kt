@@ -18,6 +18,7 @@ import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemViewHold
 import com.h6ah4i.android.widget.advrecyclerview.draggable.ItemDraggableRange
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractDraggableItemViewHolder
 import dev.notrobots.androidstuff.extensions.*
+import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.androidstuff.util.swap
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.data.KnownIssuers
@@ -35,7 +36,7 @@ import kotlin.math.ceil
 class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableItemAdapter<AccountViewHolder>, Filterable {
     private var listener: Listener = object : Listener {}
     private val handler = Handler(Looper.getMainLooper())
-    private var forcedClearTextItems = mutableListOf<Account>()
+    private var forcedClearTextItems = mutableSetOf<Account>()
     var items = mutableListOf<Account>()    //FIXME: private
         private set
     var editMode: Boolean = false
@@ -57,9 +58,20 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         }
     var clearTextEnabled: Boolean = true
         set(value) {
-            field = value
-            forcedClearTextItems.clear()
-            notifyDataSetChanged()
+            if (field != value) {
+                field = value
+                forcedClearTextItems.clear()
+                notifyDataSetChanged()
+            }
+        }
+    var clearTextTimeout: Long? = null
+        set(value) {
+            if (field != value) {
+                field = value
+                //TODO: Clear all timers and reset the states
+                forcedClearTextItems.clear()
+                notifyDataSetChanged()
+            }
         }
     val selectedItems = mutableSetOf<Account>()
     val selectedItemCount
@@ -146,6 +158,15 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                 if (!clearTextEnabled && account !in forcedClearTextItems) {
                     forcedClearTextItems.add(account)
                     binding.pin.text = newPin()
+
+                    clearTextTimeout?.let {
+                        if (it > 0) {
+                            handler.postDelayed({
+                                forcedClearTextItems.remove(account)
+                                binding.pin.text = newPin()
+                            }, TimeUnit.SECONDS.toMillis(it))
+                        }
+                    }
                 }
 
                 listener.onItemClick(account, position, id, this)
@@ -215,7 +236,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                     binding.hotpIndicator.setOnClickListener {
                         it as ImageView
 
-                        account.counter++
+                        account.counter++   //TODO: Add a flag that disables the account generation temporary
                         binding.pin.text = newPin()
                         it.isEnabled = false
                         it.setTint(textColorSecondary)
@@ -356,7 +377,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
 
             forcedClearTextItems = forcedClearTextItems.filter {
                 it in items
-            }.toMutableList()
+            }.toMutableSet()
 
             oldList.clear()
             oldList.addAll(items)

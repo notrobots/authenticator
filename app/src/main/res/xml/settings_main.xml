@@ -22,11 +22,11 @@
 
     <PreferenceCategory android:title="@string/pref_privacy">
         <SwitchPreference
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:dependency="show_pins"
-            android:key="clear_text_pins"
-            android:summary="@string/pref_clear_text_pins_summary"
-            android:title="@string/pref_clear_text_pins" />
+            android:key="hide_pins"
+            android:summary="@string/pref_hide_pins_summary"
+            android:title="@string/pref_hide_pins" />
 
         <!--        <SwitchPreference-->
         <!--            android:key="hide_pins_on_start"-->
@@ -43,17 +43,19 @@
         <!--            android:summary="Reveal the pin on press"-->
         <!--            android:title="Show pin on press" />-->
 
-        <!--        <SwitchPreference-->
-        <!--            android:dependency="show_pins"-->
-        <!--            android:key="hide_pins_automatically"-->
-        <!--            android:title="Hide pins automatically" />-->
+        <SwitchPreference
+            android:defaultValue="false"
+            android:dependency="hide_pins"
+            android:key="hide_pins_automatically"
+            android:summary="@string/pref_hide_pins_automatically_summary"
+            android:title="@string/pref_hide_pins_automatically" />
 
-        <!--        <EditTextPreference-->
-        <!--            android:defaultValue="30"-->
-        <!--            android:dialogLayout="@layout/view_preference_edit_text_numeric"-->
-        <!--            android:key="hide_pins_delay"-->
-        <!--            android:title="Pin hide delay"-->
-        <!--            app:useSimpleSummaryProvider="true" />-->
+        <EditTextPreference
+            android:defaultValue="30"
+            android:dependency="hide_pins_automatically"
+            android:dialogLayout="@layout/view_preference_edit_text_numeric"
+            android:key="hide_pins_delay"
+            android:title="@string/pref_hide_pins_delay" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_backup">

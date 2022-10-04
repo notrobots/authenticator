@@ -493,7 +493,10 @@ class AccountListActivity : BaseActivity() {
         adapter.showIcons = preferences.getShowIcons()
         adapter.showPins = preferences.getShowPins()
         adapter.totpIndicatorType = preferences.getTotpIndicator()
-        adapter.clearTextEnabled = preferences.getClearTextPins()
+        adapter.clearTextEnabled = !preferences.getHidePins()
+        adapter.clearTextTimeout = preferences.getHidePinsDelay()
+            .toLongOrNull()
+            .takeIf { preferences.getHidePinsAutomatically() }
     }
 
     /**

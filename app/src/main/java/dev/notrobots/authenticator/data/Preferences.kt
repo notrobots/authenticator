@@ -2,14 +2,19 @@ package dev.notrobots.authenticator.data
 
 import dev.notrobots.preferences2.annotations.BooleanPreference
 import dev.notrobots.preferences2.annotations.EnumPreference
+import dev.notrobots.preferences2.annotations.StringPreference
 
 object Preferences {
     @BooleanPreference(true)
     const val SHOW_PINS = "show_pins"
     @BooleanPreference(true)
     const val SHOW_ICONS = "show_icons"
-    @BooleanPreference(true)
-    const val CLEAR_TEXT_PINS = "clear_text_pins"
+    @BooleanPreference(false)
+    const val HIDE_PINS = "hide_pins"
+    @BooleanPreference
+    const val HIDE_PINS_AUTOMATICALLY = "hide_pins_automatically"
+    @StringPreference   // Stored as String, used as Long
+    const val HIDE_PINS_DELAY = "hide_pins_delay"
     @EnumPreference
     const val SORT_MODE = "sort_mode"
     @EnumPreference

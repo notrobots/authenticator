@@ -37,6 +37,7 @@
     <string name="label_keep_both">Keep both</string>
     <string name="empty_view_no_results">No accounts found</string>
     <string name="empty_view_no_accounts">Press the \'+\' to add an account</string>
+    <!-- TODO Replace "Hide" with "Collapse" -->
     <string name="pref_show_pins">Show PINs</string>
     <string name="pref_show_pins_summary">If disabled you can still click the account to copy the PIN</string>
     <string name="pref_show_icons">Show icons</string>
@@ -48,6 +49,9 @@
     <string name="pref_export_summary">Export your data</string>
     <string name="pref_import">Import</string>
     <string name="pref_import_summary">Import your data</string>
-    <string name="pref_clear_text_pins">Clear-text PINs</string>
-    <string name="pref_clear_text_pins_summary">Show the PINs in clear-text.\n\nWhen disabled replaces the PINs with a sequence of symbols. You will still be able to click to reveal the PIN</string>
+    <string name="pref_hide_pins">Hide PINs</string>
+    <string name="pref_hide_pins_summary">Replace the PINs with a sequence of symbols\n\nYou will still be able to click to reveal the PIN</string>
+    <string name="pref_hide_pins_automatically">Hide PINs automatically</string>
+    <string name="pref_hide_pins_automatically_summary">Hide a PIN automatically after it is clicked</string>
+    <string name="pref_hide_pins_delay">Hide PINs delay</string>
 </resources>
