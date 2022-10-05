@@ -28,20 +28,12 @@
             android:summary="@string/pref_hide_pins_summary"
             android:title="@string/pref_hide_pins" />
 
-        <!--        <SwitchPreference-->
-        <!--            android:key="hide_pins_on_start"-->
-        <!--            android:title="Hide pins on start"-->
-        <!--            android:dependency="show_pins" />-->
-
-        <!--
-            TODO: You might want to remove this option and simply reveal on press by default,
-                    since a list of obfuscate pins is useless
-        -->
-        <!--        <SwitchPreference-->
-        <!--            android:dependency="show_pins"-->
-        <!--            android:key="show_pin_on_press"-->
-        <!--            android:summary="Reveal the pin on press"-->
-        <!--            android:title="Show pin on press" />-->
+        <SwitchPreference
+            android:defaultValue="false"
+            android:dependency="hide_pins"
+            android:key="hide_pins_on_change"
+            android:summary="@string/pref_hide_pins_on_change_summary"
+            android:title="@string/pref_hide_pins_on_change" />
 
         <SwitchPreference
             android:defaultValue="false"

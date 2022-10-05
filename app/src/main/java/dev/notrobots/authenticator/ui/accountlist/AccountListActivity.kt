@@ -35,6 +35,7 @@ import dev.notrobots.authenticator.ui.settings.SettingsActivity
 import dev.notrobots.authenticator.util.AccountExporter
 import dev.notrobots.authenticator.util.OTPGenerator
 import dev.notrobots.preferences2.*
+import dev.notrobots.preferences2.getHidePinsOnChange
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.coroutines.launch
 
@@ -497,6 +498,7 @@ class AccountListActivity : BaseActivity() {
         adapter.clearTextTimeout = preferences.getHidePinsDelay()
             .toLongOrNull()
             .takeIf { preferences.getHidePinsAutomatically() }
+        adapter.hidePinsOnChange = preferences.getHidePinsOnChange()
     }
 
     /**

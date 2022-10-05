@@ -52,6 +52,8 @@
     <string name="pref_hide_pins">Hide PINs</string>
     <string name="pref_hide_pins_summary">Replace the PINs with a sequence of symbols\n\nYou will still be able to click to reveal the PIN</string>
     <string name="pref_hide_pins_automatically">Hide PINs automatically</string>
-    <string name="pref_hide_pins_automatically_summary">Hide a PIN automatically after it is clicked</string>
+    <string name="pref_hide_pins_automatically_summary">Hide back PINs automatically after they are clicked</string>
     <string name="pref_hide_pins_delay">Hide PINs delay</string>
+    <string name="pref_hide_pins_on_change">Hide PINs on change</string>
+    <string name="pref_hide_pins_on_change_summary">Hide back PINs when the code changes</string>
 </resources>

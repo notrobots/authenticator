@@ -67,6 +67,10 @@ data class Account(
      */
     var order: Long = DEFAULT_ORDER
 
+//    var forcedClearText: Boolean = false
+//
+//    var hotpGenerationDisabled: Boolean = false
+
     val path
         get() = if (label.isNotEmpty()) "$label:$name" else name
     val displayName

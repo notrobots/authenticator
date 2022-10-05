@@ -1,6 +1,7 @@
 package dev.notrobots.authenticator.ui.accountlist
 
 import android.annotation.SuppressLint
+import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
 import android.view.View
@@ -8,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Filter
 import android.widget.Filterable
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.DiffUtil
@@ -37,6 +39,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
     private var listener: Listener = object : Listener {}
     private val handler = Handler(Looper.getMainLooper())
     private var forcedClearTextItems = mutableSetOf<Account>()
+    private val pinCache = mutableMapOf<Account, String>()
     var items = mutableListOf<Account>()    //FIXME: private
         private set
     var editMode: Boolean = false
@@ -65,6 +68,15 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
             }
         }
     var clearTextTimeout: Long? = null
+        set(value) {
+            if (field != value) {
+                field = value
+                //TODO: Clear all timers and reset the states
+                forcedClearTextItems.clear()
+                notifyDataSetChanged()
+            }
+        }
+    var hidePinsOnChange: Boolean = false
         set(value) {
             if (field != value) {
                 field = value
@@ -120,8 +132,21 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         val binding = holder.binding
         val id = account.id
         val icon = getIssuerIcon(account.issuer)
-        val newPin = {
-            generateFormattedPin(account, clearText = clearTextEnabled || (account in forcedClearTextItems))
+        val setNewPin = {
+            val pin = generatePin(account)
+
+            if (!pinCache.containsKey(account) || pin != pinCache[account]) {
+                if (hidePinsOnChange && !clearTextEnabled && account in forcedClearTextItems) {
+                    holder.autoHidePinTimer?.cancel()
+                    forcedClearTextItems.remove(account)
+                }
+                pinCache[account] = pin
+            }
+
+            binding.pin.text = formatPin(
+                pin,
+                clearText = clearTextEnabled || (account in forcedClearTextItems)
+            )
         }
 
         binding.icon.visibility = if (showIcons && !editMode) View.VISIBLE else View.GONE
@@ -155,16 +180,22 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                 view.isSelected = account in selectedItems
                 listener.onItemSelectionChange(account, position, account.id, this)
             } else {
+                // If the pins are not visible force this account to show
                 if (!clearTextEnabled && account !in forcedClearTextItems) {
                     forcedClearTextItems.add(account)
-                    binding.pin.text = newPin()
+                    setNewPin()
 
+                    // If a timeout is specified set a timer and
+                    // hide the pin again once the timer is done
                     clearTextTimeout?.let {
                         if (it > 0) {
-                            handler.postDelayed({
-                                forcedClearTextItems.remove(account)
-                                binding.pin.text = newPin()
-                            }, TimeUnit.SECONDS.toMillis(it))
+                            //XXX: What happens when the holder is recycled? Is the timer stopped?
+                            holder.setAutoHidePin(TimeUnit.SECONDS.toMillis(it)) {
+                                if (account in forcedClearTextItems) {
+                                    forcedClearTextItems.remove(account)
+                                    setNewPin()
+                                }
+                            }
                         }
                     }
                 }
@@ -198,29 +229,21 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                 OTPType.TOTP -> {
                     holder as TimerAccountViewHolder
                     holder.setCounter(account)
-                    binding.pin.text = newPin()
+                    setNewPin()
 
                     when (totpIndicatorType) {
                         TotpIndicatorType.Circular -> {
                             binding.indicators.showView(R.id.totp_circular_indicator)
                             binding.totpCircularIndicator.max = TimeUnit.SECONDS.toMillis(account.period).toInt()
                             holder.totpCounter?.getTimeUntilNextCounter()?.let {
-//                                if (account in forcedClearTextItems) {        //xxx: Only do this when the pin has changed
-//                                    forcedClearTextItems.remove(account)
-//                                }
-
-                                binding.pin.text = newPin()
+                                setNewPin()
                                 binding.totpCircularIndicator.progress = it.toInt()
                             }
                         }
                         TotpIndicatorType.Text -> {
                             binding.indicators.showView(R.id.totp_text_indicator)
                             holder.totpCounter?.getTimeUntilNextCounter()?.let {
-//                                if (account in forcedClearTextItems) {    //xxx: Only do this when the pin has changed
-//                                    forcedClearTextItems.remove(account)
-//                                }
-
-                                binding.pin.text = newPin()
+                                setNewPin()
                                 binding.totpTextIndicator.text = ceil(it / 1000F).toInt().toString()
                             }
                         }
@@ -230,14 +253,13 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                     val primaryColor = view.context.resolveColorAttribute(R.attr.colorPrimary)
                     val textColorSecondary = view.context.resolveColorAttribute(android.R.attr.textColorSecondary)
 
-//                    binding.pin.text = "- ".repeat(account.digits)
-                    binding.pin.text = newPin()
+                    setNewPin()
                     binding.indicators.showView(R.id.hotp_indicator)
                     binding.hotpIndicator.setOnClickListener {
                         it as ImageView
 
                         account.counter++   //TODO: Add a flag that disables the account generation temporary
-                        binding.pin.text = newPin()
+                        setNewPin()
                         it.isEnabled = false
                         it.setTint(textColorSecondary)
 
@@ -383,6 +405,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
             oldList.addAll(items)
             result.dispatchUpdatesTo(this)
         }
+        pinCache.clear()
     }
 
     fun selectAll() {
@@ -418,17 +441,15 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
     }
 
     /**
-     * Generates the current pin for the given [account] and formats it
-     * based on the given options.
+     * Formats the given pin with the given options.
      */
-    private fun generateFormattedPin(
-        account: Account,
+    private fun formatPin(
+        pin: String,
         groupSize: Int = 3,
         divider: String = " ",
         clearText: Boolean = true
     ): String {
         val rgx = Regex(".{1,${groupSize}}+")
-        val pin = generatePin(account)
 
         return if (clearText) {
             pin
@@ -507,6 +528,8 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         private val dragState = DraggableItemState()
         val binding = ItemAccountBinding.bind(itemView)
         val dragHandle = itemView.findViewById<View>(R.id.drag_handle)
+        var autoHidePinTimer: CountDownTimer? = null
+            private set
 
         override fun setDragStateFlags(flags: Int) {
             dragState.flags = flags
@@ -518,6 +541,20 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
 
         override fun getDragState(): DraggableItemState {
             return dragState
+        }
+
+        fun setAutoHidePin(time: Long, onFinish: () -> Unit) {
+            autoHidePinTimer?.cancel()
+            autoHidePinTimer = object : CountDownTimer(time, 1000) {
+                override fun onTick(p0: Long) {
+
+                }
+
+                override fun onFinish() {
+                    onFinish()
+                }
+            }
+            autoHidePinTimer?.start()
         }
     }
 
