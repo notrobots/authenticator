@@ -2,9 +2,6 @@ package dev.notrobots.authenticator
 
 import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.content.ContextCompat
-import androidx.core.content.edit
-import androidx.preference.PreferenceManager
 import dagger.hilt.android.HiltAndroidApp
 import dev.notrobots.androidstuff.util.LogUtil
 

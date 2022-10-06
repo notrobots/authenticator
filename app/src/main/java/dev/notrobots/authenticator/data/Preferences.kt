@@ -25,4 +25,6 @@ object Preferences {
     const val TOTP_INDICATOR = "totp_indicator"
     @EnumPreference
     const val APP_THEME = "app_theme"
+    @BooleanPreference
+    const val APP_LOCK = "app_lock"
 }

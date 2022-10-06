@@ -13,7 +13,7 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".ui.accountlist.AccountListActivity"
+            android:name=".ui.login.LoginActivity"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -22,6 +22,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.accountlist.AccountListActivity"
+            android:exported="true"
+            android:screenOrientation="portrait" />
 
         <activity
             android:name=".ui.barcode.BarcodeScannerActivity"
@@ -49,8 +54,8 @@
 
         <activity
             android:name=".ui.settings.SettingsActivity"
-            android:screenOrientation="portrait"
             android:label="@string/label_settings"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme" />
     </application>
 </manifest>

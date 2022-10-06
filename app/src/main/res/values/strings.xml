@@ -42,7 +42,7 @@
     <string name="pref_show_pins_summary">If disabled you can still click the account to copy the PIN</string>
     <string name="pref_show_icons">Show icons</string>
     <string name="pref_appearance">Appearance</string>
-    <string name="pref_privacy">Privacy</string>
+    <string name="pref_privacy">Privacy &amp; Security</string>
     <string name="pref_backup">Backup</string>
     <string name="pref_info">Info</string>
     <string name="pref_export">Export</string>
@@ -59,4 +59,6 @@
     <string name="pref_allow_screenshots">Allow screenshots</string>
     <string name="pref_allow_screenshots_summary">Allow screenshots and screen recordings while inside the app</string>
     <string name="label_settings">Settings</string>
+    <string name="pref_app_lock">App lock</string>
+    <string name="pref_app_lock_summary">Require authentication when opening the app\n\nNote: A lock method must be set in order to use this setting</string>
 </resources>

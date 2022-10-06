@@ -117,6 +117,7 @@ dependencies {
     implementation 'com.google.zxing:core:3.3.0'
     implementation 'com.google.protobuf:protobuf-lite:3.0.0'
     implementation 'com.google.android.flexbox:flexbox:3.0.0'
+    implementation 'androidx.biometric:biometric-ktx:1.2.0-alpha03'
 
     /**
      * Room

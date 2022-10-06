@@ -2,13 +2,7 @@ package dev.notrobots.authenticator.util
 
 import android.content.Context
 import android.widget.ArrayAdapter
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.LiveDataScope
-import androidx.lifecycle.liveData
 import org.apache.commons.codec.binary.Base32
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.experimental.ExperimentalTypeInference
 import kotlin.reflect.jvm.isAccessible
 
 fun isValidBase32(base32: String): Boolean {
