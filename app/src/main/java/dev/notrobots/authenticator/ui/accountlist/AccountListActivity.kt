@@ -239,6 +239,12 @@ class AccountListActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
 
+        if (preferences.getAllowScreenshots()) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+        }
+
         binding.listAccounts.adapter = adapterWrapper
         adapter.totpTimer?.start()
         updateAdapterPreferences()

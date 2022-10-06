@@ -50,11 +50,13 @@
     <string name="pref_import">Import</string>
     <string name="pref_import_summary">Import your data</string>
     <string name="pref_hide_pins">Hide PINs</string>
-    <string name="pref_hide_pins_summary">Replace the PINs with a sequence of symbols\n\nYou will still be able to click to reveal the PIN</string>
+    <string name="pref_hide_pins_summary">Replace the PINs with a sequence of symbols\n\nYou will be able to click to temporary or permanently reveal the PIN</string>
     <string name="pref_hide_pins_automatically">Hide PINs automatically</string>
-    <string name="pref_hide_pins_automatically_summary">Hide back PINs automatically after they are clicked</string>
+    <string name="pref_hide_pins_automatically_summary">Hide PINs again after the specified time</string>
     <string name="pref_hide_pins_delay">Hide PINs delay</string>
     <string name="pref_hide_pins_on_change">Hide PINs on change</string>
-    <string name="pref_hide_pins_on_change_summary">Hide back PINs when the code changes</string>
+    <string name="pref_hide_pins_on_change_summary">Hide PINs again when the code changes</string>
+    <string name="pref_allow_screenshots">Allow screenshots</string>
+    <string name="pref_allow_screenshots_summary">Allow screenshots and screen recordings while inside the app</string>
     <string name="label_settings">Settings</string>
 </resources>

@@ -8,6 +8,7 @@ import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.extensions.viewBindings
 import dev.notrobots.authenticator.R
+import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityExportConfigBinding
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
@@ -16,7 +17,7 @@ import dev.notrobots.authenticator.ui.backupexporttext.ExportTextActivity
 import dev.notrobots.authenticator.util.AccountExporter
 
 @AndroidEntryPoint
-class ExportActivity : AppCompatActivity() {
+class ExportActivity : AuthenticatorActivity() {
     private val binding by viewBindings<ActivityExportConfigBinding>()
     private val viewModel by viewModels<AccountListViewModel>()
 

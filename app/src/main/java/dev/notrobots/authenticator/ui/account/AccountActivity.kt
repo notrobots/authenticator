@@ -14,6 +14,7 @@ import dev.notrobots.androidstuff.extensions.setError
 import dev.notrobots.androidstuff.extensions.setErrorWhen
 import dev.notrobots.androidstuff.util.viewBindings
 import dev.notrobots.authenticator.R
+import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityAccountBinding
 import dev.notrobots.authenticator.extensions.isOnlySpaces
 import dev.notrobots.authenticator.models.Account
@@ -24,7 +25,7 @@ import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class AccountActivity : ThemedActivity() {
+class AccountActivity : AuthenticatorActivity() {
     private val viewModel by viewModels<AccountListViewModel>()
     private val binding by viewBindings<ActivityAccountBinding>(this)
     private lateinit var account: Account

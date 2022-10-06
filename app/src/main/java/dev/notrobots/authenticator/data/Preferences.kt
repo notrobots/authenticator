@@ -12,6 +12,8 @@ object Preferences {
     @BooleanPreference(false)
     const val HIDE_PINS = "hide_pins"
     @BooleanPreference
+    const val ALLOW_SCREENSHOTS = "allow_screenshots"
+    @BooleanPreference
     const val HIDE_PINS_AUTOMATICALLY = "hide_pins_automatically"
     @StringPreference   // Stored as String, used as Long
     const val HIDE_PINS_DELAY = "hide_pins_delay"

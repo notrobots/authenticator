@@ -13,6 +13,7 @@ import dev.notrobots.androidstuff.activities.ThemedActivity
 import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.loge
 import dev.notrobots.authenticator.R
+import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityImportBinding
 import dev.notrobots.authenticator.dialogs.AccountUriDialog
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
@@ -20,7 +21,7 @@ import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
 import dev.notrobots.authenticator.util.AccountExporter
 
 @AndroidEntryPoint
-class ImportActivity : ThemedActivity() {
+class ImportActivity : AuthenticatorActivity() {
     private val scanner by lazy {
         val scannerOptions = BarcodeScannerOptions.Builder()
             .setBarcodeFormats(

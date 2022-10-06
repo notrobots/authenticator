@@ -9,9 +9,10 @@ import androidx.appcompat.app.AppCompatActivity
 import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.now
 import dev.notrobots.authenticator.R
+import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityExportTextBinding
 
-class ExportTextActivity : AppCompatActivity() {
+class ExportTextActivity : AuthenticatorActivity() {
     private val saveText = registerForActivityResult(ActivityResultContracts.CreateDocument()) {
         it?.let {
             val stream = contentResolver.openOutputStream(it)

@@ -15,6 +15,7 @@ import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.extensions.viewBindings
 import dev.notrobots.androidstuff.util.viewBindings
 import dev.notrobots.authenticator.R
+import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityImportResultBinding
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.util.AccountExporter
@@ -24,7 +25,7 @@ import dev.notrobots.authenticator.util.TextUtil
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class ImportResultActivity : AppCompatActivity() {
+class ImportResultActivity : AuthenticatorActivity() {
     private val binding by viewBindings<ActivityImportResultBinding>()
     private val viewModel by viewModels<AccountListViewModel>()
     private val importResults = mutableMapOf<Any, ImportResult>()

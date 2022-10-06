@@ -26,6 +26,7 @@ import dev.notrobots.androidstuff.activities.ThemedActivity
 import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.extensions.viewBindings
 import dev.notrobots.androidstuff.util.loge
+import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityBarcodeScannerBinding
 import dev.notrobots.authenticator.databinding.ItemBarcodeScannerResultBinding
 import dev.notrobots.authenticator.extensions.toPx
@@ -41,7 +42,7 @@ import kotlin.math.min
  *
  * Code adapted from: [https://github.com/khaled-qasem/MLBarcodeScanner]
  */
-class BarcodeScannerActivity : ThemedActivity(), ImageAnalysis.Analyzer {
+class BarcodeScannerActivity : AuthenticatorActivity(), ImageAnalysis.Analyzer {
     private var lensFacing = CameraSelector.LENS_FACING_BACK
     private var cameraSelector: CameraSelector? = null
     private var cameraProvider: ProcessCameraProvider? = null
