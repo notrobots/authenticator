@@ -47,7 +47,10 @@
             android:name=".ui.backupexporttext.ExportTextActivity"
             android:screenOrientation="portrait" />
 
-        <activity android:name=".ui.settings.SettingsActivity"
-            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.settings.SettingsActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/label_settings"
+            android:theme="@style/AppTheme" />
     </application>
 </manifest>
