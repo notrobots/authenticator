@@ -24,4 +24,9 @@ class SettingsActivity : AuthenticatorActivity() {
             .replace(binding.container.id, MainSettingsFragment())
             .commit()
     }
+
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
+    }
 }
