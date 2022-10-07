@@ -27,6 +27,11 @@
             android:key="app_lock"/>
 
         <SwitchPreference
+            android:title="@string/pref_export_lock"
+            android:summary="@string/pref_export_lock_summary"
+            android:key="export_lock"/>
+
+        <SwitchPreference
             android:defaultValue="false"
             android:key="allow_screenshots"
             android:title="@string/pref_allow_screenshots"

@@ -61,4 +61,8 @@
     <string name="label_settings">Settings</string>
     <string name="pref_app_lock">App lock</string>
     <string name="pref_app_lock_summary">Require authentication when opening the app\n\nNote: A lock method must be set in order to use this setting</string>
+    <string name="pref_export_lock">Export lock</string>
+    <string name="pref_export_lock_summary">Require authentication when exporting your data</string>
+    <string name="label_unset">Not set</string>
+    <string name="label_seconds_abbreviation">s</string>
 </resources>

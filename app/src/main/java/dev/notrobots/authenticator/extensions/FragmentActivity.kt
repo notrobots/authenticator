@@ -4,9 +4,12 @@ import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import dev.notrobots.androidstuff.extensions.makeToast
+import dev.notrobots.androidstuff.extensions.startActivity
+import dev.notrobots.authenticator.ui.backupexport.ExportActivity
 
 /**
- * Shows the biometric prompt to the use.
+ * Shows the biometric prompt to the user.
  */
 fun FragmentActivity.showBiometricPrompt(
     title: String,
@@ -45,4 +48,27 @@ fun FragmentActivity.showBiometricPrompt(
         .build()
 
     biometricPrompt.authenticate(promptInfo)
+}
+
+/**
+ * Shows the biometric prompt to the user and launches the [ExportActivity]
+ * on authentication succeeded.
+ */
+fun FragmentActivity.requestExport(requireAuthentication: Boolean, isSecured: Boolean) {
+    if (requireAuthentication) {
+        if (isSecured) {
+            showBiometricPrompt(
+                "Authenticator",
+                "Unlock to backup your data",
+                onSuccess = {
+                    startActivity(ExportActivity::class)
+                }
+            )
+        } else {
+            makeToast("No device lock configured\nExport lock will be disabled")
+            startActivity(ExportActivity::class)
+        }
+    } else {
+        startActivity(ExportActivity::class)
+    }
 }

@@ -328,7 +328,10 @@ class AccountListActivity : BaseActivity() {
             R.id.menu_account_list_sort_custom -> updateSortModeAndCheckItem(SortMode.Custom)
             R.id.menu_account_list_backup_export -> {
                 if (viewModel.accounts.value?.isNotEmpty() == true) {
-                    startActivity(ExportActivity::class)
+                    requestExport(
+                        preferences.getExportLock(),
+                        isDeviceSecured()
+                    )
                 } else {
                     makeSnackBar("Nothing to export", binding.root)
                 }
@@ -404,7 +407,10 @@ class AccountListActivity : BaseActivity() {
         popup.setListener(object : AccountListOptionsMenu.Listener {
             override fun onExport() {
                 if (viewModel.accounts.value?.isNotEmpty() == true) {
-                    startActivity(ExportActivity::class)
+                    requestExport(
+                        preferences.getExportLock(),
+                        isDeviceSecured()
+                    )
                 } else {
                     makeSnackBar("Nothing to export", binding.root)
                 }

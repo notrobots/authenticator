@@ -27,4 +27,6 @@ object Preferences {
     const val APP_THEME = "app_theme"
     @BooleanPreference
     const val APP_LOCK = "app_lock"
+    @BooleanPreference
+    const val EXPORT_LOCK = "export_lock"
 }
