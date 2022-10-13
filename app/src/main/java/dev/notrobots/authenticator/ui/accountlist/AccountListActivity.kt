@@ -380,6 +380,20 @@ class AccountListActivity : AuthenticatorActivity() {
                     accounts.forEach { viewModel.insertAccount(it) }
                 }
             }
+            R.id.menu_add_test_4 -> {
+                val accounts = listOf(
+                    Account("F Account", "22334455").apply { label = "AAAA"; issuer = "google.com" },
+                    Account("E Account", "33442255").apply { label = "BBBB"; type = OTPType.HOTP },
+                    Account("D Account", "66334422").apply { label = "CCCC"; issuer = "github" },
+                    Account("C Account", "55443344").apply { label = "DDDD" },
+                    Account("B Account", "22335544").apply { label = "EEEE"; type = OTPType.HOTP },
+                    Account("A Account", "33445566").apply {  }
+                )
+
+                lifecycleScope.launch {
+                    accounts.forEach { viewModel.insertAccount(it) }
+                }
+            }
         }
 
         return true

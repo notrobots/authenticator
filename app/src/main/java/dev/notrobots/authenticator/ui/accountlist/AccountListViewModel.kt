@@ -15,21 +15,16 @@ class AccountListViewModel @Inject constructor(
     val accountDao: AccountDao
 ) : ViewModel() {
     val sortMode = MutableLiveData(SortMode.Custom)
-//    var sortMode: SortMode
-//        get() = _sortMode.value ?: SortMode.Custom
-//        set(value) {
-//            _sortMode.value = value
-//        }
     val accounts = sortMode.switchMap {
         when (it) {
             SortMode.Custom -> accountDao.getAccountsLive()
-            SortMode.NameAscending -> accountDao.getAccountsOrderedByName(0)
-            SortMode.NameDescending -> accountDao.getAccountsOrderedByName(1)
-            SortMode.LabelAscending -> accountDao.getAccountsOrderedByLabel(0)
-            SortMode.LabelDescending -> accountDao.getAccountsOrderedByLabel(1)
-            SortMode.IssuerAscending -> accountDao.getAccountsOrderedByIssuer(0)
-            SortMode.IssuerDescending -> accountDao.getAccountsOrderedByIssuer(1)
-            SortMode.TagAscending -> TODO()
+            SortMode.NameAscending,
+            SortMode.NameDescending -> accountDao.getAccountsOrderedByName(it.sortingDirection)
+            SortMode.LabelAscending,
+            SortMode.LabelDescending -> accountDao.getAccountsOrderedByLabel(it.sortingDirection)
+            SortMode.IssuerAscending,
+            SortMode.IssuerDescending -> accountDao.getAccountsOrderedByIssuer(it.sortingDirection)
+            SortMode.TagAscending,
             SortMode.TagDescending -> TODO()
         }
     }

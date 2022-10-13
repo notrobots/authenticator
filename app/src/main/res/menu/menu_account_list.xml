@@ -172,4 +172,8 @@
     <item
         android:id="@+id/menu_add_test_3"
         android:title="Add test accounts 3" />
+
+    <item
+        android:id="@+id/menu_add_test_4"
+        android:title="Add test accounts 4" />
 </menu>
