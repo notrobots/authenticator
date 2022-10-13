@@ -46,7 +46,7 @@ class AdvancedRecyclerView : RecyclerView {
             val emptyViewVisible = adapter!!.itemCount == 0
 
             emptyView!!.visibility = if (emptyViewVisible) VISIBLE else GONE
-            visibility = if (emptyViewVisible) GONE else VISIBLE
+            visibility = if (emptyViewVisible) INVISIBLE else VISIBLE
         }
     }
 }
