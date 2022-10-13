@@ -6,18 +6,20 @@ import com.google.zxing.common.BitMatrix
 import java.io.Serializable
 
 abstract class QRCodePaint : Serializable {
-    abstract fun paint(width: Int, height: Int, bitmap: Bitmap, matrix: BitMatrix)
-
-    companion object {
-        val Default = object : QRCodePaint() {
-            override fun paint(width: Int, height: Int, bitmap: Bitmap, matrix: BitMatrix) {
-                for (x in 0 until width) {
-                    for (y in 0 until height) {
-                        bitmap.setPixel(x, y, if (matrix[x, y]) Color.BLACK else Color.WHITE)
-                    }
-                }
+    open fun paint(width: Int, height: Int, bitmap: Bitmap, matrix: BitMatrix) {
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+                bitmap.setPixel(x, y, getPixel(x, y, matrix[x, y]))
             }
         }
+    }
+
+    open fun getPixel(x: Int, y: Int, state: Boolean): Int {
+        return if (state) Color.BLACK else Color.WHITE
+    }
+
+    companion object {
+        val Default = object : QRCodePaint() {}
         val Rainbow = object : QRCodePaint() {
             private val colors = mutableListOf(
                 Color.parseColor("#D12229"),

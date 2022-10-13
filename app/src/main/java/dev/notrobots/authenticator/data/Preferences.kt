@@ -26,6 +26,8 @@ object Preferences {
     @EnumPreference
     const val APP_THEME = "app_theme"
     @BooleanPreference
+    const val DYNAMIC_COLORS = "dynamic_colors"
+    @BooleanPreference
     const val APP_LOCK = "app_lock"
     @BooleanPreference
     const val EXPORT_LOCK = "export_lock"

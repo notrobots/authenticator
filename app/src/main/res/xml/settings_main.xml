@@ -3,10 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory android:title="@string/pref_appearance">
-        <!--        <ListPreference-->
-        <!--            android:key="app_theme"-->
-        <!--            android:title="Theme"-->
-        <!--            app:useSimpleSummaryProvider="true" />-->
+        <ListPreference
+            android:key="app_theme"
+            android:title="@string/pref_theme"
+            app:entries="@array/themes"
+            android:defaultValue="followsystem"
+            android:entryValues="@array/theme_values"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreference
+            android:key="dynamic_colors"
+            android:title="@string/pref_dynamic_colors"
+            android:summary="@string/pref_dynamic_colors_summary" />
 
         <SwitchPreference
             android:defaultValue="true"

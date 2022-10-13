@@ -9,8 +9,7 @@
         android:name=".App"
         android:allowBackup="true"
         android:label="@string/label_app_name"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:supportsRtl="true">
 
         <activity
             android:name=".ui.login.LoginActivity"
@@ -18,7 +17,6 @@
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -36,7 +34,9 @@
             android:name=".ui.account.AccountActivity"
             android:screenOrientation="portrait" />
 
-        <activity android:name=".ui.backupexport.ExportActivity" />
+        <activity
+            android:name=".ui.backupexport.ExportActivity"
+            android:screenOrientation="portrait" />
 
         <activity
             android:name=".ui.backupimport.ImportActivity"
@@ -46,7 +46,9 @@
             android:name=".ui.backupimportresult.ImportResultActivity"
             android:screenOrientation="portrait" />
 
-        <activity android:name=".ui.backupexportqr.ExportQRActivity" />
+        <activity
+            android:name=".ui.backupexportqr.ExportQRActivity"
+            android:screenOrientation="portrait" />
 
         <activity
             android:name=".ui.backupexporttext.ExportTextActivity"
@@ -55,7 +57,6 @@
         <activity
             android:name=".ui.settings.SettingsActivity"
             android:label="@string/label_settings"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppTheme" />
+            android:screenOrientation="portrait" />
     </application>
 </manifest>

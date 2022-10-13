@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="?attr/colorControlHighlight">
+    android:color="?attr/colorOnPrimaryContainer">
     <item>
         <selector>
             <item
-                android:drawable="@color/userRowSelectedBackgroundColor"
+                android:drawable="@drawable/cd_color_primary_container"
                 android:state_selected="true" />
 
             <item
-                android:drawable="@color/userRowSelectedBackgroundColor"
+                android:drawable="@drawable/cd_color_primary_container"
                 android:state_activated="true" />
 
-            <item android:drawable="@color/userRowBackgroundColor" />
+            <item android:drawable="@drawable/cd_color_background" />
         </selector>
     </item>
 </ripple>

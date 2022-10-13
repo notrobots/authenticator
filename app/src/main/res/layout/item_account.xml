@@ -17,7 +17,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="?attr/colorSecondary" />
+        app:tint="?attr/colorPrimary" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/dataLayout"
@@ -71,7 +71,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/ic_palette"
-        app:tint="?attr/colorSecondary"
+        app:tint="?attr/colorPrimary"
         tools:visibility="visible" />
 
     <dev.notrobots.authenticator.views.ViewSwitcher
@@ -98,7 +98,7 @@
             android:layout_gravity="center"
             android:contentDescription="@string/label_edit"
             app:srcCompat="@drawable/ic_edit"
-            app:tint="?attr/colorSecondary" />
+            app:tint="?attr/colorPrimary" />
 
         <ImageView
             android:id="@+id/hotp_indicator"
@@ -107,7 +107,7 @@
             android:layout_gravity="center"
             android:contentDescription="@string/label_generate_next_pin"
             app:srcCompat="@drawable/ic_refresh"
-            app:tint="?attr/colorSecondary" />
+            app:tint="?attr/colorPrimary" />
 
         <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/totp_circular_indicator"

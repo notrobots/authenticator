@@ -21,6 +21,7 @@ import dev.notrobots.androidstuff.activities.BaseActivity
 import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.authenticator.R
+import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityAccountListBinding
 import dev.notrobots.authenticator.databinding.ViewToolbarSearchBinding
 import dev.notrobots.authenticator.dialogs.*
@@ -40,7 +41,7 @@ import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class AccountListActivity : BaseActivity() {
+class AccountListActivity : AuthenticatorActivity() {
     private val viewModel by viewModels<AccountListViewModel>()
     private val binding by viewBindings<ActivityAccountListBinding>()
     private lateinit var adapter: AccountListAdapter
@@ -238,12 +239,6 @@ class AccountListActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
-
-        if (preferences.getAllowScreenshots()) {
-            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        } else {
-            window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
-        }
 
         binding.listAccounts.adapter = adapterWrapper
         adapter.totpTimer?.start()

@@ -65,4 +65,8 @@
     <string name="pref_export_lock_summary">Require authentication when exporting your data</string>
     <string name="label_unset">Not set</string>
     <string name="label_seconds_abbreviation">s</string>
+    <string name="label_dynamic_colors_requires_android_13">Dynamic Colors require Android 13 or higher</string>
+    <string name="pref_dynamic_colors">Dynamic colors</string>
+    <string name="pref_dynamic_colors_summary">Use Android 13\'s dynamic colors based on your wallpaper</string>
+    <string name="pref_theme">Theme</string>
 </resources>

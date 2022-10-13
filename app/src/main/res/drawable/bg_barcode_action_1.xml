@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval">
-    <solid android:color="@color/barcode_scanner_action_background_color" />
+    <solid android:color="?attr/barcodeScannerActionBackgroundColor" />
     <padding
         android:bottom="2dp"
         android:left="2dp"

@@ -1,17 +1,19 @@
 package dev.notrobots.authenticator.ui.settings
 
+import android.os.Build
 import android.os.Bundle
 import androidx.preference.*
 import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.authenticator.R
+import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.data.Preferences
 import dev.notrobots.authenticator.extensions.isDeviceSecured
 import dev.notrobots.authenticator.extensions.requestExport
 import dev.notrobots.authenticator.extensions.showBiometricPrompt
+import dev.notrobots.authenticator.models.AppTheme
 import dev.notrobots.authenticator.ui.backupimport.ImportActivity
-import dev.notrobots.preferences2.getExportLock
-import dev.notrobots.preferences2.getHidePinsDelay
-import dev.notrobots.preferences2.putAppLock
+import dev.notrobots.preferences2.*
+import dev.notrobots.preferences2.util.parseEnum
 
 class MainSettingsFragment : PreferenceFragmentCompat() {
     private val prefs by lazy {
@@ -20,6 +22,7 @@ class MainSettingsFragment : PreferenceFragmentCompat() {
     private var clearTextTimeoutTimePref: EditTextPreference? = null
     private var appLockPref: SwitchPreference? = null
     private var exportLockPref: SwitchPreference? = null
+    private var dynamicColorsPref: SwitchPreference? = null
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.settings_main)
@@ -47,6 +50,7 @@ class MainSettingsFragment : PreferenceFragmentCompat() {
             }
         }
         exportLockPref = findPreference(Preferences.EXPORT_LOCK)
+        dynamicColorsPref = findPreference(Preferences.DYNAMIC_COLORS)
 
         findPreference<Preference>("backup_export")?.setOnPreferenceClickListener {
             requireActivity().requestExport(
@@ -59,15 +63,41 @@ class MainSettingsFragment : PreferenceFragmentCompat() {
             requireContext().startActivity(ImportActivity::class)
             true
         }
+
+        findPreference<Preference>(Preferences.APP_THEME)?.setOnPreferenceChangeListener { _, newValue ->
+            val theme = parseEnum<AppTheme>(newValue.toString(), true)
+            val dynamicColors = prefs.getDynamicColors()
+
+            (requireActivity() as? AuthenticatorActivity)?.setTheme(theme, dynamicColors,true)
+            true
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            dynamicColorsPref?.setOnPreferenceChangeListener { _, newValue ->
+                val theme = prefs.getAppTheme<AppTheme>()
+                val dynamicColors = newValue as Boolean
+
+                (requireActivity() as? AuthenticatorActivity)?.setTheme(theme, dynamicColors,true)
+                true
+            }
+        } else {
+            dynamicColorsPref?.isEnabled = false
+            dynamicColorsPref?.setSummary(R.string.label_dynamic_colors_requires_android_13)
+        }
     }
 
     override fun onResume() {
         super.onResume()
 
         val isDeviceSecured = requireContext().isDeviceSecured()
+        val theme = prefs.getAppTheme<AppTheme>()
 
         exportLockPref?.isEnabled = isDeviceSecured
         appLockPref?.isEnabled = isDeviceSecured
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            dynamicColorsPref?.isEnabled = theme != AppTheme.Custom
+        }
     }
 
     private fun formatClearTextTimeoutTime(text: Any?): String {

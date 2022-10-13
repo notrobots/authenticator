@@ -28,4 +28,6 @@
         <!-- Tint of each of the option's icon -->
         <attr name="option_iconTint" format="reference|color" />
     </declare-styleable>
+
+    <attr name="barcodeScannerActionBackgroundColor" format="color"/>
 </resources>

@@ -8,7 +8,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.documentfile.provider.DocumentFile
 import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.now
@@ -16,6 +15,7 @@ import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityExportQrBinding
 import dev.notrobots.authenticator.models.QRCode
+import dev.notrobots.authenticator.models.QRCodePaint
 import dev.notrobots.authenticator.views.ImageSlider
 import org.apache.commons.codec.binary.Base64
 import java.io.ByteArrayOutputStream
@@ -51,12 +51,20 @@ class ExportQRActivity : AuthenticatorActivity() {
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
 
+        val background = resolveColorAttribute(android.R.attr.windowBackground)
+        val foreground = resolveColorAttribute(R.attr.colorPrimary)
+        val qrCodePaint = object : QRCodePaint() {
+            override fun getPixel(x: Int, y: Int, state: Boolean): Int {
+                return if (state) foreground else background
+            }
+        }
+
         qrCodes = intent.getSerializableExtra(EXTRA_QR_CODES) as List<QRCode>
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { onBackPressed() }    //TODO: Why onBackPressed?
         binding.imageSlider.indicatorView?.disable()
-        binding.imageSlider.setImageBitmaps(qrCodes.map { it.toBitmap() })
+        binding.imageSlider.setImageBitmaps(qrCodes.map { it.toBitmap(qrCodePaint) })
         binding.done.setOnClickListener {
             finish()    //FIXME: Back to MainActivity
         }
@@ -69,9 +77,13 @@ class ExportQRActivity : AuthenticatorActivity() {
             binding.imageSlider.nextView?.show()
             binding.imageSlider.previousView?.show()
             binding.imageSlider.setCallback(object : ImageSlider.Callback {
-                override fun onNextImage(view: View, position: Int) {}
+                override fun onNextImage(view: View, position: Int) {
+                    //FIXME: Hide the next button when the index is size - 1
+                }
 
-                override fun onPreviousImage(view: View, position: Int) {}
+                override fun onPreviousImage(view: View, position: Int) {
+                    //FIXME: Hide the previous button when the index is 0
+                }
 
                 override fun onImageChanged(view: ImageSlider, old: Int, new: Int) {
                     binding.toolbarLayout.title = "QR code ${new + 1} of ${qrCodes.size}"

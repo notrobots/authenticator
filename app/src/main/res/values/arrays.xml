@@ -8,4 +8,18 @@
         <item>TOTP</item>
         <item>HOTP</item>
     </string-array>
+    <string-array name="themes">
+        <item>Follow System</item>
+        <item>Light</item>
+        <item>Dark</item>
+        <item>Pitch Black</item>
+        <item>Custom</item>
+    </string-array>
+    <string-array name="theme_values">
+        <item>followsystem</item>
+        <item>light</item>
+        <item>dark</item>
+        <item>pitchblack</item>
+        <item>custom</item>
+    </string-array>
 </resources>

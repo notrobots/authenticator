@@ -1,32 +1,150 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.Light"  parent="Theme.Material3.Light.NoActionBar">
         <!-- Primary brand color -->
-        <item name="colorPrimary">@color/google_blue500</item>
-        <item name="colorOnPrimary">@color/white</item>
-        <item name="colorPrimaryContainer">@color/google_blue700</item>
-        <item name="colorOnPrimaryContainer">@color/white</item>
-        <item name="android:textColorPrimary">@color/black</item>
+        <item name="colorPrimary">#0956CF</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#DAE2FF</item>
+        <item name="colorOnPrimaryContainer">#001848</item>
 
         <!-- Secondary brand color -->
-        <item name="colorSecondary">@color/google_blue500</item>
-        <item name="colorOnSecondary">@color/white</item>
-        <item name="colorSecondaryContainer">@color/google_blue700</item>
-        <item name="colorOnSecondaryContainer">@color/white</item>
-        <item name="android:textColorSecondary">@color/google_grey600</item>
+        <item name="colorSecondary">#245FA6</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+        <item name="colorSecondaryContainer">#D5E3FF</item>
+        <item name="colorOnSecondaryContainer">#001B3C</item>
+
+        <!-- Tertiary brand color -->
+        <item name="colorTertiary">#255EA7</item>
+        <item name="colorOnTertiary">#FFFFFF</item>
+        <item name="colorTertiaryContainer">#D5E3FF</item>
+        <item name="colorOnTertiaryContainer">#001B3C</item>
+
+        <!-- Error -->
+        <item name="colorError">#BA1A1A</item>
+        <item name="colorErrorContainer">#FFDAD6</item>
+        <item name="colorOnError">#FFFFFF</item>
+        <item name="colorOnErrorContainer">#410002</item>
 
         <!-- Surface & background -->
-        <item name="colorSurface">@color/white</item>
-        <item name="colorOnSurface">@color/black</item>
-        <item name="android:windowBackground">@color/white</item>
-        <item name="backgroundColor">@color/white</item>
+        <item name="android:windowBackground">#FEFBFF</item>
+        <item name="android:colorBackground">#FEFBFF</item>
+        <item name="colorOnBackground">#FEFBFF</item>
+        <item name="colorSurface">#FEFBFF</item>
+        <item name="colorOnSurface">#1B1B1F</item>
+        <item name="colorSurfaceVariant">#E1E2EC</item>
+        <item name="colorOnSurfaceVariant">#45464F</item>
+        <item name="colorOutline">#757780</item>
 
-        <!-- Action bar & Status bar -->
-        <item name="android:statusBarColor" tools:targetApi="l">@color/white</item>
-        <item name="android:windowLightStatusBar">true</item>
+        <!-- Toolbar, Status bar and Navigation bar -->
         <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
+        <item name="android:statusBarColor">?attr/colorSurface</item>
+        <item name="android:navigationBarColor">?attr/colorSurface</item>
 
         <!-- Action Mode -->
         <item name="windowActionModeOverlay">true</item>
-        <item name="actionModeStyle">@style/ActionMode</item>
+
+        <item name="colorControlNormal">#1B1B1F</item>
+        <!-- FIXME: On android 13 with dynamic colors, this color won't use the theme's colors -->
+        <item name="barcodeScannerActionBackgroundColor">#80DAE2FF</item>
+    </style>
+
+    <style name="Theme.Dark" parent="Theme.Material3.Dark.NoActionBar">
+        <!-- Primary brand color -->
+        <item name="colorPrimary">#b2c5ff</item>
+        <item name="colorOnPrimary">#002b73</item>
+        <item name="colorPrimaryContainer">#0040a1</item>
+        <item name="colorOnPrimaryContainer">#dae2ff</item>
+
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">#a7c8ff</item>
+        <item name="colorOnSecondary">#003061</item>
+        <item name="colorSecondaryContainer">#004689</item>
+        <item name="colorOnSecondaryContainer">#d5e3ff</item>
+
+        <!-- Tertiary brand color -->
+        <item name="colorTertiary">#a8c8ff</item>
+        <item name="colorOnTertiary">#003061</item>
+        <item name="colorTertiaryContainer">#00468a</item>
+        <item name="colorOnTertiaryContainer">#d5e3ff</item>
+
+        <!-- Error -->
+        <item name="colorError">#ffb4ab</item>
+        <item name="colorErrorContainer">#690005</item>
+        <item name="colorOnError">#93000a</item>
+        <item name="colorOnErrorContainer">#ffdad6</item>
+
+        <!-- Surface & background -->
+        <item name="android:windowBackground">#1b1b1f</item>
+        <item name="android:colorBackground">#1b1b1f</item>
+        <item name="colorOnBackground">#e4e2e6</item>
+        <item name="colorSurface">#1b1b1f</item>
+        <item name="colorOnSurface">#e4e2e6</item>
+        <item name="colorSurfaceVariant">#45464f</item>
+        <item name="colorOnSurfaceVariant">#c5c6d0</item>
+        <item name="colorOutline">#8f909a</item>
+
+        <!-- Toolbar, Status bar and Navigation bar -->
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
+        <item name="android:statusBarColor">?attr/colorSurface</item>
+        <item name="android:navigationBarColor">?attr/colorSurface</item>
+
+        <!-- Action Mode -->
+        <item name="windowActionModeOverlay">true</item>
+
+        <item name="colorControlNormal">#e4e2e6</item>
+        <item name="barcodeScannerActionBackgroundColor">#800040A1</item>
+    </style>
+
+    <style name="Theme.PitchBlack" parent="Theme.Material3.Dark.NoActionBar">
+        <!-- Primary brand color -->
+        <item name="colorPrimary">#9acbff</item>
+        <item name="colorOnPrimary">#003355</item>
+        <item name="colorPrimaryContainer">#004a79</item>
+        <item name="colorOnPrimaryContainer">#cfe4ff</item>
+
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">#9bcbff</item>
+        <item name="colorOnSecondary">#003256</item>
+        <item name="colorSecondaryContainer">#004a7a</item>
+        <item name="colorOnSecondaryContainer">#d0e4ff</item>
+
+        <!-- Tertiary brand color -->
+        <item name="colorTertiary">#99cbff</item>
+        <item name="colorOnTertiary">#003355</item>
+        <item name="colorTertiaryContainer">#004a78</item>
+        <item name="colorOnTertiaryContainer">#cfe5ff</item>
+
+        <!-- Error -->
+        <item name="colorError">#ffb4ab</item>
+        <item name="colorErrorContainer">#690005</item>
+        <item name="colorOnError">#93000a</item>
+        <item name="colorOnErrorContainer">#ffdad6</item>
+
+        <!-- Surface & background -->
+        <item name="android:windowBackground">#000000</item>
+        <item name="android:colorBackground">#000000</item>
+        <item name="colorOnBackground">#FEFBFF</item>
+        <item name="colorSurface">#000000</item>
+        <item name="colorOnSurface">#FEFBFF</item>
+        <item name="colorSurfaceVariant">#46464f</item>
+        <item name="colorOnSurfaceVariant">#c7c5d0</item>
+        <item name="colorOutline">#90909a</item>
+
+        <!-- Toolbar, Status bar and Navigation bar -->
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
+        <item name="android:statusBarColor">?attr/colorSurface</item>
+        <item name="android:navigationBarColor">?attr/colorSurface</item>
+
+        <!-- Action Mode -->
+        <item name="windowActionModeOverlay">true</item>
+
+        <item name="colorControlNormal">#ffffff</item>
+        <item name="android:textColorPrimary">#ffffff</item>
+        <item name="barcodeScannerActionBackgroundColor">#809acbff</item>
     </style>
 </resources>
