@@ -47,7 +47,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
             notifyDataSetChanged()
         }
     var sortMode: SortMode = SortMode.Custom
-    var totpIndicatorType: TotpIndicatorType = TotpIndicatorType.Text
+    var totpIndicatorType: TotpIndicatorType = TotpIndicatorType.Circular
         set(value) {
             field = value
             notifyDataSetChanged()

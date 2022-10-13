@@ -68,4 +68,5 @@
     <string name="pref_dynamic_colors">Dynamic colors</string>
     <string name="pref_dynamic_colors_summary">Use Android 13\'s dynamic colors based on your wallpaper</string>
     <string name="pref_theme">Theme</string>
+    <string name="pref_totp_indicator">TOTP indicator</string>
 </resources>

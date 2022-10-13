@@ -4,47 +4,55 @@
 
     <PreferenceCategory android:title="@string/pref_appearance">
         <ListPreference
+            android:defaultValue="followsystem"
+            android:entryValues="@array/theme_values"
             android:key="app_theme"
             android:title="@string/pref_theme"
             app:entries="@array/themes"
-            android:defaultValue="followsystem"
-            android:entryValues="@array/theme_values"
             app:useSimpleSummaryProvider="true" />
 
         <SwitchPreference
             android:key="dynamic_colors"
-            android:title="@string/pref_dynamic_colors"
-            android:summary="@string/pref_dynamic_colors_summary" />
+            android:summary="@string/pref_dynamic_colors_summary"
+            android:title="@string/pref_dynamic_colors" />
+
+        <ListPreference
+            android:defaultValue="circular"
+            android:entries="@array/totp_indicators"
+            android:entryValues="@array/totp_indicator_values"
+            android:key="totp_indicator"
+            android:title="@string/pref_totp_indicator"
+            app:useSimpleSummaryProvider="true" />
 
         <SwitchPreference
-            android:defaultValue="true"
+            android:defaultValue="false"
+            android:disableDependentsState="true"
             android:key="collapse_pins"
             android:summary="@string/pref_collapse_pins_summary"
-            android:title="@string/pref_collapse_pins"
-            android:disableDependentsState="true"/>
+            android:title="@string/pref_collapse_pins" />
 
         <SwitchPreference
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:key="collapse_icons"
             android:title="@string/pref_collapse_icons" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_privacy">
         <SwitchPreference
-            android:title="@string/pref_app_lock"
+            android:key="app_lock"
             android:summary="@string/pref_app_lock_summary"
-            android:key="app_lock"/>
+            android:title="@string/pref_app_lock" />
 
         <SwitchPreference
-            android:title="@string/pref_export_lock"
+            android:key="export_lock"
             android:summary="@string/pref_export_lock_summary"
-            android:key="export_lock"/>
+            android:title="@string/pref_export_lock" />
 
         <SwitchPreference
             android:defaultValue="false"
             android:key="allow_screenshots"
-            android:title="@string/pref_allow_screenshots"
-            android:summary="@string/pref_allow_screenshots_summary"/>
+            android:summary="@string/pref_allow_screenshots_summary"
+            android:title="@string/pref_allow_screenshots" />
 
         <SwitchPreference
             android:defaultValue="false"
