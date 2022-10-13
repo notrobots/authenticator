@@ -6,9 +6,9 @@ import dev.notrobots.preferences2.annotations.StringPreference
 
 object Preferences {
     @BooleanPreference(true)
-    const val SHOW_PINS = "show_pins"
+    const val COLLAPSE_PINS = "collapse_pins"
     @BooleanPreference(true)
-    const val SHOW_ICONS = "show_icons"
+    const val COLLAPSE_ICONS = "collapse_icons"
     @BooleanPreference(false)
     const val HIDE_PINS = "hide_pins"
     @BooleanPreference

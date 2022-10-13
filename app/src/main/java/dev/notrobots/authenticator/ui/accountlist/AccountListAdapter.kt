@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.Filter
 import android.widget.Filterable
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.DiffUtil
@@ -20,7 +19,6 @@ import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemViewHold
 import com.h6ah4i.android.widget.advrecyclerview.draggable.ItemDraggableRange
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractDraggableItemViewHolder
 import dev.notrobots.androidstuff.extensions.*
-import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.androidstuff.util.swap
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.data.KnownIssuers
@@ -43,7 +41,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
     var items = mutableListOf<Account>()    //FIXME: private
         private set
     var editMode: Boolean = false
-    var showPins: Boolean = true
+    var collapsePins: Boolean = true
         set(value) {
             field = value
             notifyDataSetChanged()
@@ -54,7 +52,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
             field = value
             notifyDataSetChanged()
         }
-    var showIcons: Boolean = true
+    var collapseIcons: Boolean = true
         set(value) {
             field = value
             notifyDataSetChanged()
@@ -149,9 +147,9 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
             )
         }
 
-        binding.icon.visibility = if (showIcons && !editMode) View.VISIBLE else View.GONE
+        binding.icon.visibility = if (collapseIcons || editMode) View.GONE else View.VISIBLE
         binding.icon.setImageResource(icon)
-        binding.pin.visibility = if (showPins && !editMode) View.VISIBLE else View.GONE
+        binding.pin.visibility = if (collapsePins || editMode) View.GONE else View.VISIBLE
         binding.dragHandle.visibility = if (editMode) View.VISIBLE else View.GONE
 
         updateViewMarginsAndConstraints(binding.icon)
@@ -428,8 +426,8 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
      */
     private fun updateViewMarginsAndConstraints(view: View) {
         view.updateLayoutParams<ConstraintLayout.LayoutParams> {
-            topMargin = if (showPins) 8.toDp().toInt() else 0
-            verticalBias = if (showPins) 0F else 0.5F
+            topMargin = if (!collapsePins) 8.toDp().toInt() else 0
+            verticalBias = if (!collapsePins) 0F else 0.5F
         }
     }
 

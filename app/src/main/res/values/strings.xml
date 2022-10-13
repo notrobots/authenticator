@@ -37,10 +37,9 @@
     <string name="label_keep_both">Keep both</string>
     <string name="empty_view_no_results">No accounts found</string>
     <string name="empty_view_no_accounts">Press the \'+\' to add an account</string>
-    <!-- TODO Replace "Hide" with "Collapse" -->
-    <string name="pref_show_pins">Show PINs</string>
-    <string name="pref_show_pins_summary">If disabled you can still click the account to copy the PIN</string>
-    <string name="pref_show_icons">Show icons</string>
+    <string name="pref_collapse_pins">Collapse PINs</string>
+    <string name="pref_collapse_pins_summary">If disabled you can still click the account to copy the PIN</string>
+    <string name="pref_collapse_icons">Collapse icons</string>
     <string name="pref_appearance">Appearance</string>
     <string name="pref_privacy">Privacy &amp; Security</string>
     <string name="pref_backup">Backup</string>

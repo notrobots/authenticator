@@ -18,14 +18,15 @@
 
         <SwitchPreference
             android:defaultValue="true"
-            android:key="show_pins"
-            android:summary="@string/pref_show_pins_summary"
-            android:title="@string/pref_show_pins" />
+            android:key="collapse_pins"
+            android:summary="@string/pref_collapse_pins_summary"
+            android:title="@string/pref_collapse_pins"
+            android:disableDependentsState="true"/>
 
         <SwitchPreference
             android:defaultValue="true"
-            android:key="show_icons"
-            android:title="@string/pref_show_icons" />
+            android:key="collapse_icons"
+            android:title="@string/pref_collapse_icons" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_privacy">
@@ -47,7 +48,7 @@
 
         <SwitchPreference
             android:defaultValue="false"
-            android:dependency="show_pins"
+            android:dependency="collapse_pins"
             android:key="hide_pins"
             android:summary="@string/pref_hide_pins_summary"
             android:title="@string/pref_hide_pins" />

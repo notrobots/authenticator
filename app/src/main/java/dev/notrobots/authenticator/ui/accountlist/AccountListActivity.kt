@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.h6ah4i.android.widget.advrecyclerview.animator.DraggableItemAnimator
 import com.h6ah4i.android.widget.advrecyclerview.draggable.RecyclerViewDragDropManager
 import dagger.hilt.android.AndroidEntryPoint
-import dev.notrobots.androidstuff.activities.BaseActivity
 import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.authenticator.R
@@ -28,7 +27,6 @@ import dev.notrobots.authenticator.dialogs.*
 import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
-import dev.notrobots.authenticator.ui.backupexport.ExportActivity
 import dev.notrobots.authenticator.ui.backupimport.ImportActivity
 import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
@@ -394,8 +392,8 @@ class AccountListActivity : AuthenticatorActivity() {
         val popup = AccountListOptionsMenu(
             this,
             viewModel.sortMode() ?: SortMode.Custom,
-            adapter.showIcons,
-            adapter.showPins,
+            adapter.collapseIcons,
+            adapter.collapsePins,
             adapter.totpIndicatorType
         )
 
@@ -417,12 +415,12 @@ class AccountListActivity : AuthenticatorActivity() {
         })
         popup.setOnDismissListener {
             preferences.putSortMode(popup.sortMode)
-            preferences.putShowIcons(popup.showIcons)
-            preferences.putShowPins(popup.showPins)
+            preferences.putCollapseIcons(popup.showIcons)
+            preferences.putCollapsePins(popup.showPins)
             preferences.putTotpIndicator(popup.totpIndicatorType)
 
-            adapter.showIcons = popup.showIcons
-            adapter.showPins = popup.showPins
+            adapter.collapseIcons = popup.showIcons
+            adapter.collapsePins = popup.showPins
             adapter.totpIndicatorType = popup.totpIndicatorType
             viewModel.sortMode(popup.sortMode)
         }
@@ -498,8 +496,8 @@ class AccountListActivity : AuthenticatorActivity() {
      * Updates some of the adapter's settings based on the user's preferences.
      */
     private fun updateAdapterPreferences() {
-        adapter.showIcons = preferences.getShowIcons()
-        adapter.showPins = preferences.getShowPins()
+        adapter.collapseIcons = preferences.getCollapseIcons()
+        adapter.collapsePins = preferences.getCollapsePins()
         adapter.totpIndicatorType = preferences.getTotpIndicator()
         adapter.clearTextEnabled = !preferences.getHidePins()
         adapter.clearTextTimeout = preferences.getHidePinsDelay()
