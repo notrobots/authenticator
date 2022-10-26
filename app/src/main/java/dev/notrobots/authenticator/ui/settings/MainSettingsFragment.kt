@@ -1,5 +1,6 @@
 package dev.notrobots.authenticator.ui.settings
 
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.preference.*
@@ -15,6 +16,7 @@ import dev.notrobots.authenticator.ui.backupimport.ImportActivity
 import dev.notrobots.authenticator.ui.backupmanager.BackupManagerActivity
 import dev.notrobots.preferences2.*
 import dev.notrobots.preferences2.util.parseEnum
+
 
 class MainSettingsFragment : PreferenceFragmentCompat() {
     private val prefs by lazy {
@@ -69,7 +71,7 @@ class MainSettingsFragment : PreferenceFragmentCompat() {
             val theme = parseEnum<AppTheme>(newValue.toString(), true)
             val dynamicColors = prefs.getDynamicColors()
 
-            (requireActivity() as? AuthenticatorActivity)?.setTheme(theme, dynamicColors,true)
+            (requireActivity() as? AuthenticatorActivity)?.setTheme(theme, dynamicColors, true)
             true
         }
 
@@ -78,7 +80,7 @@ class MainSettingsFragment : PreferenceFragmentCompat() {
                 val theme = prefs.getAppTheme<AppTheme>()
                 val dynamicColors = newValue as Boolean
 
-                (requireActivity() as? AuthenticatorActivity)?.setTheme(theme, dynamicColors,true)
+                (requireActivity() as? AuthenticatorActivity)?.setTheme(theme, dynamicColors, true)
                 true
             }
         } else {
@@ -89,6 +91,20 @@ class MainSettingsFragment : PreferenceFragmentCompat() {
         findPreference<Preference>("backup_manager")?.setOnPreferenceClickListener {
             requireContext().startActivity(BackupManagerActivity::class)
             true
+        }
+
+        findPreference<Preference>("app_version")?.setSummaryProvider {
+            try {
+                val pInfo = if (Build.VERSION.SDK_INT >= 33) {
+                    requireContext().packageManager.getPackageInfo(requireContext().packageName, PackageManager.PackageInfoFlags.of(0))
+                } else {
+                    requireContext().packageManager.getPackageInfo(requireContext().packageName, 0)
+                }
+
+                pInfo.versionName.toString()
+            } catch (e: Exception) {
+                "null"
+            }
         }
     }
 

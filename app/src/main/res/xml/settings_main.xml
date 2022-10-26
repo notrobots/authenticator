@@ -105,10 +105,12 @@
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_info">
+
         <!--        <Preference android:title="Open Source Licenses" />-->
-        <!--        <Preference-->
-        <!--            android:enabled="false"-->
-        <!--            android:summary="0.1.0"-->
-        <!--            android:title="Version" />-->
+
+        <Preference
+            android:key="app_version"
+            android:summary="0.0.0"
+            android:title="@string/label_version" />
     </PreferenceCategory>
 </PreferenceScreen>

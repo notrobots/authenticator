@@ -12,7 +12,7 @@ import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.data.Preferences
 import dev.notrobots.authenticator.databinding.ActivityBackupManagerBinding
 import dev.notrobots.authenticator.extensions.schedulePeriodicJob
-import dev.notrobots.authenticator.extensions.setCustomSummaryProvider
+import dev.notrobots.authenticator.extensions.setTypedSummaryProvider
 import dev.notrobots.authenticator.extensions.updateSummary
 import dev.notrobots.authenticator.services.DriveBackupJob
 import dev.notrobots.authenticator.services.LocalBackupJob
@@ -69,13 +69,13 @@ class BackupManagerActivity : AuthenticatorActivity() {
             driveBackupFrequencyPref = findPreference(Preferences.DRIVE_BACKUP_FREQUENCY)
             driveBackupPathPref = findPreference(Preferences.DRIVE_BACKUP_PATH)
 
-            localBackupFrequencyPref?.setCustomSummaryProvider(::formatFrequency)
+            localBackupFrequencyPref?.setTypedSummaryProvider(::formatFrequency)
             localBackupPathPref?.setSummaryProvider(::formatLocalPath)
             localBackupPathPref?.setOnPreferenceClickListener {
                 pickLocalPath.launch(null)
                 true
             }
-            driveBackupFrequencyPref?.setCustomSummaryProvider(::formatFrequency)
+            driveBackupFrequencyPref?.setTypedSummaryProvider(::formatFrequency)
             driveBackupPathPref?.setOnPreferenceClickListener {
                 //Let the user pick a path on their drive
                 true

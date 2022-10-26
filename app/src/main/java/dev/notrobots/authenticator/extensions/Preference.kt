@@ -2,7 +2,7 @@ package dev.notrobots.authenticator.extensions
 
 import androidx.preference.Preference
 
-fun <T : Preference> T.setCustomSummaryProvider(provider: (T) -> Any?) {
+fun <T : Preference> T.setTypedSummaryProvider(provider: (T) -> Any?) {
     summaryProvider = Preference.SummaryProvider<T> {
         provider(it).toString()
     }
