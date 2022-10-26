@@ -28,7 +28,7 @@ class AccountExporterTest {
         val exportData = listOf(
             AccountExporter.ImportedData(groups, accounts),
             AccountExporter.ImportedData(groups, accounts).apply {
-                this.format = BackupFormat.Default
+                this.format = ExportFormat.Default
             }
         )
 

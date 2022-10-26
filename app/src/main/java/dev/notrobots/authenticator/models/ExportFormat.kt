@@ -3,7 +3,7 @@ package dev.notrobots.authenticator.models
 import android.net.Uri
 import dev.notrobots.authenticator.util.AccountExporter
 
-enum class BackupFormat {
+enum class ExportFormat {
     /**
      * Exports all accounts as a single line string serialized using
      * this app's protobuf definition.

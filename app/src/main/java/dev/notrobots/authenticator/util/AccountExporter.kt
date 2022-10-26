@@ -1,17 +1,14 @@
 package dev.notrobots.authenticator.util
 
 import android.net.Uri
-import com.google.protobuf.MessageLite
 import dev.notrobots.androidstuff.util.parseEnum
 import dev.notrobots.authenticator.extensions.contains
 import dev.notrobots.authenticator.extensions.get
 import dev.notrobots.authenticator.extensions.isOnlySpaces
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.OTPType
-import dev.notrobots.authenticator.models.BackupFormat
+import dev.notrobots.authenticator.models.ExportFormat
 import dev.notrobots.authenticator.models.QRCode
-import dev.notrobots.authenticator.proto.Authenticator.*
-import dev.notrobots.authenticator.proto.GoogleAuthenticator.*
 import org.json.JSONObject
 import java.io.Serializable
 import java.util.*
@@ -41,6 +38,7 @@ object AccountExporter {
         return accounts.map(::parseUri)
     }
 
+    @Deprecated("Use BackupFormat.QR or BackupFormat.PlainText instead")
     fun exportText(accounts: List<Account>): String {
         return ProtobufUtil.serializePayload(
             accounts,
@@ -81,13 +79,13 @@ object AccountExporter {
     /**
      * Exports the given [accounts] using the given [format].
      */
-    fun export(accounts: List<Account>, format: BackupFormat): Any {
+    fun export(accounts: List<Account>, format: ExportFormat): Any {
         return when (format) {
-            BackupFormat.Text -> exportText(accounts)
-            BackupFormat.QR -> exportQR(accounts)
-            BackupFormat.PlainText -> exportPlainText(accounts)
-            BackupFormat.PlaintQR -> exportPlainQR(accounts)
-            BackupFormat.Json -> exportJson(accounts)
+            ExportFormat.Text -> exportText(accounts)
+            ExportFormat.QR -> exportQR(accounts)
+            ExportFormat.PlainText -> exportPlainText(accounts)
+            ExportFormat.PlaintQR -> exportPlainQR(accounts)
+            ExportFormat.Json -> exportJson(accounts)
 //            BackupFormat.GoogleAuthenticator -> exportGoogleAuthenticator(accounts)
 
             else -> TODO()
@@ -97,7 +95,7 @@ object AccountExporter {
     /**
      * Imports the given [json] object.
      *
-     * The JSON object must follow [BackupFormat.Json]'s format
+     * The JSON object must follow [ExportFormat.Json]'s format
      */
     fun import(json: JSONObject): ImportedData {
         return ImportedData(
@@ -109,11 +107,11 @@ object AccountExporter {
      * Imports the given [text].
      *
      * Used by:
-     * + [BackupFormat.PlainText]
-     * + [BackupFormat.PlaintQR]
-     * + [BackupFormat.QR]
-     * + [BackupFormat.GoogleAuthenticator]
-     * + [BackupFormat.Json]
+     * + [ExportFormat.PlainText]
+     * + [ExportFormat.PlaintQR]
+     * + [ExportFormat.QR]
+     * + [ExportFormat.GoogleAuthenticator]
+     * + [ExportFormat.Json]
      */
     fun import(text: String): ImportedData {
         try {
@@ -132,10 +130,10 @@ object AccountExporter {
      * Imports the given [uris].
      *
      * Used by:
-     * + [BackupFormat.PlainText]
-     * + [BackupFormat.PlaintQR]
-     * + [BackupFormat.QR]
-     * + [BackupFormat.GoogleAuthenticator]
+     * + [ExportFormat.PlainText]
+     * + [ExportFormat.PlaintQR]
+     * + [ExportFormat.QR]
+     * + [ExportFormat.GoogleAuthenticator]
      */
     fun import(uris: List<Uri>): ImportedData {
         val accounts = uris.flatMap {
