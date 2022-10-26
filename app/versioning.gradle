@@ -1,0 +1,49 @@
+def run(String... args) {
+    def out = new ByteArrayOutputStream()
+
+    exec {
+        commandLine(args)
+        standardOutput = out
+    }
+
+    return out.toString()
+}
+
+def getVersionCode = { ->
+    try {
+        def code = run('git', 'tag', '--list')
+
+        return code.split('\n').size()
+    }
+    catch (ignored) {
+        return -1
+    }
+}
+
+def getVersionName = { ->
+    try {
+        def tag = run('git', 'describe', '--tags', '--abbrev=0').trim()
+        def isDirty = !run('git', 'status', '-s').trim().isEmpty()
+        def exactMatch = false
+
+        try {
+            run 'git', 'describe', '--exact-match'
+
+            exactMatch = true
+        } catch (ignored) {
+
+        }
+
+        if (isDirty || !exactMatch) {
+            tag += '-' + run('git', 'log', '-1', '--format="%h"').trim()
+
+            if (isDirty) {
+                tag += '-dirty'
+            }
+        }
+
+        return tag
+    } catch (ignored) {
+        return null
+    }
+}
