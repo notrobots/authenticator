@@ -2,32 +2,38 @@
 <resources>
     <declare-styleable name="ImageSlider">
         <!-- Whether or not the scroll is circular -->
-        <attr name="slider_infiniteScroll" format="boolean"/>
+        <attr name="slider_infiniteScroll" format="boolean" />
         <!-- Whether or not you want this view to handle the default controls internally -->
-        <attr name="slider_useDefaultControls" format="boolean"/>
+        <attr name="slider_useDefaultControls" format="boolean" />
         <!-- The view used to slide to the previous image -->
-        <attr name="slider_previousView" format="reference"/>
+        <attr name="slider_previousView" format="reference" />
         <!-- The view used to slide to the next image -->
-        <attr name="slider_nextView" format="reference"/>
+        <attr name="slider_nextView" format="reference" />
         <!-- The TextView showing the index of the current selected image -->
-        <attr name="slider_indicatorView" format="reference"/>
+        <attr name="slider_indicatorView" format="reference" />
     </declare-styleable>
     <declare-styleable name="BetterSpinner">
         <!-- Spinner entries, will be used as values if no values are provided -->
-        <attr name="spinnerEntries" format="reference"/>
+        <attr name="spinnerEntries" format="reference" />
         <!-- Spinner values -->
-        <attr name="spinnerValues" format="reference"/>
+        <attr name="spinnerValues" format="reference" />
         <!-- Spinner label -->
-        <attr name="spinnerLabel" format="string"/>
+        <attr name="spinnerLabel" format="string" />
     </declare-styleable>
     <declare-styleable name="OptionList">
         <!-- Text appearance of each of the option's title -->
-        <attr name="option_titleTextAppearance" format="reference"/>
+        <attr name="option_titleTextAppearance" format="reference" />
         <!-- Text appearance of each of the option's description -->
-        <attr name="option_descriptionTextAppearance" format="reference"/>
+        <attr name="option_descriptionTextAppearance" format="reference" />
         <!-- Tint of each of the option's icon -->
         <attr name="option_iconTint" format="reference|color" />
     </declare-styleable>
+    <declare-styleable name="BackupOptionView">
+        <!-- Title for this option -->
+        <attr name="title" format="string" />
+        <!-- Collapsed state -->
+        <attr name="checked" format="boolean" />
+    </declare-styleable>
 
-    <attr name="barcodeScannerActionBackgroundColor" format="color"/>
+    <attr name="barcodeScannerActionBackgroundColor" format="color" />
 </resources>

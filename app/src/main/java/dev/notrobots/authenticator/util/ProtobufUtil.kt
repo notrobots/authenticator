@@ -13,6 +13,8 @@ import org.apache.commons.codec.binary.Base32
 import org.apache.commons.codec.binary.Base64
 
 object ProtobufUtil {
+    //TODO: There should be a base class that serializes/deserializes data using protobuf and
+    // each implementation should have its own class
     fun serializePayload(accounts: List<Account>, variant: Variant, maxBytes: Int = 0): List<Uri> {
         val chunk = mutableSetOf<MessageLite>()
         var chunkSize = 0

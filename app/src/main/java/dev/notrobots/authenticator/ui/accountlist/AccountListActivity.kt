@@ -2,6 +2,7 @@ package dev.notrobots.authenticator.ui.accountlist
 
 import android.app.Activity
 import android.app.SearchManager
+import android.app.job.JobScheduler
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -10,6 +11,7 @@ import android.widget.PopupWindow
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.activity.viewModels
 import androidx.appcompat.widget.SearchView
+import androidx.core.content.getSystemService
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -29,6 +31,7 @@ import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.backupimport.ImportActivity
 import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
+import dev.notrobots.authenticator.ui.backupmanager.BackupManagerActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import dev.notrobots.authenticator.ui.settings.SettingsActivity
 import dev.notrobots.authenticator.util.AccountExporter
@@ -330,6 +333,7 @@ class AccountListActivity : AuthenticatorActivity() {
                 }
             }
             R.id.menu_account_list_backup_import -> startActivity(ImportActivity::class)
+            R.id.menu_account_list_backup_manager -> startActivity(BackupManagerActivity::class)
             R.id.menu_account_list_settings -> startActivity(SettingsActivity::class)
             R.id.menu_clear -> {
                 lifecycleScope.launch {
@@ -393,6 +397,12 @@ class AccountListActivity : AuthenticatorActivity() {
                 lifecycleScope.launch {
                     accounts.forEach { viewModel.insertAccount(it) }
                 }
+            }
+            R.id.menu_account_list_clear_jobs -> {
+                val jobScheduler = getSystemService<JobScheduler>()
+
+                jobScheduler?.cancelAll()
+                makeToast("All jobs cancelled")
             }
         }
 

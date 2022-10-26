@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory android:title="@string/label_local">
+        <SwitchPreference
+            android:disableDependentsState="true"
+            android:key="local_backup_enabled"
+            android:title="@string/label_enabled" />
+
+        <Preference
+            android:dependency="local_backup_enabled"
+            android:key="local_backup_path"
+            android:summary="@string/label_unset"
+            android:title="@string/label_path" />
+
+        <EditTextPreference
+            android:dependency="local_backup_enabled"
+            android:dialogLayout="@layout/view_preference_edit_text_numeric"
+            android:key="local_backup_frequency"
+            android:title="@string/label_frequency" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/label_google_drive"
+        app:isPreferenceVisible="false">
+        <SwitchPreference
+            android:disableDependentsState="true"
+            android:key="drive_backup_enabled"
+            android:title="@string/label_enabled" />
+
+        <Preference
+            android:dependency="drive_backup_enabled"
+            android:key="drive_backup_path"
+            android:summary="@string/label_unset"
+            android:title="Path" />
+
+        <EditTextPreference
+            android:dependency="drive_backup_enabled"
+            android:key="drive_backup_frequency"
+            android:title="@string/label_frequency"
+            app:dialogLayout="@layout/view_preference_edit_text_numeric" />
+
+        <!--        <SwitchPreference-->
+        <!--            android:dependency="drive_backup_enabled"-->
+        <!--            android:key="drive_backup_only_wifi"-->
+        <!--            android:title="Only over Wi-Fi" />-->
+
+        <Preference
+            android:icon="@drawable/ic_info"
+            android:summary="Use the Google Drive reserved storage to store your backup.\n\nThat part of storage is cannot be accessed by you or the developer and it's accessible by this app only."
+            android:title="About" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

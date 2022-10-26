@@ -12,6 +12,7 @@ import dev.notrobots.authenticator.extensions.requestExport
 import dev.notrobots.authenticator.extensions.showBiometricPrompt
 import dev.notrobots.authenticator.models.AppTheme
 import dev.notrobots.authenticator.ui.backupimport.ImportActivity
+import dev.notrobots.authenticator.ui.backupmanager.BackupManagerActivity
 import dev.notrobots.preferences2.*
 import dev.notrobots.preferences2.util.parseEnum
 
@@ -83,6 +84,11 @@ class MainSettingsFragment : PreferenceFragmentCompat() {
         } else {
             dynamicColorsPref?.isEnabled = false
             dynamicColorsPref?.setSummary(R.string.label_dynamic_colors_requires_android_13)
+        }
+
+        findPreference<Preference>("backup_manager")?.setOnPreferenceClickListener {
+            requireContext().startActivity(BackupManagerActivity::class)
+            true
         }
     }
 

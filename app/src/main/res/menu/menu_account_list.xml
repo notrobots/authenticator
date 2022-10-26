@@ -63,6 +63,9 @@
             <item
                 android:id="@+id/menu_account_list_backup_import"
                 android:title="Import"/>
+            <item
+                android:id="@+id/menu_account_list_backup_manager"
+                android:title="Backup manager"/>
         </menu>
     </item>
 
@@ -147,33 +150,41 @@
     <!--        android:id="@+id/menu_account_list_settings"-->
     <!--        android:title="Settings" />-->
 
-    <item android:title="TEST MENU" />
+    <item android:title="TEST MENU">
+        <menu>
+            <item
+                android:id="@+id/menu_clear"
+                android:title="Clear" />
 
-    <item
-        android:id="@+id/menu_clear"
-        android:title="Clear" />
+            <item
+                android:id="@+id/menu_account_list_clear_jobs"
+                android:title="Clear all jobs" />
 
-    <item
-        android:id="@+id/menu_popup"
-        android:title="Popup test" />
+            <item
+                android:id="@+id/menu_popup"
+                android:title="Popup test" />
 
-    <item
-        android:id="@+id/menu_refresh"
-        android:title="Refresh pins" />
+            <item
+                android:id="@+id/menu_refresh"
+                android:title="Refresh pins" />
 
-    <item
-        android:id="@+id/menu_add_test"
-        android:title="Add test accounts" />
+            <item
+                android:id="@+id/menu_add_test"
+                android:title="Add test accounts" />
 
-    <item
-        android:id="@+id/menu_add_test_2"
-        android:title="Add test accounts 2" />
+            <item
+                android:id="@+id/menu_add_test_2"
+                android:title="Add test accounts 2" />
 
-    <item
-        android:id="@+id/menu_add_test_3"
-        android:title="Add test accounts 3" />
+            <item
+                android:id="@+id/menu_add_test_3"
+                android:title="Add test accounts 3" />
 
-    <item
-        android:id="@+id/menu_add_test_4"
-        android:title="Add test accounts 4" />
+            <item
+                android:id="@+id/menu_add_test_4"
+                android:title="Add test accounts 4" />
+        </menu>
+    </item>
+
+
 </menu>

@@ -2,6 +2,7 @@ package dev.notrobots.authenticator.activities
 
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.MenuItem
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
@@ -21,6 +22,7 @@ open class AuthenticatorActivity : BaseActivity() {
     }
     private var currentTheme: AppTheme? = null
     private var dynamicColors: Boolean? = null
+    protected var finishOnBackPressEnabled = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,6 +39,16 @@ open class AuthenticatorActivity : BaseActivity() {
         } else {
             window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
         }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home && finishOnBackPressEnabled) {
+            //TODO: Add a method to BaseActivity that checks execute the back press and checks if the double press to finish is enabled too
+            onBackPressed()
+            return true
+        }
+
+        return false
     }
 
     fun updateTheme(recreate: Boolean = false) {

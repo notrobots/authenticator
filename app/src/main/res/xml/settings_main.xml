@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--TODO Rename this file into pref_settings-->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -92,6 +93,12 @@
             android:key="backup_import"
             android:summary="@string/pref_import_summary"
             android:title="@string/pref_import" />
+
+        <Preference
+            android:title="Backup manager"
+            android:summary="Automatic backup is OFF"
+            android:key="backup_manager"/>
+
         <!--        <SwitchPreference android:title="Automatic backup" />-->
         <!--        <Preference android:title="Automatic Backup frequency" />-->
         <!--        <MultiSelectListPreference android:title="Automatic Backup locations" />-->

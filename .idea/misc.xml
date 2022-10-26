@@ -57,6 +57,7 @@
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_account.xml" value="0.34831460674157305" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_account_list.xml" value="0.35520833333333335" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_backup.xml" value="0.5560165975103735" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_backup_manager.xml" value="0.33" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_barcode_scanner.xml" value="0.35520833333333335" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_export.xml" value="0.34831460674157305" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/activity_export_config.xml" value="0.33" />
@@ -70,8 +71,10 @@
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/dialog_account_group.xml" value="0.35520833333333335" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/dialog_account_uri.xml" value="0.35520833333333335" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/dialog_account_url.xml" value="0.35520833333333335" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/fragment_dialog_frequency_picker.xml" value="0.3546875" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_account.xml" value="0.4583333333333333" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_account_group.xml" value="0.5" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_backup.xml" value="0.75" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_barcode_import_result.xml" value="1.0" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_barcode_scanner_result.xml" value="0.5" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_export.xml" value="0.3472222222222222" />
@@ -80,7 +83,9 @@
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_import_option.xml" value="0.34831460674157305" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_import_result.xml" value="0.33" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/item_list_option.xml" value="0.75" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/preference_dialog_backup_frequency.xml" value="0.3546875" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/view_account_list_options.xml" value="0.34831460674157305" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/view_backup_option.xml" value="0.33" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/view_buttongrid.xml" value="0.337037037037037" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/view_buttongrid_button.xml" value="0.67" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/view_grid_menu_item.xml" value="0.22447916666666667" />
@@ -90,12 +95,17 @@
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/view_optionlist.xml" value="0.35520833333333335" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/view_preference_edit_text_numeric.xml" value="0.22291666666666668" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/view_toolbar.xml" value="0.4777777777777778" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/view_toolbar_backup_manager.xml" value="0.22291666666666668" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/view_toolbar_item_switch.xml" value="0.22291666666666668" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/view_toolbar_search.xml" value="0.22395833333333334" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/layout/view_totp.xml" value="0.2234375" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/menu/menu_account.xml" value="0.3333333333333333" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/menu/menu_account_list.xml" value="0.35520833333333335" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/menu/menu_account_list_edit.xml" value="0.22395833333333334" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/menu/menu_account_list_item.xml" value="0.35520833333333335" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/menu/menu_backup_manager.xml" value="0.22395833333333334" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/menu/menu_dialog_frequency_picker.xml" value="0.22395833333333334" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/menu/menu_dialog_preference_backup_frequency.xml" value="0.14814814814814814" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/menu/menu_export.xml" value="0.22447916666666667" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/menu/menu_export_activity.xml" value="0.3541666666666667" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/menu/menu_export_qr.xml" value="0.3351851851851852" />
@@ -103,6 +113,9 @@
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/menu/menu_import_result.xml" value="0.22447916666666667" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/menu/menu_import_strategy.xml" value="0.22447916666666667" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.162" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/xml/backup_manager.xml" value="0.22291666666666668" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/xml/fragment_backup_manager.xml" value="0.33" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/xml/pref_backup_manager.xml" value="0.3546875" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/xml/searchable.xml" value="0.140625" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/xml/settings_main.xml" value="0.3546875" />
       </map>
