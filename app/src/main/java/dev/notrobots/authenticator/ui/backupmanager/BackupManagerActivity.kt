@@ -14,10 +14,10 @@ import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.data.Preferences
 import dev.notrobots.authenticator.databinding.ActivityBackupManagerBinding
-import dev.notrobots.authenticator.extensions.schedulePeriodicJob
 import dev.notrobots.authenticator.extensions.setTypedSummaryProvider
 import dev.notrobots.authenticator.extensions.toUri
 import dev.notrobots.authenticator.extensions.updateSummary
+import dev.notrobots.authenticator.services.BackupJob
 import dev.notrobots.authenticator.services.DriveBackupJob
 import dev.notrobots.authenticator.services.LocalBackupJob
 import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
@@ -31,7 +31,6 @@ import java.util.concurrent.TimeUnit
 
 class BackupManagerActivity : AuthenticatorActivity() {
     private val binding by viewBindings<ActivityBackupManagerBinding>()
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -170,7 +169,7 @@ class BackupManagerActivity : AuthenticatorActivity() {
 
         private inline fun <reified T> scheduleOrCancelJob(schedule: Boolean, id: Int, interval: Long, onFailure: () -> Unit) {
             if (schedule) {
-                val scheduleResult = requireContext().schedulePeriodicJob<T>(id, interval)
+                val scheduleResult = BackupJob.schedule<T>(requireContext(), id, interval)
 
                 if (scheduleResult == JobScheduler.RESULT_FAILURE) {
                     onFailure()

@@ -35,19 +35,3 @@ fun Context.resolveDrawableAttribute(id: Int): Int {
         resourceId
     }
 }
-
-inline fun <reified T> Context.schedulePeriodicJob( //TODO: Move to BackupJob
-    id: Int,
-    interval: Long,
-    jobInfoFactory: JobInfo.Builder.() -> Unit = {}
-): Int {
-    val componentName = ComponentName(this, T::class.java)
-    val jobInfo = JobInfo.Builder(id, componentName)
-        .setPeriodic(interval)
-        .setPersisted(true)
-        .apply(jobInfoFactory)
-        .build()
-    val jobScheduler = getSystemService<JobScheduler>()!!
-
-    return jobScheduler.schedule(jobInfo)
-}
