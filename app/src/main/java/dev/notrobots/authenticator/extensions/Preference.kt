@@ -14,7 +14,7 @@ fun <T : Preference> T.setTypedSummaryProvider(provider: (T) -> Any?) {
  * If no summaryProvider was defined the summary won't be changed.
  */
 fun <T : Preference> T.updateSummary() {
-    val provider = summaryProvider
+    val provider = summaryProvider  //FIXME: Not working. This needs to copy the provider
 
     summaryProvider = null
     provider?.let {

@@ -18,7 +18,12 @@
             android:dependency="local_backup_enabled"
             android:dialogLayout="@layout/view_preference_edit_text_numeric"
             android:key="local_backup_frequency"
+            android:defaultValue="0"
             android:title="@string/label_frequency" />
+
+        <Preference
+            android:key="_last_local_backup"
+            android:title="@string/label_restore" />
     </PreferenceCategory>
 
     <PreferenceCategory

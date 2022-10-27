@@ -1,5 +1,6 @@
 package dev.notrobots.authenticator.ui.backupimportresult
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
@@ -161,5 +162,15 @@ class ImportResultActivity : AuthenticatorActivity() {
 
     companion object {
         const val EXTRA_DATA = "ImportResultActivity.DATA"
+
+        fun showResults(context: Context, importedData: List<AccountExporter.ImportedData>) {
+            context.startActivity(ImportResultActivity::class) {
+                putExtra(EXTRA_DATA, ArrayList(importedData)) //FIXME: Start on top?
+            }
+        }
+
+        fun showResults(context: Context, importedData: AccountExporter.ImportedData) {
+            showResults(context, listOf(importedData))
+        }
     }
 }

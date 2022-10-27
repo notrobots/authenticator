@@ -17,7 +17,6 @@ import dev.notrobots.authenticator.ui.backupmanager.BackupManagerActivity
 import dev.notrobots.preferences2.*
 import dev.notrobots.preferences2.util.parseEnum
 
-
 class MainSettingsFragment : PreferenceFragmentCompat() {
     private val prefs by lazy {
         PreferenceManager.getDefaultSharedPreferences(requireContext())

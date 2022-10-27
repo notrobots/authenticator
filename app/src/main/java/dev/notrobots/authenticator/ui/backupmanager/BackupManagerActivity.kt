@@ -2,8 +2,11 @@ package dev.notrobots.authenticator.ui.backupmanager
 
 import android.app.job.JobScheduler
 import android.content.Intent
+import android.content.SharedPreferences
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.documentfile.provider.DocumentFile
 import androidx.preference.*
 import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.extensions.viewBindings
@@ -13,16 +16,22 @@ import dev.notrobots.authenticator.data.Preferences
 import dev.notrobots.authenticator.databinding.ActivityBackupManagerBinding
 import dev.notrobots.authenticator.extensions.schedulePeriodicJob
 import dev.notrobots.authenticator.extensions.setTypedSummaryProvider
+import dev.notrobots.authenticator.extensions.toUri
 import dev.notrobots.authenticator.extensions.updateSummary
 import dev.notrobots.authenticator.services.DriveBackupJob
 import dev.notrobots.authenticator.services.LocalBackupJob
+import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
+import dev.notrobots.authenticator.util.AccountExporter
 import dev.notrobots.authenticator.util.TextUtil
 import dev.notrobots.authenticator.util.daysToMillis
 import dev.notrobots.preferences2.*
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 class BackupManagerActivity : AuthenticatorActivity() {
     private val binding by viewBindings<ActivityBackupManagerBinding>()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +46,7 @@ class BackupManagerActivity : AuthenticatorActivity() {
             .commit()
     }
 
-    class BackupManagerFragment : PreferenceFragmentCompat() {
+    class BackupManagerFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
         private val pickLocalPath = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) {
             it?.let {
                 val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
@@ -60,6 +69,7 @@ class BackupManagerActivity : AuthenticatorActivity() {
         private var localBackupPathPref: Preference? = null
         private var driveBackupFrequencyPref: EditTextPreference? = null
         private var driveBackupPathPref: Preference? = null
+        private var lastLocalBackupPref: Preference? = null
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             addPreferencesFromResource(R.xml.pref_backup_manager)
@@ -68,6 +78,7 @@ class BackupManagerActivity : AuthenticatorActivity() {
             localBackupPathPref = findPreference(Preferences.LOCAL_BACKUP_PATH)
             driveBackupFrequencyPref = findPreference(Preferences.DRIVE_BACKUP_FREQUENCY)
             driveBackupPathPref = findPreference(Preferences.DRIVE_BACKUP_PATH)
+            lastLocalBackupPref = findPreference("_last_local_backup")
 
             localBackupFrequencyPref?.setTypedSummaryProvider(::formatFrequency)
             localBackupPathPref?.setSummaryProvider(::formatLocalPath)
@@ -80,6 +91,25 @@ class BackupManagerActivity : AuthenticatorActivity() {
                 //Let the user pick a path on their drive
                 true
             }
+            lastLocalBackupPref?.setOnPreferenceClickListener {
+                if (checkLastLocalBackupIntegrity()) {
+                    val uri = preferences.getLastLocalBackupPath().toUri()
+                    val stream = requireContext().contentResolver.openInputStream(uri)
+
+                    stream?.bufferedReader()?.use {
+                        val data = AccountExporter.import(it.readText())
+
+                        ImportResultActivity.showResults(requireContext(), data)
+                    }
+                } else {
+                    requireContext().makeToast(R.string.error_backup_not_found)
+                    //TODO: Ask the user if they want to remove the entry
+                }
+
+                true
+            }
+            updateLastLocalBackup()
+            checkLastLocalBackupIntegrity()
 
             findPreference<SwitchPreference>(Preferences.LOCAL_BACKUP_ENABLED)?.setOnPreferenceChangeListener { _, newValue ->
                 val interval = preferences.getLocalBackupFrequency().toIntOrNull()
@@ -128,6 +158,14 @@ class BackupManagerActivity : AuthenticatorActivity() {
 
                 return@setOnPreferenceChangeListener false
             }
+
+            preferences.registerOnSharedPreferenceChangeListener(this)
+        }
+
+        override fun onSharedPreferenceChanged(pref: SharedPreferences?, key: String?) {
+            if (key == Preferences.LAST_LOCAL_BACKUP_TIME) {
+                updateLastLocalBackup()
+            }
         }
 
         private inline fun <reified T> scheduleOrCancelJob(schedule: Boolean, id: Int, interval: Long, onFailure: () -> Unit) {
@@ -143,11 +181,11 @@ class BackupManagerActivity : AuthenticatorActivity() {
         }
 
         private fun formatFrequency(preference: EditTextPreference): String? {
-            val days = preference.text.toInt()
-            val s = "$days ${resources.getQuantityString(R.plurals.label_days, days)}"
+            val days = preference.text.toIntOrNull() ?: 0
+            val daysLabel = resources.getQuantityString(R.plurals.label_days, days)
 
-            return if (s.length > 5) {
-                s
+            return if (days > 0) {
+                "$days $daysLabel"
             } else {
                 getString(R.string.label_unset)
             }
@@ -160,6 +198,37 @@ class BackupManagerActivity : AuthenticatorActivity() {
                 TextUtil.formatFileUri(path)
             } else {
                 getString(R.string.label_unset)
+            }
+        }
+
+        private fun checkLastLocalBackupIntegrity(): Boolean {
+            val uri = preferences.getLastLocalBackupPath().toUri()
+            val time = preferences.getLastLocalBackupTime()
+
+            if (Uri.EMPTY != uri && time > 0) {
+                val document = DocumentFile.fromTreeUri(requireContext(), uri)
+
+                return document?.exists() == true
+            } else {
+                preferences.putLastLocalBackupPath("")
+                preferences.putLastLocalBackupTime(0)
+
+                return false
+            }
+        }
+
+        private fun updateLastLocalBackup() {
+            val lastLocalBackupTime = preferences.getLastLocalBackupTime()
+            val lastLocalBackupPath = preferences.getLastLocalBackupPath()
+
+            lastLocalBackupPref?.isEnabled = lastLocalBackupTime > 0 && lastLocalBackupPath.isNotBlank()
+            lastLocalBackupPref?.summary = if (lastLocalBackupTime > 0 && lastLocalBackupPath.isNotBlank()) {
+                val date = Date(lastLocalBackupTime)
+                val dateFormat = SimpleDateFormat("dd MMMM yyyy HH:mm:ss", Locale.getDefault())
+
+                "${getString(R.string.label_last_backup)}: ${dateFormat.format(date)}"
+            } else {
+                getString(R.string.label_no_last_backup)
             }
         }
     }

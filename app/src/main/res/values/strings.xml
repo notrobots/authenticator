@@ -83,4 +83,8 @@
     <string name="label_local_backup_failed">Local backup failed</string>
     <string name="label_local_backup_failed_body">Cannot create backup file at %1$s with name %2$s</string>
     <string name="label_version">Version</string>
+    <string name="label_restore">Restore</string>
+    <string name="label_no_last_backup">No backup found</string>
+    <string name="label_last_backup">Last backup</string>
+    <string name="error_backup_not_found">Backup file was moved or deleted</string>
 </resources>

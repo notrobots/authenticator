@@ -58,6 +58,12 @@ object Preferences {
     @StringPreference
     const val LOCAL_BACKUP_PATH = "local_backup_path"
 
+    @LongPreference
+    const val LAST_LOCAL_BACKUP_TIME = "last_local_backup_time"
+
+    @StringPreference
+    const val LAST_LOCAL_BACKUP_PATH = "last_local_backup_path"
+
     @BooleanPreference
     const val DRIVE_BACKUP_ENABLED = "drive_backup_enabled"
 

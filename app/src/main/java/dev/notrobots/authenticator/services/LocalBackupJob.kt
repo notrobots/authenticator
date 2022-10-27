@@ -5,33 +5,26 @@ import android.os.SystemClock
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
-import dagger.hilt.android.AndroidEntryPoint
+import dev.notrobots.androidstuff.util.now
 import dev.notrobots.authenticator.App
 import dev.notrobots.authenticator.R
-import dev.notrobots.authenticator.db.AccountDao
 import dev.notrobots.authenticator.extensions.write
 import dev.notrobots.authenticator.util.AccountExporter
 import dev.notrobots.authenticator.util.TextUtil
 import dev.notrobots.preferences2.getLocalBackupPath
+import dev.notrobots.preferences2.putLastLocalBackupPath
+import dev.notrobots.preferences2.putLastLocalBackupTime
 import kotlinx.coroutines.*
-import javax.inject.Inject
 
 class LocalBackupJob : BackupJob() {
     private val supervisorJob = SupervisorJob()
     private val coroutineScope = CoroutineScope(Dispatchers.IO + supervisorJob)
 
     override fun onStartJob(params: JobParameters): Boolean {
-//        val notificationGroup = NotificationCompat.Builder(this, App.NOTIFICATION_CHANNEL_BACKUPS)
-//            .setContentTitle("Backup")
-//            .setContentText("Backup complete")
-//            .setGroupSummary(true)
-//            .setSmallIcon(R.drawable.ic_account)
-//            .setGroup("Backup")
-//            .build()
         val directoryPath = preferences.getLocalBackupPath().toUri()
         val directory = DocumentFile.fromTreeUri(this, directoryPath)
-        val now = SystemClock.elapsedRealtime()
-        val fileName = "authenticator_backup_$now"
+        val elapsedTime = SystemClock.elapsedRealtime()
+        val fileName = "authenticator_backup_$elapsedTime"
         val file = directory?.createFile("text/plain", fileName)
 
         if (file != null) {
@@ -58,6 +51,8 @@ class LocalBackupJob : BackupJob() {
                     .setSmallIcon(R.drawable.ic_account)
                     .build()
 
+                preferences.putLastLocalBackupTime(now())
+                preferences.putLastLocalBackupPath(file.uri.toString())
                 notificationManager.notify(SystemClock.elapsedRealtimeNanos().toInt(), notification)
                 jobFinished(params, false)
             }

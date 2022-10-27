@@ -58,12 +58,12 @@ class ImportActivity : AuthenticatorActivity() {
                             "There were some errors while importing the data:\n\n${errors.joinToString("\n")}\n\nDo you still want to proceed? Invalid data won't be imported",
                             positiveButton = "Yes",
                             positiveCallback = {
-                                showResults(importedData)
+                                ImportResultActivity.showResults(this, importedData)
                             },
                             negativeButton = "No"
                         )
                     } else {
-                        showResults(importedData)
+                        ImportResultActivity.showResults(this, importedData)
                     }
                 }
             }
@@ -85,7 +85,7 @@ class ImportActivity : AuthenticatorActivity() {
                             try {
                                 val data = AccountExporter.import(content!!)
 
-                                showResults(data)
+                                ImportResultActivity.showResults(this, data)
                             } catch (e: Exception) {
                                 loge("Cannot import file: ${e.message}")
                                 showInfo("Error", "Import data is corrupt")//FIXME: Show detailed error with account index ecc
@@ -102,7 +102,7 @@ class ImportActivity : AuthenticatorActivity() {
                         try {
                             val data = AccountExporter.import(content)
 
-                            showResults(data)
+                            ImportResultActivity.showResults(this, data)
                         } catch (e: Exception) {
                             loge("Cannot import file: ${e.message}")
                             showInfo("Error", "Import data is corrupt")
@@ -156,22 +156,12 @@ class ImportActivity : AuthenticatorActivity() {
         ) {
             AccountUriDialog(supportFragmentManager, null) { data, dialog ->
                 try {
-                    showResults(AccountExporter.import(data))
+                    ImportResultActivity.showResults(this, AccountExporter.import(data))
                     dialog.dismiss()
                 } catch (e: Exception) {
                     dialog.error = e.message
                 }
             }
-        }
-    }
-
-    private fun showResults(importedData: AccountExporter.ImportedData) {
-        showResults(listOf(importedData))
-    }
-
-    private fun showResults(importedData: List<AccountExporter.ImportedData>) {
-        startActivity(ImportResultActivity::class) {
-            putExtra(ImportResultActivity.EXTRA_DATA, ArrayList(importedData)) //FIXME: Start on top?
         }
     }
 }
