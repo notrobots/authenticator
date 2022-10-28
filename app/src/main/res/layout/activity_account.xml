@@ -32,7 +32,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:spinnerEntries="@array/account_type"
+                app:spinnerEntries="@array/account_types"
                 app:spinnerLabel="Type"
                 app:spinnerValues="@array/account_type_values" />
 

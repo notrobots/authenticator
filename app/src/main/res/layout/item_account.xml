@@ -118,6 +118,12 @@
             android:progress="5"
             app:indicatorSize="28dp" />
 
+        <dev.notrobots.authenticator.widget.CircularProgressIndicator
+            android:id="@+id/totp_circular_indicator_solid"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"/>
+
     </dev.notrobots.authenticator.views.ViewSwitcher>
 
     <View

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="account_type">
+    <string-array name="account_types">
         <item>Time based (TOTP)</item>
         <item>Counter based (HOTP)</item>
     </string-array>
@@ -24,10 +24,12 @@
     </string-array>
     <string-array name="totp_indicators">
         <item>Circular</item>
+        <item>Circular (Solid)</item>
         <item>Text</item>
     </string-array>
     <string-array name="totp_indicator_values">
         <item>circular</item>
+        <item>circularsolid</item>
         <item>text</item>
     </string-array>
 </resources>
