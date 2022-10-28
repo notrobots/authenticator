@@ -4,8 +4,6 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
-import androidx.core.app.NotificationChannelCompat
-import androidx.core.app.NotificationManagerCompat
 import dagger.hilt.android.HiltAndroidApp
 import dev.notrobots.androidstuff.util.LogUtil
 
@@ -25,11 +23,12 @@ class App : Application() {
             notificationManager.createNotificationChannel(backupsNotificationChannel)
         }
 
-        LogUtil.setTag(TAG)
+        LogUtil.setTag(LOG_TAG)
     }
 
     companion object {
-        const val TAG = "OTP"
+        const val LOG_TAG = "OTP"
         const val NOTIFICATION_CHANNEL_BACKUPS = "NOTIFICATION_CHANNELS.Backups"
+        const val TOTP_INDICATOR_UPDATE_DELAY = 50L //TODO Battery saver should increase this to something like 200-500
     }
 }

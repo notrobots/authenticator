@@ -10,7 +10,7 @@ class TotpTimer(
      *
      * Smaller values means smoother transitions.
      */
-    val updateDelay: Long = DEFAULT_UPDATE_DELAY
+    val updateDelay: Long
 ) : Runnable {
     private val handler = Handler(Looper.getMainLooper())
     private var isStopped = true
@@ -47,10 +47,6 @@ class TotpTimer(
      */
     fun stop() {
         isStopped = true
-    }
-
-    companion object {
-        const val DEFAULT_UPDATE_DELAY = 100L
     }
 
     interface Listener {

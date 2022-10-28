@@ -21,6 +21,7 @@ import com.h6ah4i.android.widget.advrecyclerview.draggable.RecyclerViewDragDropM
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.logd
+import dev.notrobots.authenticator.App
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityAccountListBinding
@@ -484,7 +485,7 @@ class AccountListActivity : AuthenticatorActivity() {
         adapter = AccountListAdapter()
         adapter.setListener(listAdapterListener)
         updateAdapterPreferences()
-        adapter.totpTimer = TotpTimer()
+        adapter.totpTimer = TotpTimer(App.TOTP_INDICATOR_UPDATE_DELAY)
         adapter.totpTimer?.setListener(object : TotpTimer.Listener {
             override fun onTick(currentTime: Long) {
                 if (!adapter.editMode) {
