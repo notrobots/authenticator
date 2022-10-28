@@ -230,6 +230,15 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                     setNewPin()
 
                     when (totpIndicatorType) {
+                        TotpIndicatorType.CircularText -> {
+                            binding.indicators.showView(R.id.totp_circular_text_indicator)
+                            binding.totpCircularTextIndicatorCircular.max = TimeUnit.SECONDS.toMillis(account.period).toInt()
+                            holder.totpCounter?.getTimeUntilNextCounter()?.let {
+                                setNewPin()
+                                binding.totpCircularTextIndicatorCircular.progress = it.toInt()
+                                binding.totpCircularTextIndicatorText.text = ceil(it / 1000F).toInt().toString()
+                            }
+                        }
                         TotpIndicatorType.CircularSolid -> {
                             binding.indicators.showView(R.id.totp_circular_indicator_solid)
                             binding.totpCircularIndicatorSolid.max = TimeUnit.SECONDS.toMillis(account.period).toInt()

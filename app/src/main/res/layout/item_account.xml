@@ -124,6 +124,33 @@
             android:layout_height="28dp"
             android:layout_gravity="center"/>
 
+        <FrameLayout
+            android:id="@+id/totp_circular_text_indicator"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center">
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/totp_circular_text_indicator_circular"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:max="10"
+                android:progress="5"
+                android:gravity="center"
+                app:indicatorSize="28dp" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/totp_circular_text_indicator_text"
+                style="@style/AccountTotpIndicatorText"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textAlignment="gravity"
+                android:gravity="center"
+                tools:text="60" />
+
+        </FrameLayout>
+
     </dev.notrobots.authenticator.views.ViewSwitcher>
 
     <View

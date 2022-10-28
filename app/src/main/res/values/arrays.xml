@@ -25,11 +25,13 @@
     <string-array name="totp_indicators">
         <item>Circular</item>
         <item>Circular (Solid)</item>
+        <item>Circular (Text)</item>
         <item>Text</item>
     </string-array>
     <string-array name="totp_indicator_values">
         <item>circular</item>
         <item>circularsolid</item>
+        <item>circulartext</item>
         <item>text</item>
     </string-array>
 </resources>

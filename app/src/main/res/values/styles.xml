@@ -9,7 +9,7 @@
         <item name="android:paddingBottom">18dp</item>
         <item name="android:gravity">center</item>
         <item name="android:textAppearance">@style/TextAppearance.Material3.BodyLarge</item>
-<!--        <item name="android:textColor">@color/google_grey900</item>-->
+        <!--        <item name="android:textColor">@color/google_grey900</item>-->
         <item name="android:textSize">20sp</item>
     </style>
 
@@ -40,6 +40,7 @@
         <item name="android:textSize">14sp</item>
     </style>
 
+    <!-- TODO Rename all styles like "Account.Pin.Small" -->
     <style name="AccountPin">
         <item name="android:textColor">?attr/colorPrimary</item>
         <item name="android:includeFontPadding">false</item>
@@ -59,6 +60,10 @@
 
     <style name="AccountPin.Large">
         <item name="android:textSize">32sp</item>
+    </style>
+
+    <style name="AccountTotpIndicatorText" parent="AccountPin">
+        <item name="android:textSize">12sp</item>
     </style>
 
     <style name="PopupWindowContextMenuAnimation">
