@@ -27,7 +27,7 @@
         android:layout_marginEnd="12dp"
         android:layout_marginBottom="6dp"
         android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@id/divider"
+        app:layout_constraintBottom_toTopOf="@id/totp_row_indicator"
         app:layout_constraintEnd_toStartOf="@+id/indicators"
         app:layout_constraintStart_toEndOf="@+id/icon"
         app:layout_constraintTop_toTopOf="parent">
@@ -152,6 +152,21 @@
         </FrameLayout>
 
     </dev.notrobots.authenticator.views.ViewSwitcher>
+
+    <!-- These two views should be inside a view switcher -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/totp_row_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:trackThickness="2dp"
+        android:max="10"
+        android:progress="7"
+        style="@style/Widget.Material3.LinearProgressIndicator"
+        app:layout_constraintBottom_toTopOf="@id/divider"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="@dimen/account_row_divider_margin"
+        android:layout_marginEnd="@dimen/account_row_divider_margin"/>
 
     <View
         android:id="@+id/divider"

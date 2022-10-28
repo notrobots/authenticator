@@ -219,6 +219,8 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                 listener.onItemEditClick(account, position, id, this)
             }
             binding.indicators.showView(R.id.edit)
+            binding.totpRowIndicator.hide()
+            binding.divider.show()
         } else {
             // Clear selection, accounts can only be selected in edit mode
             view.isSelected = false
@@ -229,7 +231,21 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                     holder.setCounter(account)
                     setNewPin()
 
+                    if (totpIndicatorType != TotpIndicatorType.Row) {
+                        binding.totpRowIndicator.hide()
+                        binding.divider.show()
+                    }
+
                     when (totpIndicatorType) {
+                        TotpIndicatorType.Row -> {
+                            binding.indicators.hideAll()
+                            binding.totpRowIndicator.max = TimeUnit.SECONDS.toMillis(account.period).toInt()
+                            binding.divider.hide()
+                            holder.totpCounter?.getTimeUntilNextCounter()?.let {
+                                setNewPin()
+                                binding.totpRowIndicator.progress = it.toInt()
+                            }
+                        }
                         TotpIndicatorType.CircularText -> {
                             binding.indicators.showView(R.id.totp_circular_text_indicator)
                             binding.totpCircularTextIndicatorCircular.max = TimeUnit.SECONDS.toMillis(account.period).toInt()
@@ -270,6 +286,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
 
                     setNewPin()
                     binding.indicators.showView(R.id.hotp_indicator)
+                    binding.totpRowIndicator.hide()
                     binding.hotpIndicator.setOnClickListener {
                         it as ImageView
 

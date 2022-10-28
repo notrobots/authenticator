@@ -27,11 +27,13 @@
         <item>Circular (Solid)</item>
         <item>Circular (Text)</item>
         <item>Text</item>
+        <item>Row</item>
     </string-array>
     <string-array name="totp_indicator_values">
         <item>circular</item>
         <item>circularsolid</item>
         <item>circulartext</item>
         <item>text</item>
+        <item>row</item>
     </string-array>
 </resources>
