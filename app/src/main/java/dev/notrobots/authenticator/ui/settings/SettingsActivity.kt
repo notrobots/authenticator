@@ -1,9 +1,7 @@
 package dev.notrobots.authenticator.ui.settings
 
 import android.os.Bundle
-import dev.notrobots.androidstuff.activities.BaseActivity
 import dev.notrobots.androidstuff.extensions.viewBindings
-import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivitySettingsBinding
 
@@ -21,7 +19,7 @@ class SettingsActivity : AuthenticatorActivity() {
 
         supportFragmentManager
             .beginTransaction()
-            .replace(binding.container.id, MainSettingsFragment())
+            .replace(binding.container.id, SettingsMainFragment())
             .commit()
     }
 

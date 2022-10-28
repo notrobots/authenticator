@@ -17,7 +17,7 @@ import dev.notrobots.authenticator.ui.backupmanager.BackupManagerActivity
 import dev.notrobots.preferences2.*
 import dev.notrobots.preferences2.util.parseEnum
 
-class MainSettingsFragment : PreferenceFragmentCompat() {
+class SettingsMainFragment : PreferenceFragmentCompat() {
     private val prefs by lazy {
         PreferenceManager.getDefaultSharedPreferences(requireContext())
     }
@@ -27,7 +27,7 @@ class MainSettingsFragment : PreferenceFragmentCompat() {
     private var dynamicColorsPref: SwitchPreference? = null
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-        addPreferencesFromResource(R.xml.settings_main)
+        addPreferencesFromResource(R.xml.pref_settings_main)
 
         clearTextTimeoutTimePref = findPreference(Preferences.HIDE_PINS_DELAY)
         clearTextTimeoutTimePref?.summary = formatClearTextTimeoutTime(prefs.getHidePinsDelay())
