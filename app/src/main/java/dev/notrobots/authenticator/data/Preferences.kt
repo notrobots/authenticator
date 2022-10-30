@@ -32,6 +32,8 @@ object Preferences {
     const val APP_LOCK = "app_lock"
     @BooleanPreference
     const val EXPORT_LOCK = "export_lock"
+    @EnumPreference
+    const val PIN_TEXT_SIZE = "pin_text_size"
 
     //TODO: Some values should have "enabled" at the end
     //TODO: All values that have anything to do with automatic backups should have "AUTOMATIC_BACKUP" prefix

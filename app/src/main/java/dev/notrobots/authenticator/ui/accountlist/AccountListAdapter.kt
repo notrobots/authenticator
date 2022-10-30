@@ -83,6 +83,13 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                 notifyDataSetChanged()
             }
         }
+    var pinTextSize: PinTextSize = PinTextSize.Medium
+        set(value) {
+            if (field != value) {
+                field = value
+                notifyDataSetChanged()
+            }
+        }
     val selectedItems = mutableSetOf<Account>()
     val selectedItemCount
         get() = selectedItems.size
@@ -225,6 +232,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         } else {
             // Clear selection, accounts can only be selected in edit mode
             view.isSelected = false
+            binding.pin.setTextAppearance(pinTextSize.res)
 
             when (account.type) {
                 OTPType.TOTP -> {

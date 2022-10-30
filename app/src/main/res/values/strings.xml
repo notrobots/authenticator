@@ -87,4 +87,5 @@
     <string name="label_no_last_backup">No backup found</string>
     <string name="label_last_backup">Last backup</string>
     <string name="error_backup_not_found">Backup file was moved or deleted</string>
+    <string name="pref_pin_text_siz">Pin text size</string>
 </resources>

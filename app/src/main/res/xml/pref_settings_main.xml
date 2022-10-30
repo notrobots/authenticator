@@ -31,6 +31,14 @@
             android:summary="@string/pref_collapse_pins_summary"
             android:title="@string/pref_collapse_pins" />
 
+        <ListPreference
+            android:defaultValue="medium"
+            android:entryValues="@array/pin_text_size_values"
+            android:key="pin_text_size"
+            android:title="@string/pref_pin_text_siz"
+            app:entries="@array/pin_text_sizes"
+            app:useSimpleSummaryProvider="true" />
+
         <SwitchPreference
             android:defaultValue="false"
             android:key="collapse_icons"
@@ -94,9 +102,9 @@
             android:title="@string/pref_import" />
 
         <Preference
-            android:title="Backup manager"
+            android:key="backup_manager"
             android:summary="Automatic backup is OFF"
-            android:key="backup_manager"/>
+            android:title="Backup manager" />
 
         <!--        <SwitchPreference android:title="Automatic backup" />-->
         <!--        <Preference android:title="Automatic Backup frequency" />-->

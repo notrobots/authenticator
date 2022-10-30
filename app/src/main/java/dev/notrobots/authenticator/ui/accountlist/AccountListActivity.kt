@@ -530,6 +530,7 @@ class AccountListActivity : AuthenticatorActivity() {
             .takeIf { preferences.getHidePinsAutomatically() }
         adapter.hidePinsOnChange = preferences.getHidePinsOnChange()
         adapter.totpIndicatorType = preferences.getTotpIndicator()
+        adapter.pinTextSize = preferences.getPinTextSize()
     }
 
     /**
