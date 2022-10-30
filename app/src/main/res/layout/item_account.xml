@@ -1,180 +1,199 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_account"
-    android:paddingTop="6dp">
+    android:background="@drawable/bg_account">
 
-    <ImageView
-        android:id="@+id/drag_handle"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_marginStart="-12dp"
-        android:contentDescription="@string/label_drag_handle"
-        android:src="@drawable/ic_reorder"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="?attr/colorPrimary" />
-
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:id="@+id/dataLayout"
+    <View
+        android:id="@+id/totp_background_indicator"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_marginEnd="12dp"
-        android:layout_marginBottom="6dp"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@id/totp_row_indicator"
-        app:layout_constraintEnd_toStartOf="@+id/indicators"
-        app:layout_constraintStart_toEndOf="@+id/icon"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <TextView
-            android:id="@+id/label"
-            style="@style/AccountLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintEnd_toStartOf="@+id/edit"
-            app:layout_constraintStart_toEndOf="@+id/icon"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="Google" />
-
-        <TextView
-            android:id="@+id/name"
-            style="@style/AccountName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            tools:text="google@gmail.com" />
-
-        <TextView
-            android:id="@+id/pin"
-            style="@style/AccountPin.Medium"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            tools:text="123 456" />
-
-    </androidx.appcompat.widget.LinearLayoutCompat>
-
-    <ImageView
-        android:id="@+id/icon"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:contentDescription="@string/label_account_icon"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/drag_handle"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@drawable/ic_palette"
-        app:tint="?attr/colorPrimary"
-        tools:visibility="visible" />
-
-    <dev.notrobots.authenticator.views.ViewSwitcher
-        android:id="@+id/indicators"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginEnd="12dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_height="0dp"
+        android:alpha="0.4"
+        tools:background="#ff00ff"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@drawable/bg_totp_background_indicator" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/totp_text_indicator"
-            style="@style/AccountPin.Small"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            tools:text="99" />
-
-        <ImageView
-            android:id="@+id/edit"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_gravity="center"
-            android:contentDescription="@string/label_edit"
-            app:srcCompat="@drawable/ic_edit"
-            app:tint="?attr/colorPrimary" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="6dp">
 
         <ImageView
-            android:id="@+id/hotp_indicator"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_gravity="center"
-            android:contentDescription="@string/label_generate_next_pin"
-            app:srcCompat="@drawable/ic_refresh"
+            android:id="@+id/drag_handle"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginStart="-12dp"
+            android:contentDescription="@string/label_drag_handle"
+            android:src="@drawable/ic_reorder"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:tint="?attr/colorPrimary" />
 
-        <com.google.android.material.progressindicator.CircularProgressIndicator
-            android:id="@+id/totp_circular_indicator"
-            android:layout_width="wrap_content"
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/dataLayout"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:max="10"
-            android:progress="5"
-            app:indicatorSize="28dp" />
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="6dp"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toTopOf="@id/totp_row_indicator"
+            app:layout_constraintEnd_toStartOf="@+id/indicators"
+            app:layout_constraintStart_toEndOf="@+id/icon"
+            app:layout_constraintTop_toTopOf="parent">
 
-        <dev.notrobots.authenticator.widget.CircularProgressIndicator
-            android:id="@+id/totp_circular_indicator_solid"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_gravity="center"/>
+            <TextView
+                android:id="@+id/label"
+                style="@style/AccountLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toStartOf="@+id/edit"
+                app:layout_constraintStart_toEndOf="@+id/icon"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="Google" />
 
-        <FrameLayout
-            android:id="@+id/totp_circular_text_indicator"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center">
+            <TextView
+                android:id="@+id/name"
+                style="@style/AccountName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="google@gmail.com" />
 
-            <com.google.android.material.progressindicator.CircularProgressIndicator
-                android:id="@+id/totp_circular_text_indicator_circular"
+            <TextView
+                android:id="@+id/pin"
+                style="@style/AccountPin.Medium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                tools:text="123 456" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:contentDescription="@string/label_account_icon"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/drag_handle"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0"
+            app:srcCompat="@drawable/ic_palette"
+            app:tint="?attr/colorPrimary"
+            tools:visibility="visible" />
+
+        <dev.notrobots.authenticator.views.ViewSwitcher
+            android:id="@+id/indicators"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="12dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/totp_text_indicator"
+                style="@style/AccountPin.Small"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:gravity="center"
+                tools:text="99" />
+
+            <ImageView
+                android:id="@+id/edit"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="center"
+                android:contentDescription="@string/label_edit"
+                app:srcCompat="@drawable/ic_edit"
+                app:tint="?attr/colorPrimary" />
+
+            <ImageView
+                android:id="@+id/hotp_indicator"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_gravity="center"
+                android:contentDescription="@string/label_generate_next_pin"
+                app:srcCompat="@drawable/ic_refresh"
+                app:tint="?attr/colorPrimary" />
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/totp_circular_indicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:max="10"
                 android:progress="5"
-                android:gravity="center"
                 app:indicatorSize="28dp" />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/totp_circular_text_indicator_text"
-                style="@style/AccountTotpIndicatorText"
+            <dev.notrobots.authenticator.widget.CircularProgressIndicator
+                android:id="@+id/totp_circular_indicator_solid"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="center"/>
+
+            <FrameLayout
+                android:id="@+id/totp_circular_text_indicator"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:textAlignment="gravity"
-                android:gravity="center"
-                tools:text="60" />
+                android:layout_gravity="center">
 
-        </FrameLayout>
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/totp_circular_text_indicator_circular"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:max="10"
+                    android:progress="5"
+                    android:gravity="center"
+                    app:indicatorSize="28dp" />
 
-    </dev.notrobots.authenticator.views.ViewSwitcher>
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/totp_circular_text_indicator_text"
+                    style="@style/AccountTotpIndicatorText"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textAlignment="gravity"
+                    android:gravity="center"
+                    tools:text="60" />
 
-    <!-- These two views should be inside a view switcher -->
-    <com.google.android.material.progressindicator.LinearProgressIndicator
-        android:id="@+id/totp_row_indicator"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:trackThickness="2dp"
-        android:max="10"
-        android:progress="7"
-        style="@style/Widget.Material3.LinearProgressIndicator"
-        app:layout_constraintBottom_toTopOf="@id/divider"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginStart="@dimen/account_row_divider_margin"
-        android:layout_marginEnd="@dimen/account_row_divider_margin"/>
+            </FrameLayout>
 
-    <View
-        android:id="@+id/divider"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="@drawable/bg_list_separator"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        </dev.notrobots.authenticator.views.ViewSwitcher>
+
+        <!-- These two views should be inside a view switcher -->
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/totp_row_indicator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:trackThickness="2dp"
+            android:max="10"
+            android:progress="7"
+            style="@style/Widget.Material3.LinearProgressIndicator"
+            app:layout_constraintBottom_toTopOf="@id/divider"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="@dimen/account_row_divider_margin"
+            android:layout_marginEnd="@dimen/account_row_divider_margin"/>
+
+        <View
+            android:id="@+id/divider"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:background="@drawable/bg_list_separator"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

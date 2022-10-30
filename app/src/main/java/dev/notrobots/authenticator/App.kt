@@ -29,6 +29,7 @@ class App : Application() {
     companion object {
         const val LOG_TAG = "OTP"
         const val NOTIFICATION_CHANNEL_BACKUPS = "NOTIFICATION_CHANNELS.Backups"
-        const val TOTP_INDICATOR_UPDATE_DELAY = 50L //TODO Battery saver should increase this to something like 200-500
+        //TODO This should also change based on the selected totp indicator type
+        const val TOTP_INDICATOR_UPDATE_DELAY = 25L //TODO Battery saver should increase this to something like 200-500
     }
 }

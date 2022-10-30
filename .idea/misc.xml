@@ -15,6 +15,9 @@
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/bg_qr_scan_crosshair.xml" value="0.235" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/bg_qr_scan_delete.xml" value="0.235" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/cd_barcode_scanner_action_background_color.xml" value="0.216" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/cd_color_background.xml" value="0.2345" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/cd_color_primary.xml" value="0.1275" />
+        <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/cd_color_primary_container.xml" value="0.1285" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/cd_color_secondary_container.xml" value="0.143" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/color_background_color.xml" value="0.1625" />
         <entry key="..\:/Workspace/Android/Authenticator/app/src/main/res/drawable/color_color_secondary.xml" value="0.2335" />

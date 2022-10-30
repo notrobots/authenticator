@@ -6,7 +6,5 @@ enum class TotpIndicatorType {
     CircularText,
     Text,
     Row,
-//    Linear,
-//    LinearWithNumber,
-//    Background,
+    Background,
 }

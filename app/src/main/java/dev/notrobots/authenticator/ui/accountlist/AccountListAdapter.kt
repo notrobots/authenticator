@@ -220,6 +220,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
             }
             binding.indicators.showView(R.id.edit)
             binding.totpRowIndicator.hide()
+            binding.totpBackgroundIndicator.hide()
             binding.divider.show()
         } else {
             // Clear selection, accounts can only be selected in edit mode
@@ -236,11 +237,28 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                         binding.divider.show()
                     }
 
+                    if (totpIndicatorType != TotpIndicatorType.Background) {
+                        binding.totpBackgroundIndicator.hide()
+                        binding.divider.show()
+                    }
+
                     when (totpIndicatorType) {
+                        TotpIndicatorType.Background -> {
+                            binding.totpBackgroundIndicator.show()
+                            binding.indicators.hideAll()
+                            binding.divider.hide()
+                            holder.totpCounter?.getTimeUntilNextCounter()?.let {
+                                setNewPin()
+                                val max = TimeUnit.SECONDS.toMillis(account.period).toInt()
+                                val progress = it * 10000 / max
+
+                                binding.totpBackgroundIndicator.background.level = progress.toInt()
+                            }
+                        }
                         TotpIndicatorType.Row -> {
                             binding.indicators.hideAll()
-                            binding.totpRowIndicator.max = TimeUnit.SECONDS.toMillis(account.period).toInt()
                             binding.divider.hide()
+                            binding.totpRowIndicator.max = TimeUnit.SECONDS.toMillis(account.period).toInt()
                             holder.totpCounter?.getTimeUntilNextCounter()?.let {
                                 setNewPin()
                                 binding.totpRowIndicator.progress = it.toInt()
@@ -287,6 +305,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                     setNewPin()
                     binding.indicators.showView(R.id.hotp_indicator)
                     binding.totpRowIndicator.hide()
+                    binding.totpBackgroundIndicator.hide()
                     binding.hotpIndicator.setOnClickListener {
                         it as ImageView
 
