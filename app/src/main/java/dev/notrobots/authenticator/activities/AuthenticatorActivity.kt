@@ -23,6 +23,10 @@ open class AuthenticatorActivity : BaseActivity() {
     private var currentTheme: AppTheme? = null
     private var dynamicColors: Boolean? = null
     protected var finishOnBackPressEnabled = false
+        set(value) {
+            field = value
+            supportActionBar?.setDisplayHomeAsUpEnabled(value)
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

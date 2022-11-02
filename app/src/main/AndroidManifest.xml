@@ -67,6 +67,11 @@
             android:label="@string/label_backup_manager"
             android:screenOrientation="portrait" />
 
+        <activity
+            android:name=".ui.taglist.TagListActivity"
+            android:label="@string/label_tags"
+            android:screenOrientation="portrait" />
+
         <service
             android:name=".services.LocalBackupJob"
             android:exported="true"

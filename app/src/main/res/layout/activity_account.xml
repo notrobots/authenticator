@@ -80,17 +80,18 @@
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/label_show_advanced"
                 android:layout_marginTop="16dp"
+                android:text="@string/label_show_advanced"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/spinner_account_algorithm" />
+                app:layout_constraintTop_toBottomOf="@+id/tag_list" />
 
             <androidx.constraintlayout.widget.Group
                 android:id="@+id/advanced_settings"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 app:constraint_referenced_ids="layout_account_label, layout_account_issuer, layout_account_digits, period_counter_switcher, spinner_account_algorithm"
+                tools:visibility="gone"
                 android:visibility="gone"/>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -207,10 +208,34 @@
                 app:layout_constraintTop_toBottomOf="@+id/layout_account_digits"
                 app:spinnerLabel="Algorithm" />
 
+            <TextView
+                android:id="@+id/tag_list_label"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Tags"
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/spinner_account_algorithm" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/tag_list"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tag_list_label"
+                tools:layout_height="40dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="6dp"
+                android:layout_marginEnd="6dp">
+
+            </com.google.android.material.chip.ChipGroup>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </ScrollView>
-
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

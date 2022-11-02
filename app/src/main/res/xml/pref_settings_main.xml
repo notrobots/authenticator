@@ -35,7 +35,7 @@
             android:defaultValue="medium"
             android:entryValues="@array/pin_text_size_values"
             android:key="pin_text_size"
-            android:title="@string/pref_pin_text_siz"
+            android:title="@string/pref_pin_text_size"
             app:entries="@array/pin_text_sizes"
             app:useSimpleSummaryProvider="true" />
 

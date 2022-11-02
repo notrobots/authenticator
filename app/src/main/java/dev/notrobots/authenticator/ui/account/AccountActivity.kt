@@ -7,18 +7,17 @@ import androidx.activity.viewModels
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
-import dev.notrobots.androidstuff.activities.ThemedActivity
-import dev.notrobots.androidstuff.extensions.hasErrors
-import dev.notrobots.androidstuff.extensions.setDisabled
-import dev.notrobots.androidstuff.extensions.setError
-import dev.notrobots.androidstuff.extensions.setErrorWhen
+import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.viewBindings
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityAccountBinding
+import dev.notrobots.authenticator.databinding.ItemAccountTagBinding
 import dev.notrobots.authenticator.extensions.isOnlySpaces
 import dev.notrobots.authenticator.models.Account
+import dev.notrobots.authenticator.models.AccountTagCrossRef
 import dev.notrobots.authenticator.models.OTPType
+import dev.notrobots.authenticator.models.Tag
 import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
 import dev.notrobots.authenticator.util.isValidBase32
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
@@ -31,6 +30,7 @@ class AccountActivity : AuthenticatorActivity() {
     private lateinit var account: Account
     private var sourceAccount: Account? = null
     private var showAdvanced = false
+    private val selectedTags = mutableListOf<Tag>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -121,6 +121,23 @@ class AccountActivity : AuthenticatorActivity() {
             binding.textAccountCounterValue.setText(it.counter.toString())
             binding.spinnerAccountType.setSelection(it.type)
         }
+
+        viewModel.tags.observe(this) {
+            if (it.isNotEmpty()) {
+                if (sourceAccount != null) {
+                    lifecycleScope.launch {
+                        val accountWithTags = viewModel.accountDao.getAccountWithTags(sourceAccount!!.accountId)
+
+                        setTags(it, accountWithTags.tags)
+                    }
+                } else {
+                    setTags(it, null)
+                }
+            } else {
+                binding.tagList.disable()
+                binding.tagListLabel.disable()
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -136,6 +153,26 @@ class AccountActivity : AuthenticatorActivity() {
         }
 
         return false
+    }
+
+    private fun setTags(tags: List<Tag>, selected: List<Tag>?) {
+        for (tag in tags) {
+            val chip = ItemAccountTagBinding.inflate(layoutInflater).root
+
+            chip.isChecked = selected != null && tag in selected
+            chip.text = tag.name
+            chip.setOnCheckedChangeListener { _, checked ->
+                if (checked) {
+                    selectedTags.add(tag)
+                } else {
+                    selectedTags.remove(tag)
+                }
+            }
+
+            binding.tagList.addView(chip)
+        }
+
+        selected?.let { selectedTags.addAll(it) }
     }
 
     private fun addOrUpdateAccount() {
@@ -172,6 +209,14 @@ class AccountActivity : AuthenticatorActivity() {
                 if (sourceAccount != null) {
                     if (sameNames || !viewModel.accountDao.exists(account.name, account.label, account.issuer)) {
                         viewModel.updateAccount(account)
+                        viewModel.accountDao.removeTags(sourceAccount!!.accountId)
+
+                        selectedTags
+                            .map { AccountTagCrossRef(sourceAccount!!.accountId, it.tagId) }
+                            .forEach {
+                                viewModel.accountDao.insert(it)
+                            }
+
                         finish()
                     } else {
                         //TODO: More precise error
@@ -179,7 +224,13 @@ class AccountActivity : AuthenticatorActivity() {
                     }
                 } else {
                     if (!viewModel.accountDao.exists(account.name, account.label, account.issuer)) {
-                        viewModel.insertAccount(account)
+                        val id = viewModel.insertAccount(account)
+
+                        selectedTags
+                            .map { AccountTagCrossRef(id, it.tagId) }
+                            .forEach {
+                                viewModel.accountDao.insert(it)
+                            }
                         finish()
                     } else {
                         //TODO: More precise error

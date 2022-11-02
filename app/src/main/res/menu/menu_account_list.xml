@@ -23,25 +23,25 @@
             <group android:checkableBehavior="single">
                 <item
                     android:id="@+id/menu_account_list_sort_name_az_asc"
-                    android:title="Name A-Z"/>
+                    android:title="Name A-Z" />
                 <item
                     android:id="@+id/menu_account_list_sort_name_az_desc"
-                    android:title="Name Z-A"/>
+                    android:title="Name Z-A" />
                 <item
                     android:id="@+id/menu_account_list_sort_label_az_asc"
-                    android:title="Label A-Z"/>
+                    android:title="Label A-Z" />
                 <item
                     android:id="@+id/menu_account_list_sort_label_az_desc"
-                    android:title="Label Z-A"/>
+                    android:title="Label Z-A" />
                 <item
                     android:id="@+id/menu_account_list_sort_issuer_az_asc"
-                    android:title="Issuer A-Z"/>
+                    android:title="Issuer A-Z" />
                 <item
                     android:id="@+id/menu_account_list_sort_issuer_az_desc"
-                    android:title="Issuer Z-A"/>
+                    android:title="Issuer Z-A" />
                 <item
                     android:id="@+id/menu_account_list_sort_custom"
-                    android:title="Custom"/>
+                    android:title="Custom" />
             </group>
         </menu>
     </item>
@@ -59,15 +59,19 @@
         <menu>
             <item
                 android:id="@+id/menu_account_list_backup_export"
-                android:title="Export"/>
+                android:title="Export" />
             <item
                 android:id="@+id/menu_account_list_backup_import"
-                android:title="Import"/>
+                android:title="Import" />
             <item
                 android:id="@+id/menu_account_list_backup_manager"
-                android:title="Backup manager"/>
+                android:title="Backup manager" />
         </menu>
     </item>
+
+    <item
+        android:id="@+id/menu_account_list_tags"
+        android:title="@string/label_tags" />
 
     <item
         android:id="@+id/menu_account_list_settings"
@@ -183,6 +187,10 @@
             <item
                 android:id="@+id/menu_add_test_4"
                 android:title="Add test accounts 4" />
+
+            <item
+                android:id="@+id/menu_add_test_tags"
+                android:title="Add test tags" />
         </menu>
     </item>
 

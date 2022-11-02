@@ -5,6 +5,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.androidstuff.util.loge
 import dev.notrobots.authenticator.db.AccountDao
+import dev.notrobots.authenticator.db.TagDao
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.SortMode
 import dev.notrobots.authenticator.util.TextUtil
@@ -12,9 +13,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AccountListViewModel @Inject constructor(
-    val accountDao: AccountDao
+    val accountDao: AccountDao,
+    val tagDao: TagDao
 ) : ViewModel() {
     val sortMode = MutableLiveData(SortMode.Custom)
+    val tags = tagDao.getTagsLive()
     val accounts = sortMode.switchMap {
         when (it) {
             SortMode.Custom -> accountDao.getAccountsLive()
@@ -32,12 +35,12 @@ class AccountListViewModel @Inject constructor(
     /**
      * Inserts the given [account] into the database and takes care of the ordering.
      */
-    suspend fun insertAccount(account: Account) {
+    suspend fun insertAccount(account: Account): Long { //TODO: Incorporate these methods in the DAO if possible
         val last = accountDao.getLargestOrder()
 
         account.order = last + 1
-        accountDao.insert(account)
         logd("Adding new account")
+        return accountDao.insert(account)
     }
 
     /**
@@ -46,9 +49,9 @@ class AccountListViewModel @Inject constructor(
     suspend fun updateAccount(account: Account) {
         val stored = accountDao.getAccount(account.name, account.label, account.issuer)
 
-        if (account.id == Account.DEFAULT_ID) {
+        if (account.accountId == Account.DEFAULT_ID) {
             if (stored != null) {
-                account.id = stored.id
+                account.accountId = stored.accountId
             } else {
                 loge("Cannot update id: Account not found")
                 return

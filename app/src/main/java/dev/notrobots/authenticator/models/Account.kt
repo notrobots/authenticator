@@ -1,7 +1,6 @@
 package dev.notrobots.authenticator.models
 
 import androidx.room.Entity
-import androidx.room.Ignore
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
@@ -23,7 +22,7 @@ data class Account(
      * Room Id for this item
      */
     @PrimaryKey(autoGenerate = true)
-    var id: Long = DEFAULT_ID
+    var accountId: Long = DEFAULT_ID
 
     /**
      * Account issuer, should be the company's website
@@ -67,8 +66,6 @@ data class Account(
      */
     var order: Long = DEFAULT_ORDER
 
-//    var forcedClearText: Boolean = false
-//
 //    var hotpGenerationDisabled: Boolean = false
 
     val path
@@ -88,7 +85,7 @@ data class Account(
                other.label == label &&
                other.issuer == issuer &&
                other.secret == secret &&
-               other.id == id &&
+               other.accountId == accountId &&
                other.type == type &&
                other.counter == counter &&
                other.digits == digits &&

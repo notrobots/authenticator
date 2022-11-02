@@ -104,7 +104,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
     }
 
     override fun getItemId(position: Int): Long {
-        return getItem(position).id
+        return getItem(position).accountId
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -135,7 +135,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         val view = holder.itemView
         val account = items[position]
         val binding = holder.binding
-        val id = account.id
+        val id = account.accountId
         val icon = getIssuerIcon(account.issuer)
         val setNewPin = {
             val pin = generatePin(account)
@@ -183,7 +183,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                 }
 
                 view.isSelected = account in selectedItems
-                listener.onItemSelectionChange(account, position, account.id, this)
+                listener.onItemSelectionChange(account, position, account.accountId, this)
             } else {
                 // If the pins are not visible force this account to show
                 if (!clearTextEnabled && account !in forcedClearTextItems) {
@@ -212,7 +212,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
             if (!editMode) {
                 selectedItems.add(account)
                 view.isSelected = true
-                listener.onItemSelectionChange(account, position, account.id, this)
+                listener.onItemSelectionChange(account, position, account.accountId, this)
             }
 
             listener.onItemLongClick(account, position, id, this)
@@ -448,7 +448,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                 }
 
                 override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                    return oldList[oldItemPosition].id == items[newItemPosition].id
+                    return oldList[oldItemPosition].accountId == items[newItemPosition].accountId
                 }
 
                 override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {

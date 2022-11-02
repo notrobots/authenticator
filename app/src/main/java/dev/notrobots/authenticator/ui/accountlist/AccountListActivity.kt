@@ -35,6 +35,7 @@ import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
 import dev.notrobots.authenticator.ui.backupmanager.BackupManagerActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import dev.notrobots.authenticator.ui.settings.SettingsActivity
+import dev.notrobots.authenticator.ui.taglist.TagListActivity
 import dev.notrobots.authenticator.util.AccountExporter
 import dev.notrobots.authenticator.util.OTPGenerator
 import dev.notrobots.preferences2.*
@@ -202,28 +203,7 @@ class AccountListActivity : AuthenticatorActivity() {
         setSupportActionBar(toolbar)
         doubleBackPressToExitEnabled = true
 
-        binding.btnAddAccountQr.setOnClickListener {
-            val intent = Intent(this, BarcodeScannerActivity::class.java)
-
-            scanBarcode.launch(intent)
-            btn_add_account.close(true)
-        }
-        binding.btnAddAccountUrl.setOnClickListener {
-            AccountUriDialog(supportFragmentManager, R.string.label_add_account) { data, dialog ->
-                try {
-                    import(data)
-                    dialog.dismiss()
-                } catch (e: Exception) {
-                    dialog.error = e.message
-                }
-            }
-            btn_add_account.close(true)
-        }
-        binding.btnAddAccountCustom.setOnClickListener {
-            startActivity(AccountActivity::class)
-            btn_add_account.close(true)
-        }
-
+        setupFAB()
         setupListAdapter()
 
         viewModel.sortMode(preferences.getSortMode<SortMode>())
@@ -335,6 +315,7 @@ class AccountListActivity : AuthenticatorActivity() {
             }
             R.id.menu_account_list_backup_import -> startActivity(ImportActivity::class)
             R.id.menu_account_list_backup_manager -> startActivity(BackupManagerActivity::class)
+            R.id.menu_account_list_tags -> startActivity(TagListActivity::class)
             R.id.menu_account_list_settings -> startActivity(SettingsActivity::class)
             R.id.menu_clear -> {
                 lifecycleScope.launch {
@@ -392,11 +373,24 @@ class AccountListActivity : AuthenticatorActivity() {
                     Account("D Account", "66334422").apply { label = "CCCC"; issuer = "github" },
                     Account("C Account", "55443344").apply { label = "DDDD" },
                     Account("B Account", "22335544").apply { label = "EEEE"; type = OTPType.HOTP },
-                    Account("A Account", "33445566").apply {  }
+                    Account("A Account", "33445566").apply { }
                 )
 
                 lifecycleScope.launch {
                     accounts.forEach { viewModel.insertAccount(it) }
+                }
+            }
+            R.id.menu_add_test_tags -> {
+                val tags = listOf(
+                    Tag("Work"),
+                    Tag("School"),
+                    Tag("Gaming"),
+                    Tag("Finance"),
+                    Tag("XXX"),
+                )
+
+                lifecycleScope.launch {
+                    viewModel.tagDao.insert(tags)
                 }
             }
             R.id.menu_account_list_clear_jobs -> {
@@ -515,6 +509,38 @@ class AccountListActivity : AuthenticatorActivity() {
 //            mRecyclerView.addItemDecoration(ItemShadowDecorator((ContextCompat.getDrawable(requireContext(), R.drawable.material_shadow_z1) as NinePatchDrawable?)!!))
 //        }
 //        binding.listAccounts.addItemDecoration(SimpleListDividerDecorator(ContextCompat.getDrawable(requireContext(), R.drawable.list_divider_h), true))
+    }
+
+    /**
+     * Sets up the Floating Action Button.
+     */
+    private fun setupFAB() {
+        binding.btnAddAccountQr.setOnClickListener {
+            val intent = Intent(this, BarcodeScannerActivity::class.java)
+
+            scanBarcode.launch(intent)
+            btn_add_account.close(true)
+        }
+        binding.btnAddAccountUrl.setOnClickListener {
+            AccountUriDialog(supportFragmentManager, R.string.label_add_account) { data, dialog ->
+                try {
+                    import(data)
+                    dialog.dismiss()
+                } catch (e: Exception) {
+                    dialog.error = e.message
+                }
+            }
+            btn_add_account.close(true)
+        }
+        binding.btnAddAccountCustom.setOnClickListener {
+            startActivity(AccountActivity::class)
+            btn_add_account.close(true)
+        }
+        binding.btnAddAccountTag.setOnClickListener {
+            AddOrEditTagDialog(this, lifecycleScope, viewModel.tagDao) {
+                makeToast("Tag added")
+            }
+        }
     }
 
     /**

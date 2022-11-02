@@ -19,6 +19,11 @@ object AuthenticatorDatabaseModule {
     }
 
     @Provides
+    fun provideTagDao(database: AuthenticatorDatabase): TagDao {
+        return database.tagDao()
+    }
+
+    @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext appContext: Context): AuthenticatorDatabase {
         return Room.databaseBuilder(
