@@ -6,11 +6,11 @@ import dev.notrobots.preferences2.annotations.LongPreference
 import dev.notrobots.preferences2.annotations.StringPreference
 
 object Preferences {
-    @BooleanPreference(true)
+    @BooleanPreference
     const val COLLAPSE_PINS = "collapse_pins"
-    @BooleanPreference(true)
+    @BooleanPreference
     const val COLLAPSE_ICONS = "collapse_icons"
-    @BooleanPreference(false)
+    @BooleanPreference
     const val HIDE_PINS = "hide_pins"
     @BooleanPreference
     const val ALLOW_SCREENSHOTS = "allow_screenshots"
