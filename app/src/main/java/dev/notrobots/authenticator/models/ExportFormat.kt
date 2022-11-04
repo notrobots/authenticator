@@ -1,7 +1,7 @@
 package dev.notrobots.authenticator.models
 
 import android.net.Uri
-import dev.notrobots.authenticator.util.AccountExporter
+import dev.notrobots.authenticator.util.BackupManager
 
 enum class ExportFormat {
     /**
@@ -19,7 +19,7 @@ enum class ExportFormat {
     /**
      * Exports all accounts as one or more [QRCode], the content is serialized
      * using this app's protobuf definition and split based on
-     * [AccountExporter.QR_MAX_BYTES].
+     * [BackupManager.QR_MAX_BYTES].
      *
      * ```
      * E.g.
@@ -70,7 +70,7 @@ enum class ExportFormat {
     /**
      * Exports all accounts as one or more [QRCode], the content is serialized
      * using Google Authenticator's protobuf definition and split based on
-     * [AccountExporter.QR_MAX_BYTES].
+     * [BackupManager.QR_MAX_BYTES].
      *
      * ```
      * E.g.

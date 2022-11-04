@@ -21,7 +21,7 @@ import dev.notrobots.authenticator.services.BackupJob
 import dev.notrobots.authenticator.services.DriveBackupJob
 import dev.notrobots.authenticator.services.LocalBackupJob
 import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
-import dev.notrobots.authenticator.util.AccountExporter
+import dev.notrobots.authenticator.util.BackupManager
 import dev.notrobots.authenticator.util.TextUtil
 import dev.notrobots.authenticator.util.daysToMillis
 import dev.notrobots.preferences2.*
@@ -96,7 +96,7 @@ class BackupManagerActivity : AuthenticatorActivity() {
                     val stream = requireContext().contentResolver.openInputStream(uri)
 
                     stream?.bufferedReader()?.use {
-                        val data = AccountExporter.import(it.readText())
+                        val data = BackupManager.import(it.readText())
 
                         ImportResultActivity.showResults(requireContext(), data)
                     }

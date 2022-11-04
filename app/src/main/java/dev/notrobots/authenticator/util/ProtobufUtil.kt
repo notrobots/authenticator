@@ -29,9 +29,9 @@ object ProtobufUtil {
             }
 
             uris += Uri.Builder()
-                .scheme(AccountExporter.BACKUP_OTP_SCHEME)
-                .authority(AccountExporter.BACKUP_OTP_AUTHORITY)
-                .appendQueryParameter(AccountExporter.BACKUP_OTP_DATA, encodeMessage(payload.build()))
+                .scheme(BackupManager.BACKUP_OTP_SCHEME)
+                .authority(BackupManager.BACKUP_OTP_AUTHORITY)
+                .appendQueryParameter(BackupManager.BACKUP_OTP_DATA, encodeMessage(payload.build()))
                 .build()
         }
 

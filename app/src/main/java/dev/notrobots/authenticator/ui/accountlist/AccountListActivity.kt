@@ -39,7 +39,7 @@ import dev.notrobots.authenticator.ui.backupmanager.BackupManagerActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import dev.notrobots.authenticator.ui.settings.SettingsActivity
 import dev.notrobots.authenticator.ui.taglist.TagListActivity
-import dev.notrobots.authenticator.util.AccountExporter
+import dev.notrobots.authenticator.util.BackupManager
 import dev.notrobots.authenticator.util.OTPGenerator
 import dev.notrobots.authenticator.util.adapterOf
 import dev.notrobots.authenticator.widget.BottomSheetListView
@@ -478,15 +478,15 @@ class AccountListActivity : AuthenticatorActivity() {
      * Tries to import the given [data] and throws an Exception if there any errors.
      */
     private fun import(data: String) {
-        val importedData = AccountExporter.import(data)     //FIXME: This throws an unreadable exception for the final user
+        val importedData = BackupManager.import(data)     //FIXME: This throws an unreadable exception for the final user
 
-        if (importedData.accounts.size > 1 || AccountExporter.isBackup(data)) {
+        if (importedData.accounts.size > 1 || BackupManager.isBackup(data)) {
             startActivity(ImportResultActivity::class) {
                 putExtra(ImportResultActivity.EXTRA_DATA, arrayListOf(importedData))
             }
             logd("QR: Importing backup of size: ${importedData.accounts}")
         } else {
-            val account = AccountExporter.parseAccount(data)
+            val account = BackupManager.parseAccount(data)
 
             addOrReplaceAccount(account)
             logd("QR: Importing single account")

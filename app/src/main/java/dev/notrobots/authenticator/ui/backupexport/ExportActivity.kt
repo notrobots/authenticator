@@ -2,7 +2,6 @@ package dev.notrobots.authenticator.ui.backupexport
 
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.extensions.startActivity
@@ -10,11 +9,10 @@ import dev.notrobots.androidstuff.extensions.viewBindings
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityExportConfigBinding
-import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
 import dev.notrobots.authenticator.ui.backupexportqr.ExportQRActivity
 import dev.notrobots.authenticator.ui.backupexporttext.ExportTextActivity
-import dev.notrobots.authenticator.util.AccountExporter
+import dev.notrobots.authenticator.util.BackupManager
 
 @AndroidEntryPoint
 class ExportActivity : AuthenticatorActivity() {
@@ -40,7 +38,7 @@ class ExportActivity : AuthenticatorActivity() {
                 "Export one or more QR codes containing the accounts. This will try and create as little qr codes as possible",
                 R.drawable.ic_qr
             ) {
-                val export = AccountExporter.exportQR(accounts)
+                val export = BackupManager.exportQR(accounts)
 
                 startActivity(ExportQRActivity::class) {
                     putExtra(ExportQRActivity.EXTRA_QR_CODES, ArrayList(export))
@@ -52,7 +50,7 @@ class ExportActivity : AuthenticatorActivity() {
                 "Export each account a single QR code. All available OTP Authenticators should be able to import this code.",
                 R.drawable.ic_qr
             ) {
-                val export = AccountExporter.exportPlainQR(accounts)
+                val export = BackupManager.exportPlainQR(accounts)
 
                 startActivity(ExportQRActivity::class) {
                     putExtra(ExportQRActivity.EXTRA_QR_CODES, ArrayList(export))
@@ -64,7 +62,7 @@ class ExportActivity : AuthenticatorActivity() {
                 "Export all accounts in a single text file, where each line is an account. All available OTP Authenticators should be able to import these accounts.",
                 R.drawable.ic_file
             ) {
-                val export = AccountExporter.exportUris(accounts)
+                val export = BackupManager.exportUris(accounts)
 
                 startActivity(ExportTextActivity::class) {
                     putExtra(ExportTextActivity.EXTRA_URIS, ArrayList(export))

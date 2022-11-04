@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -14,15 +13,13 @@ import dev.notrobots.androidstuff.extensions.showChoice
 import dev.notrobots.androidstuff.extensions.showInfo
 import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.extensions.viewBindings
-import dev.notrobots.androidstuff.util.viewBindings
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityImportResultBinding
 import dev.notrobots.authenticator.models.Account
-import dev.notrobots.authenticator.util.AccountExporter
+import dev.notrobots.authenticator.util.BackupManager
 import dev.notrobots.authenticator.ui.accountlist.AccountListActivity
 import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
-import dev.notrobots.authenticator.util.TextUtil
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -30,7 +27,7 @@ class ImportResultActivity : AuthenticatorActivity() {
     private val binding by viewBindings<ActivityImportResultBinding>()
     private val viewModel by viewModels<AccountListViewModel>()
     private val importResults = mutableMapOf<Any, ImportResult>()
-    private val importedData = mutableListOf<AccountExporter.ImportedData>()
+    private val importedData = mutableListOf<BackupManager.ImportedData>()
     private val adapter = ImportResultAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,7 +37,7 @@ class ImportResultActivity : AuthenticatorActivity() {
 
         title = "Imported backup"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        importedData.addAll(intent.getSerializableExtra(EXTRA_DATA) as List<AccountExporter.ImportedData>)
+        importedData.addAll(intent.getSerializableExtra(EXTRA_DATA) as List<BackupManager.ImportedData>)
         binding.toolbarLayout.toolbar.setNavigationOnClickListener { finish() }
         binding.list.layoutManager = LinearLayoutManager(this@ImportResultActivity)
         binding.list.adapter = adapter
@@ -163,13 +160,13 @@ class ImportResultActivity : AuthenticatorActivity() {
     companion object {
         const val EXTRA_DATA = "ImportResultActivity.DATA"
 
-        fun showResults(context: Context, importedData: List<AccountExporter.ImportedData>) {
+        fun showResults(context: Context, importedData: List<BackupManager.ImportedData>) {
             context.startActivity(ImportResultActivity::class) {
                 putExtra(EXTRA_DATA, ArrayList(importedData)) //FIXME: Start on top?
             }
         }
 
-        fun showResults(context: Context, importedData: AccountExporter.ImportedData) {
+        fun showResults(context: Context, importedData: BackupManager.ImportedData) {
             showResults(context, listOf(importedData))
         }
     }

@@ -1,12 +1,12 @@
 package dev.notrobots.authenticator.models
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import dev.notrobots.authenticator.util.AccountExporter
+import dev.notrobots.authenticator.util.BackupManager
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class AccountExporterTest {
+class BackupManagerTest {
     private val groups = listOf(
         AccountGroup("Group 1").apply { id = 2; order = 0 },
         AccountGroup("Group 2").apply { id = 3; order = 1 },
@@ -26,8 +26,8 @@ class AccountExporterTest {
     @Test
     fun export() {
         val exportData = listOf(
-            AccountExporter.ImportedData(groups, accounts),
-            AccountExporter.ImportedData(groups, accounts).apply {
+            BackupManager.ImportedData(groups, accounts),
+            BackupManager.ImportedData(groups, accounts).apply {
                 this.format = ExportFormat.Default
             }
         )

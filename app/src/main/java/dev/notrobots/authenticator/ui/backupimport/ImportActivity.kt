@@ -9,7 +9,6 @@ import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import dagger.hilt.android.AndroidEntryPoint
-import dev.notrobots.androidstuff.activities.ThemedActivity
 import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.loge
 import dev.notrobots.authenticator.R
@@ -18,7 +17,7 @@ import dev.notrobots.authenticator.databinding.ActivityImportBinding
 import dev.notrobots.authenticator.dialogs.AccountUriDialog
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
-import dev.notrobots.authenticator.util.AccountExporter
+import dev.notrobots.authenticator.util.BackupManager
 
 @AndroidEntryPoint
 class ImportActivity : AuthenticatorActivity() {
@@ -36,12 +35,12 @@ class ImportActivity : AuthenticatorActivity() {
         if (it.resultCode == Activity.RESULT_OK) {
             if (it.data != null) {
                 val uris = it.data!!.getStringArrayListExtra(BarcodeScannerActivity.EXTRA_QR_LIST) ?: listOf<String>()
-                val importedData = mutableListOf<AccountExporter.ImportedData>()
+                val importedData = mutableListOf<BackupManager.ImportedData>()
                 val errors = mutableListOf<String>()
 
                 for ((index, uri) in uris.withIndex()) {
                     try {
-                        val data = AccountExporter.import(uri)
+                        val data = BackupManager.import(uri)
 
                         importedData.add(data)
                     } catch (e: Exception) {
@@ -83,7 +82,7 @@ class ImportActivity : AuthenticatorActivity() {
                             val content = it.first().rawValue
 
                             try {
-                                val data = AccountExporter.import(content!!)
+                                val data = BackupManager.import(content!!)
 
                                 ImportResultActivity.showResults(this, data)
                             } catch (e: Exception) {
@@ -100,7 +99,7 @@ class ImportActivity : AuthenticatorActivity() {
                         val content = it.reader().readText()
 
                         try {
-                            val data = AccountExporter.import(content)
+                            val data = BackupManager.import(content)
 
                             ImportResultActivity.showResults(this, data)
                         } catch (e: Exception) {
@@ -156,7 +155,7 @@ class ImportActivity : AuthenticatorActivity() {
         ) {
             AccountUriDialog(supportFragmentManager, null) { data, dialog ->
                 try {
-                    ImportResultActivity.showResults(this, AccountExporter.import(data))
+                    ImportResultActivity.showResults(this, BackupManager.import(data))
                     dialog.dismiss()
                 } catch (e: Exception) {
                     dialog.error = e.message

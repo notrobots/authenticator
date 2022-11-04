@@ -9,7 +9,7 @@ import dev.notrobots.androidstuff.util.now
 import dev.notrobots.authenticator.App
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.extensions.write
-import dev.notrobots.authenticator.util.AccountExporter
+import dev.notrobots.authenticator.util.BackupManager
 import dev.notrobots.authenticator.util.TextUtil
 import dev.notrobots.preferences2.getLocalBackupPath
 import dev.notrobots.preferences2.putLastLocalBackupPath
@@ -36,7 +36,7 @@ class LocalBackupJob : BackupJob() {
                 // + Plain Text
                 // + Plain JSON
                 // + Encrypted Text
-                val backup = AccountExporter.exportPlainText(accounts)
+                val backup = BackupManager.exportPlainText(accounts)
 
                 file.write(this@LocalBackupJob) {
                     //XXX: "inappropriate blocking method call" inspection

@@ -13,7 +13,7 @@ import org.json.JSONObject
 import java.io.Serializable
 import java.util.*
 
-object AccountExporter {
+object BackupManager {
     //TODO: Let the user chose the resolution 264, 512, 1024, 2048
     const val QR_BITMAP_SIZE = 512
 
