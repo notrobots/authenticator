@@ -1,14 +1,12 @@
 package dev.notrobots.authenticator.util
 
 import android.content.Context
-import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.annotation.LayoutRes
 import androidx.viewbinding.ViewBinding
-import dev.notrobots.authenticator.extensions.toUri
 import org.apache.commons.codec.binary.Base32
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
@@ -27,22 +25,38 @@ fun <T> adapterOf(context: Context, iterable: Iterable<T>): ArrayAdapter<T> {
     )
 }
 
+inline fun <T, reified B : ViewBinding> adapterOf(
+    context: Context,
+    iterable: Iterable<T>,
+    noinline rowFactory: (item: T, position: Int, binding: B) -> Unit
+): ArrayAdapter<T> {
+    return adapterOf(context, iterable, B::class, rowFactory)
+}
+
 fun <T, B : ViewBinding> adapterOf(
     context: Context,
     iterable: Iterable<T>,
     bindingType: KClass<B>,
-    rowFactory: (item: T, binding: B) -> View
+    rowFactory: (item: T, position: Int, binding: B) -> Unit
 ): ArrayAdapter<T> {
     return object : ArrayAdapter<T>(context, 0) {
+        override fun getCount(): Int {
+            return iterable.count()
+        }
+
         override fun getItem(position: Int): T {
             return iterable.elementAt(position)
         }
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            val binding by lazy { bindView(bindingType, parent) }
+            val binding = if (convertView != null) {
+                bindView(bindingType, convertView)
+            } else {
+                bindView(bindingType, parent)
+            }
 
-            return (convertView ?: binding.root).also {
-                rowFactory(getItem(position), binding)
+            return binding.root.also {
+                rowFactory(getItem(position), position, binding)
             }
         }
     }
@@ -52,13 +66,17 @@ fun <T> adapterOf(
     context: Context,
     iterable: Iterable<T>,
     @LayoutRes layout: Int,
-    rowFactory: (item: T, view: View) -> View
+    rowFactory: (item: T, position: Int, view: View) -> Unit
 ): ArrayAdapter<T> {
     val inflater by lazy {
         LayoutInflater.from(context)
     }
 
     return object : ArrayAdapter<T>(context, 0) {
+        override fun getCount(): Int {
+            return iterable.count()
+        }
+
         override fun getItem(position: Int): T {
             return iterable.elementAt(position)
         }
@@ -66,7 +84,37 @@ fun <T> adapterOf(
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
             val view = convertView ?: inflater.inflate(layout, parent, false)
 
-            rowFactory(getItem(position), view)
+            rowFactory(getItem(position), position, view)
+
+            return view
+        }
+    }
+}
+
+fun <T> adapterOf(
+    context: Context,
+    iterable: Iterable<T>,
+    viewFactory: (item: T, parent: ViewGroup, inflater: LayoutInflater) -> View,
+    rowFactory: (item: T, position: Int, view: View) -> Unit
+): ArrayAdapter<T> {
+    val inflater by lazy {
+        LayoutInflater.from(context)
+    }
+
+    return object : ArrayAdapter<T>(context, 0) {
+        override fun getCount(): Int {
+            return iterable.count()
+        }
+
+        override fun getItem(position: Int): T {
+            return iterable.elementAt(position)
+        }
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val item = getItem(position)
+            val view = convertView ?: viewFactory(item, parent, inflater)
+
+            rowFactory(getItem(position), position, view)
 
             return view
         }
