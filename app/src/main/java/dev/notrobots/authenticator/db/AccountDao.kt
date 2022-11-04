@@ -3,23 +3,34 @@ package dev.notrobots.authenticator.db
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.room.*
-import dev.notrobots.authenticator.models.Account
-import dev.notrobots.authenticator.models.AccountTagCrossRef
-import dev.notrobots.authenticator.models.AccountWithTags
+import dev.notrobots.authenticator.models.*
+import dev.notrobots.authenticator.models.SortMode.Companion.ORDER_BY_ISSUER
+import dev.notrobots.authenticator.models.SortMode.Companion.ORDER_BY_LABEL
+import dev.notrobots.authenticator.models.SortMode.Companion.ORDER_BY_NAME
+import dev.notrobots.authenticator.models.SortMode.Companion.SORT_ASC
+import dev.notrobots.authenticator.models.SortMode.Companion.SORT_DESC
 
 @Dao
 interface AccountDao {
-    @Query("SELECT * FROM Account ORDER BY `order`")
-    suspend fun getAccounts(): List<Account>
-
-    @Query("SELECT * FROM Account ORDER BY `order`")
-    fun getAccountsLive(): LiveData<List<Account>>
-
     @Query("SELECT * FROM Account WHERE accountId = :id")
     suspend fun getAccount(id: Long): Account?
 
     @Query("SELECT * FROM Account WHERE name = :name AND label = :label AND issuer = :issuer")
     suspend fun getAccount(name: String, label: String, issuer: String): Account?
+
+    @Transaction
+    @Query("SELECT * FROM Account WHERE accountId = :accountId")
+    suspend fun getAccountWithTags(accountId: Long): AccountWithTags
+
+    @Transaction
+    @Query("SELECT * FROM Account WHERE accountId = :accountId")
+    fun getAccountWithTagsLive(accountId: Long): LiveData<AccountWithTags>
+
+    @Query("SELECT * FROM Account ORDER BY `order`")
+    suspend fun getAccounts(): List<Account>
+
+    @Query("SELECT * FROM Account ORDER BY `order`")
+    fun getAccountsLive(): LiveData<List<Account>>
 
     @Transaction
     @Query("SELECT * FROM Account")
@@ -30,33 +41,39 @@ interface AccountDao {
     fun getAccountsWithTagsLive(): LiveData<List<AccountWithTags>>
 
     @Transaction
-    @Query("SELECT * FROM Account WHERE accountId = :accountId")
-    suspend fun getAccountWithTags(accountId: Long): AccountWithTags
+    @Query(
+        """
+        SELECT * FROM Account
+        INNER JOIN AccountTagCrossRef ON AccountTagCrossRef.accountId = Account.accountId 
+        WHERE tagId = :tagId 
+        GROUP BY Account.accountId
+        ORDER BY 
+            CASE WHEN :orderBy = $ORDER_BY_NAME AND :orderDir = $SORT_ASC THEN name END ASC,
+            CASE WHEN :orderBy = $ORDER_BY_LABEL AND :orderDir = $SORT_ASC THEN label END ASC,
+            CASE WHEN :orderBy = $ORDER_BY_ISSUER AND :orderDir = $SORT_ASC THEN issuer END ASC,
+            CASE WHEN :orderBy = $ORDER_BY_NAME AND :orderDir = $SORT_DESC THEN name END DESC,
+            CASE WHEN :orderBy = $ORDER_BY_LABEL AND :orderDir = $SORT_DESC THEN label END DESC,
+            CASE WHEN :orderBy = $ORDER_BY_ISSUER AND :orderDir = $SORT_DESC THEN issuer END DESC
+        """
+    )
+    fun getAccountsWithTagsLive(orderDir: Int, orderBy: Int, tagId: Long): LiveData<List<AccountWithTags>>
 
     @Transaction
-    @Query("SELECT * FROM Account WHERE accountId = :accountId")
-    fun getAccountWithTagsLive(accountId: Long): LiveData<AccountWithTags>
-
     @Query(
-        "SELECT * FROM Account ORDER BY " +
-        "CASE WHEN :direction = 0 THEN name END ASC," +
-        "CASE WHEN :direction = 1 THEN name END DESC"
+        """
+        SELECT * FROM Account
+        INNER JOIN AccountTagCrossRef ON AccountTagCrossRef.accountId = Account.accountId 
+        GROUP BY Account.accountId
+        ORDER BY 
+            CASE WHEN :orderBy = $ORDER_BY_NAME AND :orderDir = $SORT_ASC THEN name END ASC,
+            CASE WHEN :orderBy = $ORDER_BY_LABEL AND :orderDir = $SORT_ASC THEN label END ASC,
+            CASE WHEN :orderBy = $ORDER_BY_ISSUER AND :orderDir = $SORT_ASC THEN issuer END ASC,
+            CASE WHEN :orderBy = $ORDER_BY_NAME AND :orderDir = $SORT_DESC THEN name END DESC,
+            CASE WHEN :orderBy = $ORDER_BY_LABEL AND :orderDir = $SORT_DESC THEN label END DESC,
+            CASE WHEN :orderBy = $ORDER_BY_ISSUER AND :orderDir = $SORT_DESC THEN issuer END DESC
+        """
     )
-    fun getAccountsOrderedByName(direction: Int): LiveData<List<Account>>
-
-    @Query(
-        "SELECT * FROM Account ORDER BY " +
-        "CASE WHEN :direction = 0 THEN label END ASC," +
-        "CASE WHEN :direction = 1 THEN label END DESC"
-    )
-    fun getAccountsOrderedByLabel(direction: Int): LiveData<List<Account>>
-
-    @Query(
-        "SELECT * FROM Account ORDER BY " +
-        "CASE WHEN :direction = 0 THEN issuer END ASC," +
-        "CASE WHEN :direction = 1 THEN issuer END DESC"
-    )
-    fun getAccountsOrderedByIssuer(direction: Int): LiveData<List<Account>>
+    fun getAccountsWithTagsLive(orderDir: Int, orderBy: Int): LiveData<List<AccountWithTags>>
 
     @Query("SELECT COUNT(name) FROM Account WHERE name = :name AND label = :label AND issuer = :issuer")
     suspend fun getCount(name: String, label: String, issuer: String): Int
