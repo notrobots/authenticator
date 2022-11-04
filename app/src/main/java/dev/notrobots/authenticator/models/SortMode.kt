@@ -10,14 +10,7 @@ enum class SortMode(
     LabelAscending(SortMode.SORT_ASC, SortMode.ORDER_BY_LABEL),
     LabelDescending(SortMode.SORT_DESC, SortMode.ORDER_BY_LABEL),
     IssuerAscending(SortMode.SORT_ASC, SortMode.ORDER_BY_ISSUER),
-    IssuerDescending(SortMode.SORT_DESC, SortMode.ORDER_BY_ISSUER),
-
-    //TODO: Remove the tag sorting
-    @Deprecated("Use filter or search function")
-    TagAscending(SortMode.SORT_ASC, -1),
-
-    @Deprecated("Use filter or search function")
-    TagDescending(SortMode.SORT_DESC, -1);
+    IssuerDescending(SortMode.SORT_DESC, SortMode.ORDER_BY_ISSUER);
 
     companion object {
         const val SORT_ASC = 0

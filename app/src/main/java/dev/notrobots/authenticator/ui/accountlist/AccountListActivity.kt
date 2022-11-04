@@ -293,8 +293,6 @@ class AccountListActivity : AuthenticatorActivity() {
             SortMode.LabelDescending -> menu.findItem(R.id.menu_account_list_sort_label_az_desc).isChecked = true
             SortMode.IssuerAscending -> menu.findItem(R.id.menu_account_list_sort_issuer_az_asc).isChecked = true
             SortMode.IssuerDescending -> menu.findItem(R.id.menu_account_list_sort_issuer_az_desc).isChecked = true
-//            SortMode.TagAscending -> menu.findItem(R.id.menu_account_list_sort_custom).isChecked = true
-//            SortMode.TagDescending -> menu.findItem(R.id.menu_account_list_sort_custom).isChecked = true
         }
 
         return true

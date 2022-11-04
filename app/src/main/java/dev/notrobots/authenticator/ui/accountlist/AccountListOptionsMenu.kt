@@ -127,8 +127,6 @@ class AccountListOptionsMenu(
                 binding.sortOptions.setCheckedAt(2)
                 binding.sortOptions.getItemAt(2).setIconResource(SORT_ISSUER_DESC_ICON)
             }
-            SortMode.TagAscending -> TODO()
-            SortMode.TagDescending -> TODO()
         }
 
         binding.backupOptions.addItem("Export", R.drawable.ic_database_export) { _, _ ->
