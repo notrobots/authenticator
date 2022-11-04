@@ -12,7 +12,7 @@ import dev.notrobots.androidstuff.util.viewBindings
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityAccountBinding
-import dev.notrobots.authenticator.databinding.ItemAccountTagBinding
+import dev.notrobots.authenticator.databinding.ItemAccountTagChipBinding
 import dev.notrobots.authenticator.extensions.isOnlySpaces
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.AccountTagCrossRef
@@ -157,7 +157,7 @@ class AccountActivity : AuthenticatorActivity() {
 
     private fun setTags(tags: List<Tag>, selected: List<Tag>?) {
         for (tag in tags) {
-            val chip = ItemAccountTagBinding.inflate(layoutInflater).root
+            val chip = ItemAccountTagChipBinding.inflate(layoutInflater).root
 
             chip.isChecked = selected != null && tag in selected
             chip.text = tag.name

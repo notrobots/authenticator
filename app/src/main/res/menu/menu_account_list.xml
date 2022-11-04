@@ -3,15 +3,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/menu_account_list_search"
-        android:icon="@drawable/ic_search"
-        android:title="Search"
+        android:id="@+id/menu_account_list_filter"
+        android:icon="@drawable/ic_filter"
+        android:title="Filter tags"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/menu_account_list_edit"
         android:icon="@drawable/ic_edit"
         android:title="Edit items"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_account_list_search"
+        android:icon="@drawable/ic_search"
+        android:title="Search"
         app:showAsAction="ifRoom" />
 
     <item
@@ -45,12 +51,6 @@
             </group>
         </menu>
     </item>
-
-    <item
-        android:id="@+id/menu_account_list_filter"
-        android:icon="@drawable/ic_sort_az"
-        android:title="Filter"
-        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/menu_account_list_backup"

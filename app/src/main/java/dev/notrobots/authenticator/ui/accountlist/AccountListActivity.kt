@@ -11,11 +11,13 @@ import android.widget.PopupWindow
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.activity.viewModels
 import androidx.appcompat.widget.SearchView
+import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.h6ah4i.android.widget.advrecyclerview.animator.DraggableItemAnimator
 import com.h6ah4i.android.widget.advrecyclerview.draggable.RecyclerViewDragDropManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,6 +27,7 @@ import dev.notrobots.authenticator.App
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityAccountListBinding
+import dev.notrobots.authenticator.databinding.ItemFilterTagBinding
 import dev.notrobots.authenticator.databinding.ViewToolbarSearchBinding
 import dev.notrobots.authenticator.dialogs.*
 import dev.notrobots.authenticator.extensions.*
@@ -38,6 +41,8 @@ import dev.notrobots.authenticator.ui.settings.SettingsActivity
 import dev.notrobots.authenticator.ui.taglist.TagListActivity
 import dev.notrobots.authenticator.util.AccountExporter
 import dev.notrobots.authenticator.util.OTPGenerator
+import dev.notrobots.authenticator.util.adapterOf
+import dev.notrobots.authenticator.widget.BottomSheetListView
 import dev.notrobots.preferences2.*
 import dev.notrobots.preferences2.getHidePinsOnChange
 import kotlinx.android.synthetic.main.activity_account_list.*
@@ -194,6 +199,8 @@ class AccountListActivity : AuthenticatorActivity() {
             binding.emptyViewText.setText(R.string.empty_view_no_accounts)
         }
     }
+    private var tagFilterMenuItem: MenuItem? = null
+    private var tagCount = 0
 
     //region Activity lifecycle
 
@@ -210,9 +217,21 @@ class AccountListActivity : AuthenticatorActivity() {
         viewModel.sortMode.observe(this) {
             adapter.sortMode = it
         }
-        viewModel.accounts.observe(this) {
-            adapter.setItems(it)
+        viewModel.filteredAccounts.observe(this) {
+            tagFilterMenuItem?.icon = ContextCompat.getDrawable(
+                this, if (viewModel.tagIdFilter() != -1L) {
+                    R.drawable.ic_filter_active
+                } else {
+                    R.drawable.ic_filter
+                }
+            )
+
+            adapter.setItems(it.map { it.account })
         }
+        viewModel.tags.observe(this) {
+            tagCount = it.size
+        }
+        viewModel.tagIdFilter(preferences.getTagIdFilter())
     }
 
     override fun onStart() {
@@ -260,6 +279,8 @@ class AccountListActivity : AuthenticatorActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_account_list, menu)
+        tagFilterMenuItem = menu.findItem(R.id.menu_account_list_filter)
+
         return true
     }
 
@@ -287,6 +308,11 @@ class AccountListActivity : AuthenticatorActivity() {
         }
 
         when (item.itemId) {
+            R.id.menu_account_list_filter -> {
+                if (tagCount > 0) {
+                    showTagFilterDialog()
+                }
+            }
             R.id.menu_account_list_edit -> {
                 toolbar.startActionMode(editActionModeCallback)
             }
@@ -541,6 +567,50 @@ class AccountListActivity : AuthenticatorActivity() {
                 makeToast("Tag added")
             }
         }
+    }
+
+    /**
+     * Shows the tag filter BottomSheetDialog.
+     */
+    private fun showTagFilterDialog() {
+        val sheet = BottomSheetDialog(this)
+        val listView = BottomSheetListView(this)
+
+        //TODO: Redesign the layout
+        // "Selected" item should have a colored background
+        // There should also be a title saying what this sheet is about
+
+        viewModel.tags.value?.let {
+            val list = mutableListOf<Tag?>(null).apply {
+                addAll(it)
+            }
+            var selectedItem = list.indexOfFirst {
+                it?.tagId == viewModel.tagIdFilter()
+            }.takeIf(0) { it != -1 }
+            val adapter = adapterOf<Tag?, ItemFilterTagBinding>(this, list) { tag, pos, binding ->
+                binding.text.text = tag?.name ?: "No Filter"
+                binding.state.setVisible(pos == selectedItem)
+            }
+
+            listView.adapter = adapter
+            listView.setOnItemClickListener { _, _, pos, _ ->
+                val item = list[pos]
+                val id = item?.tagId ?: -1
+
+                if (selectedItem != pos) {
+                    selectedItem = pos
+                    adapter.notifyDataSetChanged()
+                }
+
+                viewModel.tagIdFilter(id)
+                preferences.putTagIdFilter(id)
+                sheet.dismiss()
+            }
+        }
+
+        sheet.setTitle("Filter tags")
+        sheet.setContentView(listView)
+        sheet.show()
     }
 
     /**

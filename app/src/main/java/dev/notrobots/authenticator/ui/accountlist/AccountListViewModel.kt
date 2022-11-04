@@ -8,6 +8,7 @@ import dev.notrobots.authenticator.db.AccountDao
 import dev.notrobots.authenticator.db.TagDao
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.SortMode
+import dev.notrobots.authenticator.models.Tag
 import dev.notrobots.authenticator.util.TextUtil
 import javax.inject.Inject
 
@@ -17,18 +18,21 @@ class AccountListViewModel @Inject constructor(
     val tagDao: TagDao
 ) : ViewModel() {
     val sortMode = MutableLiveData(SortMode.Custom)
+    val tagIdFilter: MutableLiveData<Long> = MutableLiveData(-1)
     val tags = tagDao.getTagsLive()
-    val accounts = sortMode.switchMap {
-        when (it) {
-            SortMode.Custom -> accountDao.getAccountsLive()
-            SortMode.NameAscending,
-            SortMode.NameDescending -> accountDao.getAccountsOrderedByName(it.sortingDirection)
-            SortMode.LabelAscending,
-            SortMode.LabelDescending -> accountDao.getAccountsOrderedByLabel(it.sortingDirection)
-            SortMode.IssuerAscending,
-            SortMode.IssuerDescending -> accountDao.getAccountsOrderedByIssuer(it.sortingDirection)
-            SortMode.TagAscending,
-            SortMode.TagDescending -> TODO()
+    val accounts = accountDao.getAccountsLive()
+    val filteredAccounts = Transformations.switchMap(AccountFilterMediator(sortMode, tagIdFilter)) {
+        if (it?.second != -1L && it.first != null) {
+            accountDao.getAccountsWithTagsLive(
+                it.first!!.sortingDirection,
+                it.first!!.sortingBy,
+                it.second!!
+            )
+        } else {
+            accountDao.getAccountsWithTagsLive(
+                it.first!!.sortingDirection,
+                it.first!!.sortingBy
+            )
         }
     }
 
@@ -93,5 +97,12 @@ class AccountListViewModel @Inject constructor(
 
             name = TextUtil.getNextName(oldAccount.name)
         } while (true)
+    }
+
+    private class AccountFilterMediator(sortMode: LiveData<SortMode>, tagId: LiveData<Long?>) : MediatorLiveData<Pair<SortMode?, Long?>>() {
+        init {
+            addSource(sortMode) { value = it to tagId.value }
+            addSource(tagId) { value = sortMode.value to it }
+        }
     }
 }
