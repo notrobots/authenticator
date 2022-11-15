@@ -9,3 +9,13 @@ operator fun Uri.get(name: String): String? {
 operator fun Uri.contains(name: String): Boolean {
     return name in queryParameterNames
 }
+
+fun Uri.Builder.replaceQueryParameter(key: String, newValue: String) = apply{
+    val oldUri = build()
+
+    clearQuery()
+
+    for (param in oldUri.queryParameterNames) {
+        appendQueryParameter(param, if (param == key) newValue else oldUri.getQueryParameter(param))
+    }
+}

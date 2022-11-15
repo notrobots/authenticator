@@ -9,6 +9,12 @@ import java.util.concurrent.TimeUnit
 
 object OTPGenerator {
     fun generate(account: Account): String {
+        // The "Google way" is to pass the generator a base32 string that is decoded internally.
+        // Other authenticators take a decoded string.
+        // Since the [GoogleAuthenticator] generator doesn't support any additional
+        // configuration we use the standard generators and pass in a decoded base32 string.
+        //
+        // More info: https://github.com/marcelkliemannel/kotlin-onetimepassword#google-authenticator
         val secret = Base32().decode(account.secret.toByteArray())
 
         return when (account.type) {
@@ -25,7 +31,7 @@ object OTPGenerator {
                 ).generate(now())
             }
             OTPType.HOTP -> {
-                val config = HmacOneTimePasswordConfig(
+                val config = HmacOneTimePasswordConfig( //TODO: Keep an instance somewhere
                     account.digits,
                     account.algorithm
                 )

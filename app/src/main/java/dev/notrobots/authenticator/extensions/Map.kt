@@ -9,3 +9,5 @@ fun <K, V> Map<K, V>.find(predicate: (K, V) -> Boolean): Map.Entry<K, V>? {
 
     return null
 }
+
+fun <T> Map<T, *>.slice(keys: Iterable<T>) = filterKeys { it in keys }

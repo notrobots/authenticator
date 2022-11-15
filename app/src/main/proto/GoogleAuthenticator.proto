@@ -1,22 +1,11 @@
 syntax = "proto3";
 option java_package = "dev.notrobots.authenticator.proto";
 
-/**
- * Migration payload used by the official Google Authenticator
- */
-message GoogleMigrationPayload {
+// Version 1
+message GoogleAuthenticator {
   enum Algorithm {
     ALGORITHM_UNSPECIFIED = 0;
     ALGORITHM_SHA1 = 1;
-    ALGORITHM_SHA256 = 2;
-    ALGORITHM_SHA512 = 3;
-//    ALGORITHM_MD5 = 4;
-  }
-
-  enum DigitCount {
-    DIGIT_COUNT_UNSPECIFIED = 0;
-    DIGIT_COUNT_SIX = 1;
-    DIGIT_COUNT_EIGHT = 2;
   }
 
   enum OTPType {
@@ -30,14 +19,25 @@ message GoogleMigrationPayload {
     string name = 2;
     string issuer = 3;
     Algorithm algorithm = 4;
-    DigitCount digits = 5;
+    int32 digits = 5;
     OTPType type = 6;
     int64 counter = 7;
   }
 
-  repeated Account accounts = 1;
-  int32 version = 2;
-  int32 batch_size = 3;   // Total number of payloads
-  int32 batch_index = 4;  // Index of this payload
-  int32 batch_id = 5;   // unique identifier for the export attempt
+  message Backup {
+    repeated Account accounts = 1;
+
+    // Version of the protobuf message.
+    int32 version = 2;
+
+    // Total number of batches/payloads
+    int32 batch_size = 3;
+
+    // Index of this specific batch.
+    // It must be in the range 0 - (batch_size - 1) or else Google Authenticator will complain.
+    int32 batch_index = 4;
+
+    // Unique identifier of this batch. Unix epoch can be used
+    int32 batch_id = 5;
+  }
 }

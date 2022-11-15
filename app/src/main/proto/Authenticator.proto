@@ -1,16 +1,13 @@
 syntax = "proto3";
 option java_package = "dev.notrobots.authenticator.proto";
 
-/**
- * Migration payload used by this app
- */
-message MigrationPayload {
+message Authenticator {
   enum Algorithm {
     ALGORITHM_UNSPECIFIED = 0;
     ALGORITHM_SHA1 = 1;
     ALGORITHM_SHA256 = 2;
     ALGORITHM_SHA512 = 3;
-//    ALGORITHM_MD5 = 4;
+    //    ALGORITHM_MD5 = 4;
   }
 
   enum OTPType {
@@ -30,7 +27,16 @@ message MigrationPayload {
     int64 period = 8;
     Algorithm algorithm = 9;
     int64 order = 10;
+    repeated string tags = 11;
   }
 
-  repeated Account accounts = 1;
+  message Tag {
+    string name = 2;
+  }
+
+  message Backup {
+    repeated Account accounts = 1;
+    repeated Tag tags = 2;
+  }
 }
+

@@ -18,8 +18,12 @@ enum class OTPType {
     companion object {
         fun stringValues(): List<String> {
             return values().map {
-                it.toString().toLowerCase(Locale.getDefault())
+                it.toString().lowercase()
             }
+        }
+
+        fun contains(value: String?): Boolean {
+            return values().find { it.name.equals(value, true) } != null
         }
     }
 }
