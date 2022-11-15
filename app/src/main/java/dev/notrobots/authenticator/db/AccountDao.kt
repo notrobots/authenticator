@@ -13,28 +13,28 @@ import dev.notrobots.authenticator.models.SortMode.Companion.SORT_DESC
 @Dao
 interface AccountDao {
     @Query("SELECT * FROM Account WHERE accountId = :id")
-    fun getAccount(id: Long): Account?
+    suspend fun getAccount(id: Long): Account?
 
     @Query("SELECT * FROM Account WHERE name = :name AND label = :label AND issuer = :issuer")
-    fun getAccount(name: String, label: String, issuer: String): Account?
+    suspend fun getAccount(name: String, label: String, issuer: String): Account?
 
     @Transaction
     @Query("SELECT * FROM Account WHERE accountId = :accountId")
-    fun getAccountWithTags(accountId: Long): AccountWithTags
+    suspend fun getAccountWithTags(accountId: Long): AccountWithTags
 
     @Transaction
     @Query("SELECT * FROM Account WHERE accountId = :accountId")
     fun getAccountWithTagsLive(accountId: Long): LiveData<AccountWithTags>
 
     @Query("SELECT * FROM Account ORDER BY `order`")
-    fun getAccounts(): List<Account>
+    suspend fun getAccounts(): List<Account>
 
     @Query("SELECT * FROM Account ORDER BY `order`")
     fun getAccountsLive(): LiveData<List<Account>>
 
     @Transaction
     @Query("SELECT * FROM Account")
-    fun getAccountsWithTags(): List<AccountWithTags>
+    suspend fun getAccountsWithTags(): List<AccountWithTags>
 
     @Transaction
     @Query("SELECT * FROM Account")
@@ -76,48 +76,48 @@ interface AccountDao {
     fun getAccountsWithTagsLive(orderDir: Int, orderBy: Int): LiveData<List<AccountWithTags>>
 
     @Query("SELECT COUNT(name) FROM Account WHERE name = :name AND label = :label AND issuer = :issuer")
-    fun getCount(name: String, label: String, issuer: String): Int
+    suspend fun getCount(name: String, label: String, issuer: String): Int
 
     @Transaction
-    fun exists(name: String, label: String, issuer: String): Boolean {
+    suspend fun exists(name: String, label: String, issuer: String): Boolean {
         return getCount(name, label, issuer) > 0
     }
 
     @Transaction
-    fun exists(account: Account): Boolean {
+    suspend fun exists(account: Account): Boolean {
         return getCount(account.name, account.label, account.issuer) > 0
     }
 
     @Query("SELECT COALESCE(MAX(`order`), 0) FROM Account")
-    fun getLargestOrder(): Long
+    suspend fun getLargestOrder(): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)    //XXX Is this needed?
-    fun insert(account: Account): Long
+    suspend fun insert(account: Account): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(accounts: List<Account>): List<Long>
+    suspend fun insert(accounts: List<Account>): List<Long>
 
     @Insert
-    fun insert(accountTagCrossRef: AccountTagCrossRef)
+    suspend fun insert(accountTagCrossRef: AccountTagCrossRef)
 
     @Update
-    fun update(account: Account)
+    suspend fun update(account: Account)
 
     @Update
-    fun update(accounts: List<Account>)
+    suspend fun update(accounts: List<Account>)
 
     @Delete
-    fun delete(account: Account)
+    suspend fun delete(account: Account)
 
     @Delete
-    fun delete(accounts: List<Account>)
+    suspend fun delete(accounts: List<Account>)
 
     @Delete
-    fun delete(accountTagCrossRef: AccountTagCrossRef)
+    suspend fun delete(accountTagCrossRef: AccountTagCrossRef)
 
     @Query("DELETE FROM AccountTagCrossRef WHERE accountId = :accountId")
-    fun removeTags(accountId: Long)
+    suspend fun removeTags(accountId: Long)
 
     @Query("DELETE FROM Account")
-    fun deleteAll()
+    suspend fun deleteAll()
 }
