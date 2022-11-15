@@ -1,25 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
-<!--    <View-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="1dp"-->
-<!--        android:background="@drawable/bg_list_separator" />-->
-
-    <ListView
-        android:id="@+id/option_list"
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:listitem="@layout/item_list_option"
-        android:divider="@drawable/bg_list_separator"/>
+        android:divider="@drawable/bg_list_separator"
+        app:showDividers="middle"
+        android:orientation="vertical"/>
 
-<!--    <View-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="1dp"-->
-<!--        android:background="@drawable/bg_list_separator"/>-->
-
-</LinearLayout>
+</ScrollView>

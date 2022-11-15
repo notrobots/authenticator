@@ -1,12 +1,8 @@
 package dev.notrobots.authenticator.extensions
 
-import android.app.job.JobInfo
-import android.app.job.JobScheduler
-import android.content.ComponentName
 import android.content.Context
 import android.util.TypedValue
 import androidx.biometric.BiometricManager
-import androidx.core.content.getSystemService
 
 /**
  * Checks if the device is secured.

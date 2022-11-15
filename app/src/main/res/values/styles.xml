@@ -100,12 +100,14 @@
 
     <style name="OptionList" />
 
-    <style name="OptionList.Title" parent="TextAppearance.Material3.TitleMedium">
+    <style name="OptionList.Item" />
+
+    <style name="OptionList.Item.Title" parent="TextAppearance.Material3.TitleMedium">
         <item name="android:textColor">?android:attr/textColorPrimary</item>
         <item name="android:letterSpacing">0.04</item>
     </style>
 
-    <style name="OptionList.Description" parent="TextAppearance.Material3.LabelLarge">
+    <style name="OptionList.Item.Description" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:textColor">?android:attr/textColorSecondary</item>
     </style>
 </resources>

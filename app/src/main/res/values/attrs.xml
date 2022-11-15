@@ -20,13 +20,19 @@
         <!-- Spinner label -->
         <attr name="spinnerLabel" format="string" />
     </declare-styleable>
-    <declare-styleable name="OptionList">
+    <declare-styleable name="OptionListItem">
         <!-- Text appearance of each of the option's title -->
         <attr name="option_titleTextAppearance" format="reference" />
         <!-- Text appearance of each of the option's description -->
         <attr name="option_descriptionTextAppearance" format="reference" />
         <!-- Tint of each of the option's icon -->
         <attr name="option_iconTint" format="reference|color" />
+        <!-- Option's icon -->
+        <attr name="option_icon" format="reference" />
+        <!-- Option's title -->
+        <attr name="option_title" format="reference|string" />
+        <!-- Option's description -->
+        <attr name="option_description" format="reference|string" />
     </declare-styleable>
     <declare-styleable name="BackupOptionView">
         <!-- Title for this option -->
