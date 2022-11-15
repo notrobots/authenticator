@@ -44,6 +44,7 @@
         <!-- Action Mode -->
         <item name="windowActionModeOverlay">true</item>
 
+        <item name="android:windowDisablePreview">true</item>
         <item name="colorControlNormal">#1B1B1F</item>
         <!-- FIXME: On android 13 with dynamic colors, this color won't use the theme's colors -->
         <item name="barcodeScannerActionBackgroundColor">#80DAE2FF</item>
@@ -94,6 +95,7 @@
         <!-- Action Mode -->
         <item name="windowActionModeOverlay">true</item>
 
+        <item name="android:windowDisablePreview">true</item>
         <item name="colorControlNormal">#e4e2e6</item>
         <item name="barcodeScannerActionBackgroundColor">#800040A1</item>
     </style>
@@ -143,6 +145,7 @@
         <!-- Action Mode -->
         <item name="windowActionModeOverlay">true</item>
 
+        <item name="android:windowDisablePreview">true</item>
         <item name="colorControlNormal">#ffffff</item>
         <item name="android:textColorPrimary">#ffffff</item>
         <item name="barcodeScannerActionBackgroundColor">#809acbff</item>

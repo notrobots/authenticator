@@ -9,7 +9,7 @@ import dev.notrobots.authenticator.ui.backupmanager.BackupFrequency
 import org.json.JSONObject
 
 class BackupFrequencyPreference(
-    context: Context?,
+    context: Context,
     attrs: AttributeSet?,
     defStyleAttr: Int = R.attr.preferenceStyle,
     defStyleRes: Int = defStyleAttr

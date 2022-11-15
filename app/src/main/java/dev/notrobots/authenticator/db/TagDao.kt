@@ -8,14 +8,14 @@ import dev.notrobots.authenticator.models.TagWithAccounts
 @Dao
 interface TagDao {
     @Query("SELECT * FROM Tag")
-    suspend fun getTags(): List<Tag>
+    fun getTags(): List<Tag>
 
     @Query("SELECT * FROM Tag")
     fun getTagsLive(): LiveData<List<Tag>>
 
     @Transaction
     @Query("SELECT * FROM Tag")
-    suspend fun getTagsWithAccounts(): List<TagWithAccounts>
+    fun getTagsWithAccounts(): List<TagWithAccounts>
 
     @Transaction
     @Query("SELECT * FROM Tag")
@@ -23,7 +23,7 @@ interface TagDao {
 
     @Transaction
     @Query("SELECT * FROM Tag WHERE tagId = :id")
-    suspend fun getTagWithAccounts(id: Int): TagWithAccounts
+    fun getTagWithAccounts(id: Int): TagWithAccounts
 
     @Transaction
     @Query("SELECT * FROM Tag WHERE tagId = :id")
@@ -31,27 +31,27 @@ interface TagDao {
 
     @Transaction
     @Query("SELECT * FROM Tag WHERE name = :name")
-    suspend fun getTagWithAccounts(name: String): TagWithAccounts
+    fun getTagWithAccounts(name: String): TagWithAccounts
 
     @Transaction
     @Query("SELECT * FROM Tag WHERE name = :name")
     fun getTagWithAccountsLive(name: String): LiveData<TagWithAccounts>
 
     @Query("SELECT EXISTS(SELECT * FROM Tag WHERE tagId = :id)")
-    suspend fun exists(id: Int): Boolean
+    fun exists(id: Int): Boolean
 
     @Query("SELECT EXISTS(SELECT * FROM Tag WHERE name = :name)")
-    suspend fun exists(name: String): Boolean
+    fun exists(name: String): Boolean
 
     @Insert
-    suspend fun insert(tag: Tag): Long
+    fun insert(tag: Tag): Long
 
     @Insert
-    suspend fun insert(tags: List<Tag>)
+    fun insert(tags: List<Tag>)
 
     @Update
-    suspend fun update(tag: Tag)
+    fun update(tag: Tag)
 
     @Delete
-    suspend fun delete(tag: Tag)
+    fun delete(tag: Tag)
 }
