@@ -16,7 +16,7 @@ class ImportResultAdapter : RecyclerView.Adapter<ImportResultAdapter.ViewHolder>
     private var items = listOf<ImportResult>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(R.layout.item_import_result, parent)
+        return ViewHolder(parent)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -89,9 +89,8 @@ class ImportResultAdapter : RecyclerView.Adapter<ImportResultAdapter.ViewHolder>
         notifyDataSetChanged()
     }
 
-    class ViewHolder(layoutRes: Int, parent: ViewGroup) : BindableViewHolder<ItemImportResultBinding>(
-        layoutRes,
-        parent,
-        ItemImportResultBinding::class
+    class ViewHolder(parent: ViewGroup) : BindableViewHolder<ItemImportResultBinding>(
+        ItemImportResultBinding::class,
+        parent
     )
 }

@@ -4,12 +4,9 @@ import android.annotation.SuppressLint
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import dev.notrobots.androidstuff.extensions.disable
-import dev.notrobots.androidstuff.extensions.setDisabled
-import dev.notrobots.androidstuff.extensions.show
+import dev.notrobots.androidstuff.widget.BindableViewHolder
 import dev.notrobots.authenticator.databinding.ItemTagBinding
 import dev.notrobots.authenticator.models.Tag
-import dev.notrobots.authenticator.widget.BindableViewHolder
 
 class TagListAdapter : RecyclerView.Adapter<TagListAdapter.TagViewHolder>() {
     private var items = mutableListOf<Tag>()
@@ -75,7 +72,7 @@ class TagListAdapter : RecyclerView.Adapter<TagListAdapter.TagViewHolder>() {
         this.listener = listener
     }
 
-    class TagViewHolder(parent: ViewGroup) : BindableViewHolder<ItemTagBinding>(parent, ItemTagBinding::class)
+    class TagViewHolder(parent: ViewGroup) : BindableViewHolder<ItemTagBinding>(ItemTagBinding::class, parent)
 
     interface Listener {
         fun onDelete(tag: Tag, id: Long, position: Int)
