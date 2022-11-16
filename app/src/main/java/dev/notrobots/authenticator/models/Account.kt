@@ -230,7 +230,7 @@ data class Account(
             val uri = Uri.Builder()
 
             uri.scheme(URI_SCHEME)
-            uri.authority(value.type.toString().replaceFirstChar(Char::titlecase))
+            uri.authority(value.type.toString().lowercase())
             uri.path(value.path)
             uri.appendQueryParameter(SECRET, value.secret)
 
@@ -241,7 +241,7 @@ data class Account(
             uri.appendQueryParameter(COUNTER, value.counter.toString())
             uri.appendQueryParameter(DIGITS, value.digits.toString())
             uri.appendQueryParameter(PERIOD, value.period.toString())
-            uri.appendQueryParameter(ALGORITHM, value.algorithm.toString().toLowerCase(Locale.getDefault()))
+            uri.appendQueryParameter(ALGORITHM, value.algorithm.toString().lowercase())
 
             if (tags.isNotEmpty()) {
                 uri.appendQueryParameter(TAGS, tags.joinToString(",") { it.name })
