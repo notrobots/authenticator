@@ -96,7 +96,7 @@ class BackupManagerActivity : AuthenticatorActivity() {
                     val stream = requireContext().contentResolver.openInputStream(uri)
 
                     stream?.bufferedReader()?.use {
-                        val data = BackupManager.import(it.readText())
+                        val data = BackupManager.importText(it.readText())
 
                         ImportResultActivity.showResults(requireContext(), data)
                     }
@@ -180,7 +180,7 @@ class BackupManagerActivity : AuthenticatorActivity() {
         }
 
         private fun formatFrequency(preference: EditTextPreference): String? {
-            val days = preference.text.toIntOrNull() ?: 0
+            val days = preference.text?.toIntOrNull() ?: 0
             val daysLabel = resources.getQuantityString(R.plurals.label_days, days)
 
             return if (days > 0) {

@@ -20,7 +20,41 @@
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <dev.notrobots.authenticator.views.OptionListItem
+                android:id="@+id/export_options_qr"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:option_description="@string/label_export_option_qr_description"
+                app:option_icon="@drawable/ic_qr"
+                app:option_title="@string/label_export_option_qr"/>
+
+            <dev.notrobots.authenticator.views.OptionListItem
+                android:id="@+id/export_options_google_authenticator"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:option_description="@string/label_export_option_google_authenticator_description"
+                app:option_icon="@drawable/ic_google"
+                app:option_title="@string/label_export_option_google_authenticator"/>
+
+            <dev.notrobots.authenticator.views.OptionListItem
+                android:id="@+id/export_options_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:option_description="@string/label_export_option_text_description"
+                app:option_icon="@drawable/ic_file"
+                app:option_title="@string/label_export_option_text"/>
+
+            <dev.notrobots.authenticator.views.OptionListItem
+                android:id="@+id/export_options_json"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:option_description="@string/label_export_option_json_description"
+                app:option_icon="@drawable/ic_json"
+                app:option_title="@string/label_export_option_json"/>
+
+        </dev.notrobots.authenticator.views.OptionList>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

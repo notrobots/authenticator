@@ -11,7 +11,7 @@ import dev.notrobots.authenticator.ui.backupexport.ExportActivity
 /**
  * Shows the biometric prompt to the user.
  */
-fun FragmentActivity.showBiometricPrompt(
+internal fun FragmentActivity.showBiometricPrompt(
     title: String,
     subtitle: String?,
     onSuccess: (result: BiometricPrompt.AuthenticationResult) -> Unit,
@@ -54,7 +54,7 @@ fun FragmentActivity.showBiometricPrompt(
  * Shows the biometric prompt to the user and launches the [ExportActivity]
  * on authentication succeeded.
  */
-fun FragmentActivity.requestExport(requireAuthentication: Boolean, isSecured: Boolean) {
+internal fun FragmentActivity.requestExport(requireAuthentication: Boolean, isSecured: Boolean) {
     if (requireAuthentication) {
         if (isSecured) {
             showBiometricPrompt(

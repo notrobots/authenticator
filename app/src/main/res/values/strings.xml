@@ -94,4 +94,40 @@
     <string name="empty_view_no_tags">Press "+" to add a tag</string>
     <string name="label_tags">Tags</string>
     <string name="label_edit_tag">Edit tag</string>
+    <string name="label_export_option_qr_description">
+        Creates one or more QR codes. This will try and create as little QR codes as possible.&lt;br/>&lt;br/>
+        &lt;b>Exported items&lt;/b>:
+        &lt;ul>
+            &lt;li> Accounts&lt;/li>
+            &lt;li> Tags&lt;/li>
+        &lt;/ul>
+    </string>
+    <string name="label_export_option_qr">QR</string>
+    <string name="label_export_option_google_authenticator_description">
+        Creates one or more QR codes that can be imported by Google Authenticator.&lt;br/>&lt;br/>
+        &lt;b>Exported items&lt;/b>:
+        &lt;ul>
+            &lt;li> Accounts&lt;/li>
+        &lt;/ul>
+    </string>
+    <string name="label_export_option_google_authenticator">Google Authenticator</string>
+    <string name="label_export_option_text">Text File</string>
+    <string name="label_export_option_text_description">
+        Export all items in a single text file.&lt;br/>&lt;br/>
+        &lt;b>Exported items&lt;/b>:
+        &lt;ul>
+            &lt;li> Accounts&lt;/li>
+            &lt;li> Tags&lt;/li>
+        &lt;/ul>
+    </string>
+    <string name="label_export_option_json">Json File</string>
+    <string name="label_export_option_json_description">
+        Export all items in a single json file.&lt;br/>&lt;br/>
+        &lt;b>Exported items&lt;/b>:
+        &lt;ul>
+            &lt;li> Accounts&lt;/li>
+            &lt;li> Tags&lt;/li>
+            &lt;li> App Settings&lt;/li>
+        &lt;/ul>
+    </string>
 </resources>

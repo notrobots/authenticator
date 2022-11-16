@@ -2,6 +2,7 @@ package dev.notrobots.authenticator.util
 
 import android.net.Uri
 import androidx.core.net.toUri
+import dev.notrobots.androidstuff.util.now
 import dev.notrobots.authenticator.App
 import dev.notrobots.authenticator.extensions.contains
 import dev.notrobots.authenticator.extensions.getTags
@@ -34,6 +35,15 @@ object BackupManager {
     const val BACKUP_JSON_ACCOUNTS = "accounts"
     const val BACKUP_JSON_TAGS = "tags"
     const val BACKUP_JSON_SETTINGS = "settings"
+
+    val textBackupFilename
+        get() = "authenticator_${now() / 100}.txt"
+    val jsonBackupFilename
+        get() = "authenticator_${now() / 100}.json"
+    val qrBackupFilename
+        get() = "authenticator_qr_${now() / 100}.png"
+    val googleAuthenticatorBackupFilename
+        get() = "google_authenticator_${now() / 100}.png"
 
     /**
      * Exports the items as a single line string.

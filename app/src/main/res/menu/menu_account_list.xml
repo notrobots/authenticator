@@ -3,6 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/menu_account_list_search"
+        android:icon="@drawable/ic_search"
+        android:title="Search"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/menu_account_list_filter"
         android:icon="@drawable/ic_filter"
         android:title="Filter tags"
@@ -12,12 +18,6 @@
         android:id="@+id/menu_account_list_edit"
         android:icon="@drawable/ic_edit"
         android:title="Edit items"
-        app:showAsAction="ifRoom" />
-
-    <item
-        android:id="@+id/menu_account_list_search"
-        android:icon="@drawable/ic_search"
-        android:title="Search"
         app:showAsAction="ifRoom" />
 
     <item
@@ -65,7 +65,7 @@
                 android:title="Import" />
             <item
                 android:id="@+id/menu_account_list_backup_manager"
-                android:title="Backup manager" />
+                android:title="Automatic Backups" />
         </menu>
     </item>
 

@@ -39,6 +39,7 @@
 
         <activity
             android:name=".ui.backupexport.ExportActivity"
+            android:label="Export"
             android:screenOrientation="portrait" />
 
         <activity
@@ -71,6 +72,10 @@
             android:name=".ui.taglist.TagListActivity"
             android:label="@string/label_tags"
             android:screenOrientation="portrait" />
+
+        <activity android:name=".ui.backupexport.ExportFileActivity"
+            android:label="Backup"
+            android:screenOrientation="portrait"/>
 
         <service
             android:name=".services.LocalBackupJob"

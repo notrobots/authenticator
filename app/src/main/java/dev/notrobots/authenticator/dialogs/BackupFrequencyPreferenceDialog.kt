@@ -3,7 +3,6 @@ package dev.notrobots.authenticator.dialogs
 import android.content.Context
 import android.os.Bundle
 import android.view.View
-import androidx.preference.DialogPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceDialogFragmentCompat
 import dev.notrobots.androidstuff.util.bindView

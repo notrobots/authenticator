@@ -16,17 +16,14 @@ import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityExportQrBinding
 import dev.notrobots.authenticator.models.QRCode
 import dev.notrobots.authenticator.models.QRCodePaint
+import dev.notrobots.authenticator.models.AuthenticatorQRCodePaint
+import dev.notrobots.authenticator.util.BackupManager
 import dev.notrobots.authenticator.views.ImageSlider
 import org.apache.commons.codec.binary.Base64
 import java.io.ByteArrayOutputStream
 
 class ExportQRActivity : AuthenticatorActivity() {
     private val binding by viewBindings<ActivityExportQrBinding>()
-    private val saveCurrent = registerForActivityResult(ActivityResultContracts.CreateDocument()) {
-        it?.let {
-            saveQRCode(qrCodes[binding.imageSlider.currentImageIndex], it)
-        }
-    }
     private val saveAll = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) {
         it?.let {
             val document = DocumentFile.fromTreeUri(this, it)
@@ -44,29 +41,34 @@ class ExportQRActivity : AuthenticatorActivity() {
         }
     }
     private var qrCodes: List<QRCode> = emptyList()
-    private var currentQRCode = 0
+    private lateinit var qrCodePaint: QRCodePaint
+    private var qrCodeType: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
-
-        val background = resolveColorAttribute(android.R.attr.windowBackground)
-        val foreground = resolveColorAttribute(R.attr.colorPrimary)
-        val qrCodePaint = object : QRCodePaint() {
-            override fun getPixel(x: Int, y: Int, state: Boolean): Int {
-                return if (state) foreground else background
-            }
-        }
-
-        qrCodes = intent.getSerializableExtra(EXTRA_QR_CODES) as List<QRCode>
-
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        binding.toolbar.setNavigationOnClickListener { onBackPressed() }    //TODO: Why onBackPressed?
+        finishOnBackPressEnabled = true
+
+        qrCodePaint = AuthenticatorQRCodePaint(this)
+        qrCodes = intent.getSerializableExtra(EXTRA_QR_CODES) as List<QRCode>
+        qrCodeType = intent.getIntExtra(EXTRA_QR_TYPE, QR_TYPE_DEFAULT)
+
         binding.imageSlider.indicatorView?.disable()
         binding.imageSlider.setImageBitmaps(qrCodes.map { it.toBitmap(qrCodePaint) })
         binding.done.setOnClickListener {
             finish()    //FIXME: Back to MainActivity
+        }
+
+        when (qrCodeType) {
+            QR_TYPE_DEFAULT -> {
+                binding.description.text = "Open the Authenticator app on your other device and scan these QR codes or store them in a safe location"
+            }
+
+            QR_TYPE_GOOGLE_AUTHENTICATOR -> {
+                binding.description.text = "Open the Google Authenticator app on your other device and scan these QR codes or store them in a safe location"
+            }
         }
 
         if (qrCodes.size == 1) {
@@ -87,7 +89,6 @@ class ExportQRActivity : AuthenticatorActivity() {
 
                 override fun onImageChanged(view: ImageSlider, old: Int, new: Int) {
                     binding.toolbarLayout.title = "QR code ${new + 1} of ${qrCodes.size}"
-                    currentQRCode = new
                 }
             })
         }
@@ -111,13 +112,15 @@ class ExportQRActivity : AuthenticatorActivity() {
             R.id.menu_export_print -> {
                 printBackup()
             }
+
+            else -> return super.onOptionsItemSelected(item)
         }
 
         return true
     }
 
     /**
-     * Saves the given [qrCode] to the given [location]
+     * Saves the given [qrCode] to the given [location].
      */
     private fun saveQRCode(qrCode: QRCode, location: Uri) {
         val stream = contentResolver.openOutputStream(location)
@@ -134,7 +137,7 @@ class ExportQRActivity : AuthenticatorActivity() {
     }
 
     /**
-     * Formats and prints the backup data
+     * Formats and prints the backup data.
      */
     private fun printBackup() {
         val template = resources.openRawResource(R.raw.qr_backup_template)
@@ -154,20 +157,39 @@ class ExportQRActivity : AuthenticatorActivity() {
             .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
             .setColorMode(PrintAttributes.COLOR_MODE_MONOCHROME)
             .build()
+        val backupTitle = when (qrCodeType) {
+            QR_TYPE_DEFAULT -> "Authenticator Backup"
+            QR_TYPE_GOOGLE_AUTHENTICATOR -> "Google Authenticator Backup"
+
+            else -> throw Exception("Unknown QR code type")
+        }
 
         printHTML(
-            template.replace("QR_DATA_ARRAY", data),
+            template
+                .replace("\$QR_DATA_ARRAY", data)
+                .replace("\$BACKUP_TITLE", backupTitle),
             "Authenticator Backup print",
             printAttributes,
             true
         )
     }
 
+    /**
+     * Generates a new file name.
+     */
     private fun getFilename(): String {
-        return "authenticator_qr_${now() / 100}.png"
+        return when (qrCodeType) {
+            QR_TYPE_DEFAULT -> BackupManager.qrBackupFilename
+            QR_TYPE_GOOGLE_AUTHENTICATOR -> BackupManager.googleAuthenticatorBackupFilename
+
+            else -> throw Exception("Unknown QR code type")
+        }
     }
 
     companion object {
         const val EXTRA_QR_CODES = "ExportQRActivity.QR_CODES"
+        const val EXTRA_QR_TYPE = "ExportQRActivity.QR_TYPE"
+        const val QR_TYPE_DEFAULT = 0
+        const val QR_TYPE_GOOGLE_AUTHENTICATOR = 100
     }
 }

@@ -14,7 +14,7 @@
             style="?attr/collapsingToolbarLayoutLargeStyle"
             android:layout_width="match_parent"
             android:layout_height="?attr/collapsingToolbarLayoutMediumSize"
-            app:title="QR code 1 of 2"
+            app:title="QR Code 1 of 2"
             app:expandedTitleGravity="center|bottom"
             android:background="?attr/colorSurface">
 

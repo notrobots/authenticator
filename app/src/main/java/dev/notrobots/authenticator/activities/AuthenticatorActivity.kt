@@ -48,7 +48,7 @@ open class AuthenticatorActivity : BaseActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home && finishOnBackPressEnabled) {
             //TODO: Add a method to BaseActivity that checks execute the back press and checks if the double press to finish is enabled too
-            onBackPressed()
+            onBackPressedDispatcher.onBackPressed()
             return true
         }
 

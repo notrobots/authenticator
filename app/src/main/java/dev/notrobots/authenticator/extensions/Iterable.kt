@@ -15,3 +15,18 @@ internal fun Iterable<AccountWithTags>.getTags(account: Account): List<Tag>? {
 internal fun Iterable<String>.contains(value: String, ignoreCase: Boolean): Boolean {
     return find { it.equals(value, ignoreCase) } != null
 }
+
+fun <T> Iterable<T>.joinToStringIndexed(
+    separator: CharSequence = ", ",
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = "...",
+    transform: (index: Int, T) -> CharSequence
+): String {
+    var index = 0
+
+    return joinToString(separator, prefix, postfix, limit, truncated) {
+        transform(index++, it)
+    }
+}

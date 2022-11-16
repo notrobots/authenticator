@@ -328,13 +328,17 @@ class AccountListActivity : AuthenticatorActivity() {
             R.id.menu_account_list_sort_issuer_az_desc -> updateSortModeAndCheckItem(SortMode.IssuerDescending)
             R.id.menu_account_list_sort_custom -> updateSortModeAndCheckItem(SortMode.Custom)
             R.id.menu_account_list_backup_export -> {
-                if (viewModel.accounts.value?.isNotEmpty() == true) {
-                    requestExport(
-                        preferences.getExportLock(),
-                        isDeviceSecured()
-                    )
-                } else {
-                    makeSnackBar("Nothing to export", binding.root)
+                lifecycleScope.launch {
+                    val accounts = viewModel.accountDao.getAccounts()
+
+                    if (accounts.isNotEmpty()) {
+                        requestExport(
+                            preferences.getExportLock(),
+                            isDeviceSecured()
+                        )
+                    } else {
+                        makeSnackBar("Nothing to export", binding.root)
+                    }
                 }
             }
             R.id.menu_account_list_backup_import -> startActivity(ImportActivity::class)
@@ -478,19 +482,19 @@ class AccountListActivity : AuthenticatorActivity() {
      * Tries to import the given [data] and throws an Exception if there any errors.
      */
     private fun import(data: String) {
-        val importedData = BackupManager.import(data)     //FIXME: This throws an unreadable exception for the final user
+        val importedData = BackupManager.importText(data)     //FIXME: This throws an unreadable exception for the final user
 
-        if (importedData.accounts.size > 1 || BackupManager.isBackup(data)) {
-            startActivity(ImportResultActivity::class) {
-                putExtra(ImportResultActivity.EXTRA_DATA, arrayListOf(importedData))
-            }
-            logd("QR: Importing backup of size: ${importedData.accounts}")
-        } else {
-            val account = BackupManager.parseAccount(data)
-
-            addOrReplaceAccount(account)
-            logd("QR: Importing single account")
-        }
+//        if (importedData.accounts.size > 1 || BackupManager.isBackup(data)) {
+//            startActivity(ImportResultActivity::class) {
+//                putExtra(ImportResultActivity.EXTRA_DATA, arrayListOf(importedData))
+//            }
+//            logd("QR: Importing backup of size: ${importedData.accounts}")
+//        } else {
+//            val account = BackupManager.parseAccount(data)
+//
+//            addOrReplaceAccount(account)
+//            logd("QR: Importing single account")
+//        }
     }
 
     /**
