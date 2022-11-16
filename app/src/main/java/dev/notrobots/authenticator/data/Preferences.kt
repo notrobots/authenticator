@@ -34,7 +34,7 @@ object Preferences {
     const val EXPORT_LOCK = "export_lock"
     @EnumPreference //FIXME: Default value should be set in all EnumPreferences
     const val PIN_TEXT_SIZE = "pin_text_size"
-    @LongPreference
+    @LongPreference(-1L)
     const val TAG_ID_FILTER = "tag_id_filter"
 
     //TODO: Some values should have "enabled" at the end

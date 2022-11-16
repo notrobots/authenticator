@@ -44,7 +44,8 @@ interface AccountDao {
     @Query(
         """
         SELECT * FROM Account
-        INNER JOIN AccountTagCrossRef ON AccountTagCrossRef.accountId = Account.accountId 
+        LEFT JOIN AccountTagCrossRef 
+            ON AccountTagCrossRef.accountId = Account.accountId 
         WHERE tagId = :tagId 
         GROUP BY Account.accountId
         ORDER BY 
@@ -62,7 +63,7 @@ interface AccountDao {
     @Query(
         """
         SELECT * FROM Account
-        INNER JOIN AccountTagCrossRef ON AccountTagCrossRef.accountId = Account.accountId 
+        LEFT JOIN AccountTagCrossRef ON AccountTagCrossRef.accountId = Account.accountId 
         GROUP BY Account.accountId
         ORDER BY 
             CASE WHEN :orderBy = $ORDER_BY_NAME AND :orderDir = $SORT_ASC THEN name END ASC,
