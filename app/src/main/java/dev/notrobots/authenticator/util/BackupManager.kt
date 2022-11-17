@@ -503,6 +503,6 @@ object BackupManager {
         val accounts: List<Account> = listOf(),
         val tags: List<Tag> = emptyList(),
         val accountsWithTags: Map<Account, List<String>> = emptyMap(),
-        val settings: Map<String, Any?> = mapOf(),
-    )
+        val settings: Map<String, Any?> = emptyMap()
+    ): Serializable
 }
