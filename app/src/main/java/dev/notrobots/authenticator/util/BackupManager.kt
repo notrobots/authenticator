@@ -2,6 +2,7 @@ package dev.notrobots.authenticator.util
 
 import android.net.Uri
 import androidx.core.net.toUri
+import dev.notrobots.androidstuff.util.loge
 import dev.notrobots.androidstuff.util.now
 import dev.notrobots.authenticator.App
 import dev.notrobots.authenticator.extensions.contains
@@ -18,7 +19,8 @@ import org.json.JSONObject
  * When loading data from a backup there is no way to associate an account with its tags using
  * the [AccountWithTags] class, so we're using a Map that associates an Account with a List of Tags.
  */
-private typealias AccountsWithTags = Map<Account, List<String>>
+internal typealias AccountsWithTags = Map<Account, List<String>>
+internal typealias MutableAccountsWithTags = MutableMap<Account, List<String>>
 
 object BackupManager {
     private val authenticatorBackupSerializer = AuthenticatorBackupSerializer()
@@ -237,7 +239,8 @@ object BackupManager {
                 ),
                 BACKUP_JSON_TAGS to JSONArray(
                     tags.map(Tag::name) //TODO: Most .map could be reduced to this
-                )
+                ),
+                BACKUP_JSON_SETTINGS to JSONObject(settings)
             )
         )
     }
@@ -327,8 +330,6 @@ object BackupManager {
 
         for ((index, uri) in list.withIndex()) {
             try {
-                val uri = item.toUri()
-
                 when {
                     // Google Authenticator backup
                     uri.scheme == BACKUP_GOOGLE_URI_SCHEME && uri.authority == BACKUP_GOOGLE_URI_AUTHORITY -> {
@@ -436,6 +437,19 @@ object BackupManager {
     }
 
     /**
+     * Imports the given [list] of String.
+     *
+     * All the items must be valid [Uri]s, the supported formats are
+     * + `otpauth://totp/label:name?secret={SECRET}&tags=tag1,tag2`
+     * + `otpauth://tag/name`
+     * + `otpauth://backup?part=1&total=1&data={SERIALIZED_DATA_CHUNK_1}`
+     * + `otpauth-migration://offline?data={SERIALIZED_DATA_CHUNK_1}`
+     */
+    fun importList(list: List<String>): BackupData {
+        return importUris(list.map { it.trim().toUri() })
+    }
+
+    /**
      * Imports the given [json] object.
      */
     fun importJson(json: JSONObject): BackupData {
@@ -444,44 +458,38 @@ object BackupManager {
         val tags = mutableListOf<Tag>()
         val settings = mutableMapOf<String, Any?>()
 
-        require(json.has(BACKUP_JSON_ACCOUNTS)) {
-            "Missing '$BACKUP_JSON_ACCOUNTS' field"
-        }
+        if (json.has(BACKUP_JSON_ACCOUNTS)) {
+            val accountsArray = json.getJSONArray(BACKUP_JSON_ACCOUNTS)
 
-        require(json.has(BACKUP_JSON_TAGS)) {   //todo: optional?
-            "Missing '$BACKUP_JSON_TAGS' field"
-        }
+            for (i in 0 until accountsArray.length()) {
+                val accountJson = accountsArray.getJSONObject(i)
+                val account = Account.fromJson(accountJson)
 
-        require(json.has(BACKUP_JSON_SETTINGS)) {   //todo: optional?
-            "Missing '$BACKUP_JSON_SETTINGS' field"
-        }
-
-        val accountsArray = json.getJSONArray(BACKUP_JSON_ACCOUNTS)
-
-        for (i in 0 until accountsArray.length()) {
-            val accountJson = accountsArray.getJSONObject(i)
-            val account = Account.fromJson(accountJson)
-
-            accounts.add(account)
-            accountsWithTags[account] = Account.tagsFromJson(accountJson)
-        }
-
-        val tagsArray = json.getJSONArray(BACKUP_JSON_TAGS)
-
-        for (i in 0 until tagsArray.length()) {
-            val tagName = tagsArray[i]
-
-            require(tagName is String) {
-                "Tag list must be only contain strings"
+                accounts.add(account)
+                accountsWithTags[account] = Account.tagsFromJson(accountJson)
             }
-
-            tags.add(Tag(tagName))
         }
 
-        val settingsJson = json.getJSONObject(BACKUP_JSON_SETTINGS)
+        if (json.has(BACKUP_JSON_TAGS)) {
+            val tagsArray = json.getJSONArray(BACKUP_JSON_TAGS)
 
-        for (field in settingsJson.keys()) {
-            settings[field] = settingsJson[field]
+            for (i in 0 until tagsArray.length()) {
+                val tagName = tagsArray[i]
+
+                require(tagName is String) {
+                    "Tag list must be only contain strings"
+                }
+
+                tags.add(Tag(tagName))
+            }
+        }
+
+        if (json.has(BACKUP_JSON_SETTINGS)) {
+            val settingsJson = json.getJSONObject(BACKUP_JSON_SETTINGS)
+
+            for (field in settingsJson.keys()) {
+                settings[field] = settingsJson[field]
+            }
         }
 
         return BackupData(accounts, tags, accountsWithTags, settings)
