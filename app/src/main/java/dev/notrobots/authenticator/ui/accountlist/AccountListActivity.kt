@@ -35,6 +35,7 @@ import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.backupimport.ImportActivity
 import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
+import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity_GeneratedInjector
 import dev.notrobots.authenticator.ui.backupmanager.BackupManagerActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import dev.notrobots.authenticator.ui.settings.SettingsActivity
@@ -61,16 +62,14 @@ class AccountListActivity : AuthenticatorActivity() {
     private val preferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(this)
     }
-    private val scanBarcode = registerForActivityResult(StartActivityForResult()) {
-        if (it.resultCode == Activity.RESULT_OK) {
-            if (it.data != null) {
-                val data = it.data!!.getStringArrayListExtra(BarcodeScannerActivity.EXTRA_QR_LIST) ?: listOf<String>()
+    private val barcodeScanner = registerForActivityResult(StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK && it.data != null) {
+            val data = it.data!!.getStringArrayListExtra(BarcodeScannerActivity.EXTRA_QR_LIST) ?: listOf<String>()
 
-                try {
-                    import(data.first())
-                } catch (e: Exception) {
-                    showInfo(R.string.label_error, e.message)
-                }
+            try {
+                ImportResultActivity.showResults(this, BackupManager.importList(data))
+            } catch (e: Exception) {
+                showInfo(R.string.label_error, e.message)
             }
         }
     }
@@ -480,25 +479,6 @@ class AccountListActivity : AuthenticatorActivity() {
     //endregion
 
     /**
-     * Tries to import the given [data] and throws an Exception if there any errors.
-     */
-    private fun import(data: String) {
-        val importedData = BackupManager.importText(data)     //FIXME: This throws an unreadable exception for the final user
-
-//        if (importedData.accounts.size > 1 || BackupManager.isBackup(data)) {
-//            startActivity(ImportResultActivity::class) {
-//                putExtra(ImportResultActivity.EXTRA_DATA, arrayListOf(importedData))
-//            }
-//            logd("QR: Importing backup of size: ${importedData.accounts}")
-//        } else {
-//            val account = BackupManager.parseAccount(data)
-//
-//            addOrReplaceAccount(account)
-//            logd("QR: Importing single account")
-//        }
-    }
-
-    /**
      * Sets up the the [RecyclerView] that shows the accounts and its adapter.
      */
     private fun setupListAdapter() {
@@ -547,13 +527,13 @@ class AccountListActivity : AuthenticatorActivity() {
         binding.btnAddAccountQr.setOnClickListener {
             val intent = Intent(this, BarcodeScannerActivity::class.java)
 
-            scanBarcode.launch(intent)
+            barcodeScanner.launch(intent)
             btn_add_account.close(true)
         }
         binding.btnAddAccountUrl.setOnClickListener {
             AccountUriDialog(supportFragmentManager, R.string.label_add_account) { data, dialog ->
                 try {
-                    import(data)
+                    ImportResultActivity.showResults(this, BackupManager.importText(data))
                     dialog.dismiss()
                 } catch (e: Exception) {
                     dialog.error = e.message

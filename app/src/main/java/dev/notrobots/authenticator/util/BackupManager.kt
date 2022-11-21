@@ -331,8 +331,7 @@ object BackupManager {
         for ((index, uri) in list.withIndex()) {
             try {
                 when {
-                    // Google Authenticator backup
-                    uri.scheme == BACKUP_GOOGLE_URI_SCHEME && uri.authority == BACKUP_GOOGLE_URI_AUTHORITY -> {
+                    isGoogleAuthenticatorBackup(uri) -> {
                         val data = uri.getQueryParameter(BACKUP_GOOGLE_URI_DATA)
 
                         require(data != null && data.isNotBlank()) {
@@ -344,8 +343,7 @@ object BackupManager {
                         accounts.addAll(_accounts)
                     }
 
-                    // Authenticator backup
-                    uri.scheme == BACKUP_URI_SCHEME && uri.authority == BACKUP_URI_AUTHORITY -> {
+                    isAuthenticatorBackup(uri) -> {
                         val total = uri.getQueryParameter(BACKUP_URI_TOTAL)?.toIntOrNull()
                         val part = uri.getQueryParameter(BACKUP_URI_PART)?.toIntOrNull()
                         val data = uri.getQueryParameter(BACKUP_URI_DATA)
@@ -381,30 +379,17 @@ object BackupManager {
                         authenticatorBackupData[part] = data
                     }
 
-                    // Account or Tag
-                    uri.scheme == Account.URI_SCHEME -> {
-                        when {
-                            // Tag
-                            uri.authority == Tag.URI_AUTHORITY -> {
-                                tags.add(Tag.fromUri(uri))
-                            }
+                    isAccountUri(uri) -> {
+                        val account = Account.fromUri(uri)
 
-                            // Account
-                            OTPType.contains(uri.authority) -> {
-                                val account = Account.fromUri(uri)
-
-                                if (uri.contains(Account.TAGS)) {
-                                    accountsWithTags[account] = Account.tagsFromUri(uri)
-                                }
-
-                                accounts.add(account)
-                            }
-
-                            else -> {
-                                throw Exception("Error parsing Uri #${index + 1}: ${Account.URI_SCHEME}://[UNKNOWN]")
-                            }
+                        if (uri.contains(Account.TAGS)) {
+                            accountsWithTags[account] = Account.tagsFromUri(uri)
                         }
+
+                        accounts.add(account)
                     }
+
+                    isTagUri(uri) -> tags.add(Tag.fromUri(uri))
 
                     else -> throw Exception("Unknown Uri")
                 }
@@ -512,9 +497,81 @@ object BackupManager {
     }
 
     /**
+     * Returns whether or not the given [uri] is an Authenticator backup.
+     *
+     * Note: This will not check if it's valid or not, just if it matches the Uri format.
+     */
+    fun isAuthenticatorBackup(uri: Uri): Boolean {
+        return uri.scheme == BACKUP_URI_SCHEME && uri.authority == BACKUP_URI_AUTHORITY
+    }
+
+    /**
+     * Returns whether or not the given [uri] is an Authenticator backup.
+     *
+     * Note: This will not check if it's valid or not, just if it matches the Uri format.
+     */
+    fun isAuthenticatorBackup(uri: String): Boolean {
+        return isAuthenticatorBackup(uri.toUri())
+    }
+
+    /**
+     * Returns whether or not the given [uri] is a Google Authenticator backup.
+     *
+     * Note: This will not check if it's valid or not, just if it matches the Uri format.
+     */
+    fun isGoogleAuthenticatorBackup(uri: Uri): Boolean {
+        return uri.scheme == BACKUP_GOOGLE_URI_SCHEME && uri.authority == BACKUP_GOOGLE_URI_AUTHORITY
+    }
+
+    /**
+     * Returns whether or not the given [uri] is a Google Authenticator backup.
+     *
+     * Note: This will not check if it's valid or not, just if it matches the Uri format.
+     */
+    fun isGoogleAuthenticatorBackup(uri: String): Boolean {
+        return isGoogleAuthenticatorBackup(uri.toUri())
+    }
+
+    /**
+     * Returns whether or not the given [uri] is an Account.
+     *
+     * Note: This will not check if it's valid or not, just if it matches the Uri format.
+     */
+    fun isAccountUri(uri: Uri): Boolean {
+        return uri.scheme == Account.URI_SCHEME && OTPType.contains(uri.authority)
+    }
+
+    /**
+     * Returns whether or not the given [uri] is an Account.
+     *
+     * Note: This will not check if it's valid or not, just if it matches the Uri format.
+     */
+    fun isAccountUri(uri: String): Boolean {
+        return isAccountUri(uri.toUri())
+    }
+
+    /**
+     * Returns whether or not the given [uri] is a Tag.
+     *
+     * Note: This will not check if it's valid or not, just if it matches the Uri format.
+     */
+    fun isTagUri(uri: Uri): Boolean {
+        return uri.scheme == Account.URI_SCHEME && uri.authority == Tag.URI_AUTHORITY
+    }
+
+    /**
+     * Returns whether or not the given [uri] is a Tag.
+     *
+     * Note: This will not check if it's valid or not, just if it matches the Uri format.
+     */
+    fun isTagUri(uri: String): Boolean {
+        return isTagUri(uri.toUri())
+    }
+
+    /**
      * Returns whether or not the given [string] is a base64 string.
      */
-    private fun isBase64(string: String): Boolean {
+    fun isBase64(string: String): Boolean {
         // The string must be decoded or it won't be recognized as a base64 string.
         // It isn't a problem if the string was already decoded and decoding again
         // is faster than checking if it's encoded.
