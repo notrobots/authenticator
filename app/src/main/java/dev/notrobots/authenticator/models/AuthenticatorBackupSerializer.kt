@@ -33,7 +33,7 @@ class AuthenticatorBackupSerializer : BackupMessageSerializer() {
     override fun deserialize(data: String): BackupData {
         val backupMessage = Authenticator.Backup.parseFrom(ProtobufUtil.deserializeMessage(data))
         val accountsWithTags: MutableAccountsWithTags = mutableMapOf()
-        val accounts = List(backupMessage.accountsCount) {
+        val accounts = Set(backupMessage.accountsCount) {
             val accountMessage = backupMessage.getAccounts(it)
 
             Account(
@@ -61,11 +61,11 @@ class AuthenticatorBackupSerializer : BackupMessageSerializer() {
                 }
 
                 if (accountMessage.tagsCount > 0) {
-                    accountsWithTags[this] = accountMessage.tagsList.toList()   // tagList is a ProtobufArrayList which is not serializable
+                    accountsWithTags[this] = accountMessage.tagsList.toSet()   // tagList is a ProtobufArrayList which is not serializable
                 }
             }
         }
-        val tags = List(backupMessage.tagsCount) {
+        val tags = Set(backupMessage.tagsCount) {
             val tagMessage = backupMessage.getTags(it)
 
             Tag(tagMessage.name)

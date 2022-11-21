@@ -8,9 +8,9 @@ import java.io.Serializable
  * Container for the imported data
  */
 data class BackupData(
-    val accounts: List<Account> = listOf(),
-    val tags: List<Tag> = emptyList(),
-    val accountsWithTags: Map<Account, List<String>> = emptyMap(),
+    val accounts: Set<Account> = emptySet(),
+    val tags: Set<Tag> = emptySet(),
+    val accountsWithTags: Map<Account, Set<String>> = emptyMap(),
     val settings: Map<String, Any?> = emptyMap()
 ) : Serializable {
     val isEmpty: Boolean

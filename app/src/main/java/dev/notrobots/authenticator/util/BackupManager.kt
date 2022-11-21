@@ -19,8 +19,8 @@ import org.json.JSONObject
  * When loading data from a backup there is no way to associate an account with its tags using
  * the [AccountWithTags] class, so we're using a Map that associates an Account with a List of Tags.
  */
-internal typealias AccountsWithTags = Map<Account, List<String>>
-internal typealias MutableAccountsWithTags = MutableMap<Account, List<String>>
+internal typealias AccountsWithTags = Map<Account, Set<String>>
+internal typealias MutableAccountsWithTags = MutableMap<Account, Set<String>>
 
 object BackupManager {
     private val authenticatorBackupSerializer = AuthenticatorBackupSerializer()
@@ -323,9 +323,9 @@ object BackupManager {
      * + `otpauth-migration://offline?data={SERIALIZED_DATA_CHUNK_1}`
      */
     fun importUris(list: List<Uri>): BackupData {
-        val tags = mutableListOf<Tag>()
-        val accounts = mutableListOf<Account>()
-        val accountsWithTags = mutableMapOf<Account, List<String>>()
+        val tags = mutableSetOf<Tag>()
+        val accounts = mutableSetOf<Account>()
+        val accountsWithTags: MutableAccountsWithTags = mutableMapOf()
         var authenticatorBackupData: Array<String?>? = null
 
         for ((index, uri) in list.withIndex()) {
@@ -438,9 +438,9 @@ object BackupManager {
      * Imports the given [json] object.
      */
     fun importJson(json: JSONObject): BackupData {
-        val accounts = mutableListOf<Account>()
-        val accountsWithTags = mutableMapOf<Account, List<String>>()
-        val tags = mutableListOf<Tag>()
+        val accounts = mutableSetOf<Account>()
+        val accountsWithTags: MutableAccountsWithTags = mutableMapOf()
+        val tags = mutableSetOf<Tag>()
         val settings = mutableMapOf<String, Any?>()
 
         if (json.has(BACKUP_JSON_ACCOUNTS)) {

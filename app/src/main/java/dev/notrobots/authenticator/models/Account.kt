@@ -8,6 +8,7 @@ import dev.notrobots.authenticator.extensions.contains
 import dev.notrobots.authenticator.extensions.get
 import dev.notrobots.authenticator.extensions.isOnlySpaces
 import dev.notrobots.authenticator.extensions.toList
+import dev.notrobots.authenticator.util.hashCodeOf
 import dev.notrobots.authenticator.util.isValidBase32
 import dev.notrobots.preferences2.util.parseEnum
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
@@ -91,17 +92,33 @@ data class Account(
 
     override fun equals(other: Any?): Boolean {
         return other is Account &&
+               other.accountId == accountId &&
                other.name == name &&
                other.label == label &&
                other.issuer == issuer &&
                other.secret == secret &&
-               other.accountId == accountId &&
                other.type == type &&
                other.counter == counter &&
                other.digits == digits &&
                other.period == period &&
                other.algorithm == algorithm &&
                other.order == order
+    }
+
+    override fun hashCode(): Int {
+        return hashCodeOf(
+            name,
+            secret,
+            accountId,
+            issuer,
+            label,
+            type,
+            counter,
+            digits,
+            period,
+            algorithm,
+            order
+        )
     }
 
     companion object : JsonSerializable<Account>, UriSerializable<Account> {
@@ -175,7 +192,7 @@ data class Account(
                     json.getString(LABEL)
                 } else ""
 
-                issuer = if (json.has(ISSUER)){
+                issuer = if (json.has(ISSUER)) {
                     json.getString(ISSUER)
                 } else ""
 
@@ -184,7 +201,7 @@ data class Account(
                 } else DEFAULT_COUNTER
 
                 algorithm = if (json.has(ALGORITHM)) {
-                    parseEnum (json.getString(ALGORITHM), true)
+                    parseEnum(json.getString(ALGORITHM), true)
                 } else DEFAULT_ALGORITHM
 
                 digits = if (json.has(DIGITS)) {
@@ -201,13 +218,13 @@ data class Account(
             }
         }
 
-        fun tagsFromJson(json: JSONObject): List<String> {
+        fun tagsFromJson(json: JSONObject): Set<String> {
             require(json.has(TAGS)) {
                 "Missing '$TAGS' field"
             }
 
             val tagsArray = json.getJSONArray(TAGS)
-            val tags = mutableListOf<String>()
+            val tags = mutableSetOf<String>()
 
             for (i in 0 until tagsArray.length()) {
                 val tagName = tagsArray[i]
@@ -317,14 +334,14 @@ data class Account(
             }
         }
 
-        fun tagsFromUri(uri: Uri): List<String> {
+        fun tagsFromUri(uri: Uri): Set<String> {
             val tagList = uri.getQueryParameter(TAGS)
 
-            require (tagList != null && tagList.isNotBlank()) {
+            require(tagList != null && tagList.isNotBlank()) {
                 "${URI_SCHEME}://type/?tags=[EMPTY]"
             }
 
-            return tagList.split(",")
+            return tagList.split(",").toSet()
         }
 
         /**

@@ -80,7 +80,7 @@ class GoogleAuthenticatorBackupSerializer : BackupMessageSerializer() {
                         else -> HmacAlgorithm.SHA1
                     }
                 }
-            }
+            }.toSet()
         )
     }
 

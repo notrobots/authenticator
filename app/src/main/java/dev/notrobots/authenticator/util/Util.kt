@@ -8,12 +8,11 @@ import android.widget.ArrayAdapter
 import androidx.annotation.LayoutRes
 import androidx.viewbinding.ViewBinding
 import dev.notrobots.androidstuff.util.bindView
+import dev.notrobots.androidstuff.util.requireNotEmpty
 import org.apache.commons.codec.binary.Base32
-import org.apache.commons.codec.binary.Base64
+import java.util.Arrays
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
-import kotlin.reflect.full.declaredFunctions
-import kotlin.reflect.jvm.isAccessible
 
 fun isValidBase32(base32: String): Boolean {
     return Base32().isInAlphabet(base32) && base32.length % 8 == 0
@@ -140,4 +139,54 @@ fun snakeToPascalCase(name: String): String {
     }
 
     return result.replace(underscoreRegex, "")
+}
+
+/**
+ * Returns the hashCode of the given fields.
+ *
+ * This is meant to be used inside your class' hashCode() method
+ */
+fun hashCodeOf(vararg fields: Any?): Int {
+    requireNotEmpty(fields) {
+        "You must provide at least one field"
+    }
+
+    // Start with a non-zero constant. Prime is preferred.
+    var result = 17
+
+    for (field in fields) {
+        result *= 31
+
+        when (field) {
+            is Boolean -> result += (if (field) 1 else 0)               // 1 bit   » 32-bit
+            is Byte -> result += field                                  // 8 bits  » 32-bit
+            is Char -> result += field.code                             // 16 bits  » 32-bit
+            is Short -> result += field                                 // 16 bits  » 32-bit
+            is Int -> result += field                                   // 32 bits  » 32-bit
+            is Long -> result += (field xor (field ushr 32)).toInt()    // 64 bits  » 32-bit
+            is Float -> result += field.toBits()                        // 32 bits  » 32-bit
+            is Double -> {
+                val bits = field.toBits()
+                result += (bits xor (bits ushr 32)).toInt()             // 64 bits (double) » 64-bit (long) » 32-bit (int)
+            }
+            is Array<*> -> Arrays.hashCode(field)
+            is ByteArray -> Arrays.hashCode(field)
+            is CharArray -> Arrays.hashCode(field)
+            is ShortArray -> Arrays.hashCode(field)
+            is IntArray -> Arrays.hashCode(field)
+            is LongArray -> Arrays.hashCode(field)
+            is FloatArray -> Arrays.hashCode(field)
+            is DoubleArray -> Arrays.hashCode(field)
+
+            else -> field.hashCode()                                    // var bits » 32-bit
+        }
+    }
+
+    return result;
+}
+
+fun <T> Set(size: Int, init: (index: Int) -> T): Set<T> {
+    val set = HashSet<T>(size)
+    repeat(size) { set.add(init(it)) }
+    return set
 }

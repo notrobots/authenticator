@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import dev.notrobots.authenticator.data.EMOJI_RGX
+import dev.notrobots.authenticator.util.hashCodeOf
 import org.json.JSONObject
 import java.io.Serializable
 
@@ -24,6 +25,10 @@ data class Tag(
         return other is Tag &&
                other.tagId == tagId &&
                other.name == name
+    }
+
+    override fun hashCode(): Int {
+        return hashCodeOf(tagId, name)
     }
 
     companion object : UriSerializable<Tag> {
