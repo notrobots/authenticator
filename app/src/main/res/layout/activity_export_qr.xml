@@ -45,7 +45,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <dev.notrobots.authenticator.views.ImageSlider
+        <dev.notrobots.authenticator.widget.ImageSlider
             android:id="@+id/image_slider"
             android:layout_width="0dp"
             android:layout_height="0dp"

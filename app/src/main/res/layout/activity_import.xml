@@ -22,13 +22,13 @@
             android:text="Select how you'd like to import your backup"
             style="@style/IntroductionDescription"/>
 
-        <dev.notrobots.authenticator.views.OptionList
+        <dev.notrobots.authenticator.widget.OptionList
             android:id="@+id/options"
             style="@style/IntroductionOptions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <dev.notrobots.authenticator.views.OptionListItem
+            <dev.notrobots.authenticator.widget.OptionListItem
                 android:id="@+id/import_option_qr"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -36,7 +36,7 @@
                 app:option_description="@string/label_import_option_qr_description"
                 app:option_icon="@drawable/ic_qr"/>
 
-            <dev.notrobots.authenticator.views.OptionListItem
+            <dev.notrobots.authenticator.widget.OptionListItem
                 android:id="@+id/import_option_file"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -44,7 +44,7 @@
                 app:option_description="@string/label_import_option_file_description"
                 app:option_icon="@drawable/ic_file"/>
 
-            <dev.notrobots.authenticator.views.OptionListItem
+            <dev.notrobots.authenticator.widget.OptionListItem
                 android:id="@+id/import_option_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -52,7 +52,7 @@
                 app:option_description="@string/label_import_option_text_description"
                 app:option_icon="@drawable/ic_link"/>
 
-        </dev.notrobots.authenticator.views.OptionList>
+        </dev.notrobots.authenticator.widget.OptionList>
 
     </LinearLayout>
 

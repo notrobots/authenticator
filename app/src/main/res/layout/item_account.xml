@@ -91,7 +91,7 @@
             app:tint="?attr/colorPrimary"
             tools:visibility="visible" />
 
-        <dev.notrobots.authenticator.views.ViewSwitcher
+        <dev.notrobots.authenticator.widget.ViewSwitcher
             android:id="@+id/indicators"
             android:layout_width="40dp"
             android:layout_height="40dp"
@@ -168,7 +168,7 @@
 
             </FrameLayout>
 
-        </dev.notrobots.authenticator.views.ViewSwitcher>
+        </dev.notrobots.authenticator.widget.ViewSwitcher>
 
         <!-- These two views should be inside a view switcher -->
         <com.google.android.material.progressindicator.LinearProgressIndicator

@@ -45,7 +45,7 @@
             app:layout_constraintTop_toTopOf="parent"
             android:text="@string/introduction_export_text_description"/>
 
-        <dev.notrobots.authenticator.views.OptionList
+        <dev.notrobots.authenticator.widget.OptionList
             android:id="@+id/list_output"
             android:layout_width="match_parent"
             android:layout_height="0dp"

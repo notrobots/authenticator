@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <dev.notrobots.authenticator.views.OptionList
+        <dev.notrobots.authenticator.widget.OptionList
             android:id="@+id/export_options"
             style="@style/IntroductionOptions"
             android:layout_width="match_parent"
@@ -22,7 +22,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <dev.notrobots.authenticator.views.OptionListItem
+            <dev.notrobots.authenticator.widget.OptionListItem
                 android:id="@+id/export_options_qr"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -30,7 +30,7 @@
                 app:option_icon="@drawable/ic_qr"
                 app:option_title="@string/label_export_option_qr"/>
 
-            <dev.notrobots.authenticator.views.OptionListItem
+            <dev.notrobots.authenticator.widget.OptionListItem
                 android:id="@+id/export_options_google_authenticator"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -38,7 +38,7 @@
                 app:option_icon="@drawable/ic_google"
                 app:option_title="@string/label_export_option_google_authenticator"/>
 
-            <dev.notrobots.authenticator.views.OptionListItem
+            <dev.notrobots.authenticator.widget.OptionListItem
                 android:id="@+id/export_options_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -46,7 +46,7 @@
                 app:option_icon="@drawable/ic_file"
                 app:option_title="@string/label_export_option_text"/>
 
-            <dev.notrobots.authenticator.views.OptionListItem
+            <dev.notrobots.authenticator.widget.OptionListItem
                 android:id="@+id/export_options_json"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -54,7 +54,7 @@
                 app:option_icon="@drawable/ic_json"
                 app:option_title="@string/label_export_option_json"/>
 
-        </dev.notrobots.authenticator.views.OptionList>
+        </dev.notrobots.authenticator.widget.OptionList>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

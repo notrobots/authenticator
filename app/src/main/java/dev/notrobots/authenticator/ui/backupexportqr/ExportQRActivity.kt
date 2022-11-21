@@ -10,7 +10,6 @@ import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.documentfile.provider.DocumentFile
 import dev.notrobots.androidstuff.extensions.*
-import dev.notrobots.androidstuff.util.now
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityExportQrBinding
@@ -18,7 +17,7 @@ import dev.notrobots.authenticator.models.QRCode
 import dev.notrobots.authenticator.models.QRCodePaint
 import dev.notrobots.authenticator.models.AuthenticatorQRCodePaint
 import dev.notrobots.authenticator.util.BackupManager
-import dev.notrobots.authenticator.views.ImageSlider
+import dev.notrobots.authenticator.widget.ImageSlider
 import org.apache.commons.codec.binary.Base64
 import java.io.ByteArrayOutputStream
 

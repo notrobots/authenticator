@@ -1,4 +1,4 @@
-package dev.notrobots.authenticator.views
+package dev.notrobots.authenticator.widget
 
 import android.content.Context
 import android.util.AttributeSet
