@@ -422,7 +422,7 @@ object BackupManager {
                     .map { it.index }
                     .joinToString()
 
-                "Some parts are missing: $indexes; \nTotal parts: ${authenticatorBackupData.size}"
+                "Some backup parts are missing.\nMissing parts: $indexes\nTotal parts: ${authenticatorBackupData.size}"
             }
 
             val data = authenticatorBackupData.joinToString("")

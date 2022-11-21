@@ -21,17 +21,17 @@
     <string name="label_hide_advanced">Hide advanced</string>
     <string name="label_add_account">Add account</string>
     <string name="label_next">Next</string>
-    <string name="label_qr_code">QR Code</string>
-    <string name="label_scan_one_or_multiple_qr_codes">Scan one or multiple QR codes</string>
+    <string name="label_import_option_qr">QR Code</string>
+    <string name="label_import_option_qr_description">Scan one or multiple QR codes</string>
     <!--    TODO: Rename all accessibility labels like this   -->
     <string name="accessibility_back_button">Back button</string>
     <string name="label_finish">Finish</string>
     <string name="accessibility_qr_code">QR Code</string>
     <string name="accessibility_remove_qr_code">Remove QR Code</string>
-    <string name="label_file_import_title">File</string>
-    <string name="label_file_import_description">Load a text or image file</string>
-    <string name="label_text_import_title">Text</string>
-    <string name="label_text_import_description">Input a single uri or text</string>
+    <string name="label_import_option_file">File</string>
+    <string name="label_import_option_file_description">Load a text or image file</string>
+    <string name="label_import_option_text">Text</string>
+    <string name="label_import_option_text_description">Input a single uri or text</string>
     <string name="error_empty_field">Field cannot be empty</string>
     <string name="label_uri_or_text">URI or text</string>
     <string name="label_keep_both">Keep both</string>

@@ -348,6 +348,7 @@ class AccountListActivity : AuthenticatorActivity() {
             R.id.menu_clear -> {
                 lifecycleScope.launch {
                     viewModel.accountDao.deleteAll()
+                    viewModel.tagDao.deleteAll()
                 }
             }
             R.id.menu_refresh -> {

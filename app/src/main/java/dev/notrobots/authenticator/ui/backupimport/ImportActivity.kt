@@ -10,6 +10,7 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.*
+import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.androidstuff.util.loge
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
@@ -34,36 +35,22 @@ class ImportActivity : AuthenticatorActivity() {
     private val barcodeScanner = registerForActivityResult(StartActivityForResult()) {
         if (it.resultCode == Activity.RESULT_OK) {
             if (it.data != null) {
-                val uris = it.data!!.getStringArrayListExtra(BarcodeScannerActivity.EXTRA_QR_LIST) ?: listOf<String>()
-                val importedData = mutableListOf<BackupManager.ImportedData>()
-                val errors = mutableListOf<String>()
+                val uris = it.data!!.getStringArrayListExtra(BarcodeScannerActivity.EXTRA_QR_LIST) ?: emptyList<String>()
 
-                for ((index, uri) in uris.withIndex()) {
-                    try {
-                        val data = BackupManager.import(uri)
+                try {
+                    val data = BackupManager.importList(uris)
 
-                        importedData.add(data)
-                    } catch (e: Exception) {
-                        errors.add("QR #${index + 1}: ${e.message ?: "Invalid data"}")
+                    if (data.isEmpty) {
+                        showInfo("Error", "Invalid data")
                     }
-                }
 
-                if (importedData.isEmpty()) {
-                    showInfo("Error", "None of the QR codes were valid")
-                } else {
-                    if (errors.isNotEmpty()) {
-                        showChoice(
-                            "Error",
-                            "There were some errors while importing the data:\n\n${errors.joinToString("\n")}\n\nDo you still want to proceed? Invalid data won't be imported",
-                            positiveButton = "Yes",
-                            positiveCallback = {
-                                ImportResultActivity.showResults(this, importedData)
-                            },
-                            negativeButton = "No"
-                        )
-                    } else {
-                        ImportResultActivity.showResults(this, importedData)
-                    }
+                    ImportResultActivity.showResults(this, data)
+                } catch (e: Exception) {
+                    loge("There was an error while importing a QR code")
+                    loge(e.message)
+                    loge(e.stackTraceToString())
+                    loge("QR content: $uris")
+                    showInfo("Error", "Invalid data: $e")
                 }
             }
         }
@@ -73,8 +60,8 @@ class ImportActivity : AuthenticatorActivity() {
         if (it != null) {
             val mimeType = contentResolver.getType(it) ?: ""
 
-            when {
-                mimeType.startsWith("image/") -> {
+            when (mimeType) {
+                "image/jpeg", "image/png" -> {
                     val image = InputImage.fromFilePath(this, it)
 
                     scanner.process(image)
@@ -82,11 +69,13 @@ class ImportActivity : AuthenticatorActivity() {
                             val content = it.first().rawValue
 
                             try {
-                                val data = BackupManager.import(content!!)
+                                val data = BackupManager.importText(content!!)
 
                                 ImportResultActivity.showResults(this, data)
                             } catch (e: Exception) {
-                                loge("Cannot import file: ${e.message}")
+                                loge("There was an error while importing a backup file")
+                                loge(e)
+                                loge("File content: $content")
                                 showInfo("Error", "Import data is corrupt")//FIXME: Show detailed error with account index ecc
                             }
                         }
@@ -94,30 +83,36 @@ class ImportActivity : AuthenticatorActivity() {
                             makeSnackBar("Error scanning QR", binding.root)
                         }
                 }
-                mimeType.startsWith("text/") -> {
+                "text/plain", "application/json" -> {
                     contentResolver.openInputStream(it)?.let {
                         val content = it.reader().readText()
 
                         try {
-                            val data = BackupManager.import(content)
+                            val data = BackupManager.importText(content)
 
                             ImportResultActivity.showResults(this, data)
                         } catch (e: Exception) {
-                            loge("Cannot import file: ${e.message}")
+                            loge("There was an error while importing a backup file")
+                            loge(e)
+                            loge("File content: $content")
                             showInfo("Error", "Import data is corrupt")
                         }
                     }
                 }
-
-                //TODO: Json mime type
+                "application/octet-stream" -> {
+                    //TODO Encrypted backup
+                }
 
                 else -> makeSnackBar("Invalid file type", binding.root)
             }
         }
     }
     private val filePickerTypes = arrayOf(
-        "image/*",  //TODO: Specify the image type
-        "text/*"
+        "image/jpeg",               // .jpeg/.jpg
+        "image/png",                // .png
+        "text/plain",               // .txt
+        "application/json",         // .json
+        "application/octet-stream"  // .bin
     )
     private val binding by viewBindings<ActivityImportBinding>()
 
@@ -125,40 +120,31 @@ class ImportActivity : AuthenticatorActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbarLayout.toolbar)
-
-        title = null
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        binding.toolbarLayout.toolbar.setNavigationOnClickListener { finish() }
+        finishOnBackPressEnabled = true
 
-        binding.options.addOption(
-            R.string.label_qr_code,
-            R.string.label_scan_one_or_multiple_qr_codes,
-            R.drawable.ic_qr
-        ) {
+        binding.importOptionQr.setOnClickListener {
             val intent = Intent(this, BarcodeScannerActivity::class.java).apply {
                 putExtra(BarcodeScannerActivity.EXTRA_MULTI_SCAN, true)
             }
 
             barcodeScanner.launch(intent)
         }
-        binding.options.addOption(
-            R.string.label_file_import_title,
-            R.string.label_file_import_description,
-            R.drawable.ic_file
-        ) {
+        binding.importOptionFile.setOnClickListener {
             filePicker.launch(filePickerTypes)
         }
-        binding.options.addOption(
-            R.string.label_text_import_title,
-            R.string.label_text_import_description,
-            R.drawable.ic_link
-        ) {
+        binding.importOptionText.setOnClickListener {
+
+            //TODO: Improve the dialog system, all dialogs should be using the DialogFragment class
             AccountUriDialog(supportFragmentManager, null) { data, dialog ->
                 try {
-                    ImportResultActivity.showResults(this, BackupManager.import(data))
+                    ImportResultActivity.showResults(this, BackupManager.importText(data))
                     dialog.dismiss()
                 } catch (e: Exception) {
                     dialog.error = e.message
+                    loge("There was an error while importing a backup")
+                    loge(e)
+                    loge("Imported data: $data")
                 }
             }
         }

@@ -255,23 +255,23 @@ data class Account(
             // Optional fields
             //
             val algorithm = if (ALGORITHM in uri) {
-                parseEnum(uri[ALGORITHM], true) ?: throw Exception("Unknown algorithm")
+                parseEnum(uri[ALGORITHM], true)
             } else {
                 DEFAULT_ALGORITHM
             }
             val digits = if (DIGITS in uri) {
-                uri[DIGITS]?.toIntOrNull() ?: throw Exception("Digits number must be an integer")
+                uri[DIGITS]?.toIntOrNull() ?: throw Exception("Digits number must be an integer")   //TODO: It should say "number"
             }    //TODO: Between x and y
             else {
                 DEFAULT_DIGITS
             }
             val counter = if (COUNTER in uri) {
-                uri[COUNTER]?.toLongOrNull() ?: throw Exception("Counter value must be an integer")
+                uri[COUNTER]?.toLongOrNull() ?: throw Exception("Counter value must be a number")
             } else {
                 DEFAULT_COUNTER
             }
             val period = if (PERIOD in uri) {
-                uri[PERIOD]?.toLongOrNull() ?: throw Exception("Period must be an integer")
+                uri[PERIOD]?.toLongOrNull() ?: throw Exception("Period must be a number")
             } else {
                 DEFAULT_PERIOD
             }

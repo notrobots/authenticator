@@ -66,23 +66,23 @@ class ExportFileActivity : AuthenticatorActivity() {
     private fun styleFileContent(content: String): String {
         return when (fileType) {
             FILE_TYPE_TEXT -> {
-                val styled = content.replace(Regex("\n"), "<br/>")
+                content.replace(Regex("\n"), "<br/>")
                     .replace("otpauth://", "<font color='#348ceb'>otpauth://</font>")
                     .replace(Regex("tag/", RegexOption.IGNORE_CASE), "<font color='#1f9c51'>tag/</font>")
                     .replace(Regex("totp/", RegexOption.IGNORE_CASE), "<font color='#1f9c51'>totp/</font>")
                     .replace(Regex("hotp/", RegexOption.IGNORE_CASE), "<font color='#1f9c51'>hotp/</font>")
-                val lines = styled.split("<br/>")
-                val indexLength = lines.size.toString().length
+//                val lines = styled.split("<br/>")
+//                val indexLength = lines.size.toString().length
 
                 //XXX: The indexes could be displayed with another textview,
                 // this would allow the user to only copy the actual line and avoid copying the index
-                lines.joinToStringIndexed("<br/>") { index, s ->
-                    val i = index.toString().padStart(indexLength, '\u00A0') //FIXME: This space doesn't seem to be as big as a character
-
-                    //TODO: The line number color should be different for odd and even lines to improve readability
-                    "<span style=\"background-color:#a2a3a3; color:#ffffff\">$i.</span> $s"
-                    // style="background-color: #003300;"
-                }
+//                lines.joinToStringIndexed("<br/>") { index, s ->
+//                    val i = index.toString().padStart(indexLength, '\u00A0') //FIXME: This space doesn't seem to be as big as a character
+//
+//                    //TODO: The line number color should be different for odd and even lines to improve readability
+//                    "<span style=\"background-color:#a2a3a3; color:#ffffff\">$i.</span> $s"
+//                    // style="background-color: #003300;"
+//                }
             }
             FILE_TYPE_JSON -> content
                 .replace(Regex("[{}\\[\\]]", RegexOption.IGNORE_CASE), "<font color='#348ceb'>$0</font>")

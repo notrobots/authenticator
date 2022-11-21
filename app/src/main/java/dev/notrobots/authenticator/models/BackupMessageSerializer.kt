@@ -1,7 +1,7 @@
 package dev.notrobots.authenticator.models
 
 import com.google.protobuf.MessageLite
-import dev.notrobots.authenticator.util.BackupManager.BackupData
+import dev.notrobots.authenticator.util.BackupData
 import dev.notrobots.authenticator.util.ProtobufUtil
 
 /**

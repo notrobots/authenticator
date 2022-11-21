@@ -51,6 +51,10 @@ class AccountListViewModel @Inject constructor(
      * Updates the given [account].
      */
     suspend fun updateAccount(account: Account) {
+        // Since we are updating the account using a dummy account with the new values
+        // We might need to fetch the corresponding account using name, label and issuer
+        // We then set the id of the account we want to update to our dummy account and pass that
+        // to the update function
         val stored = accountDao.getAccount(account.name, account.label, account.issuer)
 
         if (account.accountId == Account.DEFAULT_ID) {
@@ -78,8 +82,10 @@ class AccountListViewModel @Inject constructor(
     /**
      * Inserts the given [account] and changes its name so that it doesn't collide with
      * another existing account.
+     *
+     * @return The id of the inserted account.
      */
-    suspend fun insertAccountWithSameName(account: Account) {
+    suspend fun insertAccountWithSameName(account: Account): Long {
         var name = TextUtil.getNextName(account.name)
 
         //FIXME: This is not optimized
@@ -91,8 +97,7 @@ class AccountListViewModel @Inject constructor(
                 val newAccount = account.clone().apply {  //FIXME: If the account is imported it doesn't need to be copied
                     this.name = name
                 }
-                insertAccount(newAccount)
-                break
+                return insertAccount(newAccount)
             }
 
             name = TextUtil.getNextName(oldAccount.name)

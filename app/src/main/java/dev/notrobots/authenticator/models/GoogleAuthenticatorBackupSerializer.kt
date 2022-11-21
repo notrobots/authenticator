@@ -2,9 +2,8 @@ package dev.notrobots.authenticator.models
 
 import com.google.protobuf.MessageLite
 import dev.notrobots.authenticator.data.GOOGLE_AUTHENTICATOR_PROTO_VERSION
-import dev.notrobots.authenticator.extensions.toByteString
 import dev.notrobots.authenticator.proto.GoogleAuthenticatorOuterClass.*
-import dev.notrobots.authenticator.util.BackupManager
+import dev.notrobots.authenticator.util.BackupData
 import dev.notrobots.authenticator.util.ProtobufUtil
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
 
@@ -54,10 +53,10 @@ class GoogleAuthenticatorBackupSerializer : BackupMessageSerializer() {
         }
     }
 
-    override fun deserialize(data: String): BackupManager.BackupData {
+    override fun deserialize(data: String): BackupData {
         val backupMessage = GoogleAuthenticator.Backup.parseFrom(ProtobufUtil.deserializeMessage(data))
 
-        return BackupManager.BackupData(
+        return BackupData(
             backupMessage.accountsList.map {
                 val path = Account.parsePath(it.name)
 
@@ -74,7 +73,7 @@ class GoogleAuthenticatorBackupSerializer : BackupMessageSerializer() {
                         else -> OTPType.TOTP
                     }
                     counter = it.counter
-                    digits = it.digits  //XXX Google Auth only supports 8 and 6
+                    digits = it.digits  //FIXME Google Auth only supports 8 and 6
                     algorithm = when (it.algorithm) {
                         GoogleAuthenticator.Algorithm.ALGORITHM_SHA1 -> HmacAlgorithm.SHA1
 

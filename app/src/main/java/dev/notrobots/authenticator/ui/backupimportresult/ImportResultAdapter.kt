@@ -24,11 +24,11 @@ class ImportResultAdapter : RecyclerView.Adapter<ImportResultAdapter.ViewHolder>
         val binding = holder.binding
         val tint = ContextCompat.getColor(
             binding.root.context,
-            when (item.importStrategy) {
-                ImportStrategy.Default -> R.color.error
-                ImportStrategy.Skip -> R.color.blue
-                ImportStrategy.Replace -> R.color.warning
-                ImportStrategy.KeepBoth -> R.color.success
+            when (item.action) {
+                ImportAction.Default -> R.color.error
+                ImportAction.Skip -> R.color.blue
+                ImportAction.Replace -> R.color.warning
+                ImportAction.KeepBoth -> R.color.success
             }
         )
 
@@ -36,11 +36,11 @@ class ImportResultAdapter : RecyclerView.Adapter<ImportResultAdapter.ViewHolder>
         binding.icon.setImageResource(item.icon)
         binding.status.visibility = if (item.isDuplicate) View.VISIBLE else View.INVISIBLE
         binding.status.setImageResource(
-            when (item.importStrategy) {
-                ImportStrategy.Default -> R.drawable.ic_error
-                ImportStrategy.Skip -> R.drawable.ic_skip
-                ImportStrategy.Replace -> R.drawable.ic_replace
-                ImportStrategy.KeepBoth -> R.drawable.ic_copy
+            when (item.action) {
+                ImportAction.Default -> R.drawable.ic_error
+                ImportAction.Skip -> R.drawable.ic_skip
+                ImportAction.Replace -> R.drawable.ic_replace
+                ImportAction.KeepBoth -> R.drawable.ic_copy
             }
         )
         binding.status.setTint(tint)
@@ -52,11 +52,11 @@ class ImportResultAdapter : RecyclerView.Adapter<ImportResultAdapter.ViewHolder>
 
                 val infoMenuItem = popupMenu.menu.findItem(R.id.menu_strategy_info)
                 val title = SpannableString(
-                    when (item.importStrategy) {
-                        ImportStrategy.Default -> "Already exists"
-                        ImportStrategy.Skip -> "Will be ignored"
-                        ImportStrategy.Replace -> "Will replace the old one"    //TODO: Improve this text
-                        ImportStrategy.KeepBoth -> "Will keep both"
+                    when (item.action) {
+                        ImportAction.Default -> "Already exists"
+                        ImportAction.Skip -> "Will be ignored"
+                        ImportAction.Replace -> "Will replace the old one"    //TODO: Improve this text
+                        ImportAction.KeepBoth -> "Will keep both"
                     }
                 )
 
@@ -65,9 +65,9 @@ class ImportResultAdapter : RecyclerView.Adapter<ImportResultAdapter.ViewHolder>
 
                 popupMenu.setOnMenuItemClickListener {
                     when (it.itemId) {
-                        R.id.menu_strategy_skip -> item.importStrategy = ImportStrategy.Skip
-                        R.id.menu_strategy_replace -> item.importStrategy = ImportStrategy.Replace
-                        R.id.menu_strategy_keep_both -> item.importStrategy = ImportStrategy.KeepBoth
+                        R.id.menu_strategy_skip -> item.action = ImportAction.Skip
+                        R.id.menu_strategy_replace -> item.action = ImportAction.Replace
+                        R.id.menu_strategy_keep_both -> item.action = ImportAction.KeepBoth
 
                         else -> return@setOnMenuItemClickListener false
                     }

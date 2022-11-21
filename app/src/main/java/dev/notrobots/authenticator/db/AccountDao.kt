@@ -1,7 +1,6 @@
 package dev.notrobots.authenticator.db
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.room.*
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.models.SortMode.Companion.ORDER_BY_ISSUER
@@ -17,6 +16,11 @@ interface AccountDao {
 
     @Query("SELECT * FROM Account WHERE name = :name AND label = :label AND issuer = :issuer")
     suspend fun getAccount(name: String, label: String, issuer: String): Account?
+
+    @Transaction            //TODO: A "dummy" account is frequently used in the app, this should be named as such to avoid confusion
+    suspend fun getAccount(dummy: Account): Account? {
+        return getAccount(dummy.name, dummy.label, dummy.issuer)
+    }
 
     @Transaction
     @Query("SELECT * FROM Account WHERE accountId = :accountId")
@@ -118,6 +122,23 @@ interface AccountDao {
 
     @Query("DELETE FROM AccountTagCrossRef WHERE accountId = :accountId")
     suspend fun removeTags(accountId: Long)
+
+    @Query("DELETE FROM AccountTagCrossRef WHERE accountId = :accountId and tagId = :tagId")
+    suspend fun removeTag(accountId: Long, tagId: Long)
+
+    @Query(
+        """
+        SELECT EXISTS(
+            SELECT * 
+            FROM AccountTagCrossRef
+            WHERE accountId = :accountId and tagId = :tagId
+        )
+        """
+    )
+    suspend fun hasTag(accountId: Long, tagId: Long): Boolean
+
+    @Query("INSERT INTO AccountTagCrossRef VALUES(:accountId, :tagId)")
+    suspend fun addTagRef(accountId: Long, tagId: Long)
 
     @Query("DELETE FROM Account")
     suspend fun deleteAll()

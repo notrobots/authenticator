@@ -2,8 +2,8 @@ package dev.notrobots.authenticator.models
 
 import com.google.protobuf.ByteString
 import dev.notrobots.authenticator.proto.AuthenticatorOuterClass.*
-import dev.notrobots.authenticator.util.BackupManager
-import dev.notrobots.authenticator.util.ProtobufUtil
+import dev.notrobots.authenticator.util.*
+import dev.notrobots.authenticator.util.MutableAccountsWithTags
 import dev.turingcomplete.kotlinonetimepassword.HmacAlgorithm
 
 class AuthenticatorBackupSerializer : BackupMessageSerializer() {
@@ -30,8 +30,9 @@ class AuthenticatorBackupSerializer : BackupMessageSerializer() {
         return ProtobufUtil.serializeMessage(backupMessage.build()).chunked(maxBytes)
     }
 
-    override fun deserialize(data: String): BackupManager.BackupData {
+    override fun deserialize(data: String): BackupData {
         val backupMessage = Authenticator.Backup.parseFrom(ProtobufUtil.deserializeMessage(data))
+        val accountsWithTags: MutableAccountsWithTags = mutableMapOf()
         val accounts = List(backupMessage.accountsCount) {
             val accountMessage = backupMessage.getAccounts(it)
 
@@ -58,6 +59,10 @@ class AuthenticatorBackupSerializer : BackupMessageSerializer() {
 
                     else -> HmacAlgorithm.SHA1
                 }
+
+                if (accountMessage.tagsCount > 0) {
+                    accountsWithTags[this] = accountMessage.tagsList.toList()   // tagList is a ProtobufArrayList which is not serializable
+                }
             }
         }
         val tags = List(backupMessage.tagsCount) {
@@ -66,7 +71,7 @@ class AuthenticatorBackupSerializer : BackupMessageSerializer() {
             Tag(tagMessage.name)
         }
 
-        return BackupManager.BackupData(accounts, tags)
+        return BackupData(accounts, tags, accountsWithTags)
     }
 
     private fun serializeAccount(account: Account, accountsWithTags: List<AccountWithTags>): Authenticator.Account {
