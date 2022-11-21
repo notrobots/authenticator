@@ -1,6 +1,6 @@
 package dev.notrobots.authenticator.ui.backupimportresult
 
-enum class ImportStrategy {
+enum class ImportAction {
     Default,
     Skip,
     Replace,
