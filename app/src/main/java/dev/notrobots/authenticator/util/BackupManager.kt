@@ -185,29 +185,6 @@ object BackupManager {
     }
 
     /**
-     * Exports the items as a list of [QRCode].
-     *
-     * ```
-     * E.g.
-     * QR1: otpauth://totp/label1:name1?secret={SECRET}
-     * QR2: otpauth://totp/label2:name2?secret={SECRET}
-     * QR3: otpauth://hotp/label3:name3?secret={SECRET}
-     * ```
-     *
-     * Exported items:
-     * + Accounts
-     */
-    //TODO: This option should be deprecated and instead the user should be able to quickly export an account on the AccountListActivity
-    @Deprecated("Do not export each account as a single QR code")
-    fun exportPlainQR(
-        accounts: List<Account>
-    ): List<QRCode> {
-        return exportUris(accounts, emptyList(), emptyList()).map {
-            QRCode(it, App.QR_BITMAP_SIZE)
-        }
-    }
-
-    /**
      * Exports the items as a JSON object.
      *
      * ```
