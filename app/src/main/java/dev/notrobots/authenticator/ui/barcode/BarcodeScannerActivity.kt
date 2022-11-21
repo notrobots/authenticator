@@ -111,12 +111,21 @@ class BarcodeScannerActivity : AuthenticatorActivity(), ImageAnalysis.Analyzer {
         if (task != null) {
             task.addOnSuccessListener {
                 if (it.size >= 1) {
-                    val value = it.first().rawValue
+                    // This value is the content of a single QR code, that content could be a list of
+                    // Uris or a single Uri.
+                    // The "lines" method will always return a list, if there is only one Uri in the
+                    // QR code then the list will have a single item
+                    val rawValue = it.first().rawValue  //TODO: This could potentially scan multiple codes, we're only accessing (the first) one here
+                    val value = rawValue?.lines()
+
+                    if (value == null) {
+                        return@addOnSuccessListener
+                    }
 
                     if (multiScanEnabled) {
-                        if (value !in scanResults) {
+                        if (!scanResults.containsAll(value)) {
                             val importResultView = ItemBarcodeScannerResultBinding.inflate(layoutInflater)
-                            val qrCode = QRCode(value ?: "", 150)
+                            val qrCode = QRCode(rawValue, 150)
                             val params = LinearLayout.LayoutParams(
                                 60.toPx().toInt(),
                                 60.toPx().toInt()
@@ -129,17 +138,17 @@ class BarcodeScannerActivity : AuthenticatorActivity(), ImageAnalysis.Analyzer {
                             importResultView.image.setImageBitmap(qrCode.toBitmap())
                             importResultView.remove.setOnClickListener {
                                 binding.scanResultList.removeView(importResultView.root)
-                                scanResults.remove(value)
+                                scanResults.removeAll(value)
                             }
 
                             binding.scanResultList.post {
                                 binding.scanResultScrollView.fullScroll(View.FOCUS_RIGHT)
                             }
                             binding.scanResultList.addView(importResultView.root)
-                            scanResults.add(value)
+                            scanResults.addAll(value)
                         }
                     } else {
-                        scanResults.add(value)
+                        scanResults.addAll(value)
                         setResultsAndFinish()
                     }
                 }
