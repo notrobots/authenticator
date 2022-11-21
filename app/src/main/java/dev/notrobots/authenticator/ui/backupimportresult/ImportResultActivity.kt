@@ -36,10 +36,10 @@ class ImportResultActivity : AuthenticatorActivity() {
     private val importResults = mutableMapOf<Any, ImportResult>()
     private var backupData: BackupData? = null
     private val adapter = ImportResultAdapter()
+    private var noDuplicates = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(binding.root)
         setSupportActionBar(binding.toolbarLayout.toolbar)
         finishOnBackPressEnabled = true
 
@@ -48,8 +48,6 @@ class ImportResultActivity : AuthenticatorActivity() {
         requireNotNull(backupData) {
             "Backup data is null"
         }
-
-        binding.list.layoutManager = LinearLayoutManager(this@ImportResultActivity)
 
         lifecycleScope.launch {
             for (account in backupData!!.accounts) {
@@ -76,24 +74,32 @@ class ImportResultActivity : AuthenticatorActivity() {
                 )
             }
 
-            adapter.setItems(importResults.values.toList())
-            binding.done.setOnClickListener {
-                val isNotResolved = { r: ImportResult ->
-                    r.isDuplicate && r.action == ImportAction.Default
-                }
+            noDuplicates = importResults.none { it.value.isDuplicate }
 
-                if (importResults.values.any(isNotResolved)) {
-                    showChoice(
-                        "Import conflicts",
-                        "There are still some conflicts left, are you sure you want to proceed?\n\nNOTE: By default conflicting items will be skipped",
-                        "Proceed",
-                        positiveCallback = {
-                            importBackup()
-                        },
-                        "Cancel"
-                    )
-                } else {
-                    importBackup()
+            if (noDuplicates) {
+                importBackup()
+            } else {
+                setContentView(binding.root)
+                adapter.setItems(importResults.values.toList())
+                binding.list.layoutManager = LinearLayoutManager(this@ImportResultActivity)
+                binding.done.setOnClickListener {
+                    val isNotResolved = { r: ImportResult ->
+                        r.isDuplicate && r.action == ImportAction.Default
+                    }
+
+                    if (importResults.values.any(isNotResolved)) {
+                        showChoice(
+                            "Import conflicts",
+                            "There are still some conflicts left, are you sure you want to proceed?\n\nNOTE: By default conflicting items will be skipped",
+                            "Proceed",
+                            positiveCallback = {
+                                importBackup()
+                            },
+                            "Cancel"
+                        )
+                    } else {
+                        importBackup()
+                    }
                 }
             }
         }
@@ -232,13 +238,8 @@ class ImportResultActivity : AuthenticatorActivity() {
                 }
             }
 
-            showInfo(
-                "Import succeed",
-                "$added new items\n$replaced replaced items\n$skipped skipped items"
-            ) {
-                startActivity(AccountListActivity::class) {
-                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                }
+            startActivity(AccountListActivity::class) {
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }
         }
     }
