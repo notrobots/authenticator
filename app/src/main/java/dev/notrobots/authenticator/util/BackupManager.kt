@@ -293,7 +293,7 @@ object BackupManager {
         } catch (_: Exception) {
         }
 
-        if (Base64.isBase64(data)) {
+        if (isBase64(data)) {
             try {
                 importAuthenticatorBackup(data)
             } catch (_: Exception) {
@@ -485,10 +485,13 @@ object BackupManager {
 
     /**
      * Imports a backup that was serialized using [AuthenticatorBackupSerializer].
+     *
+     * [data] must be a base64 string.
      */
     fun importAuthenticatorBackup(data: String): BackupData {
-        require(Base64.isBase64(data)) {
-            "Backup is corrupted"
+        require(isBase64(data)) {
+            loge("Not a base64 string")
+            "Backup data is corrupt."
         }
 
         val (accounts, tags, accountsWithTags) = authenticatorBackupSerializer.deserialize(data)
@@ -497,12 +500,14 @@ object BackupManager {
     }
 
     /**
-     * Container for the imported data
+     * Returns whether or not the given [string] is a base64 string.
      */
-    data class BackupData(
-        val accounts: List<Account> = listOf(),
-        val tags: List<Tag> = emptyList(),
-        val accountsWithTags: Map<Account, List<String>> = emptyMap(),
-        val settings: Map<String, Any?> = emptyMap()
-    ): Serializable
+    private fun isBase64(string: String): Boolean {
+        // The string must be decoded or it won't be recognized as a base64 string.
+        // It isn't a problem if the string was already decoded and decoding again
+        // is faster than checking if it's encoded.
+        val decoded = Uri.decode(string)
+
+        return Base64.isBase64(decoded)
+    }
 }
