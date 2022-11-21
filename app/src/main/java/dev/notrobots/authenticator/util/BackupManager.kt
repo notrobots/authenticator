@@ -146,7 +146,7 @@ object BackupManager {
 
         return data.mapIndexed { index, s ->
             ///xxx Will this append it or replace it?
-            uri.replaceQueryParameter(BACKUP_URI_PART, (index + 1).toString())
+            uri.replaceQueryParameter(BACKUP_URI_PART, index.toString())
             uri.replaceQueryParameter(BACKUP_URI_TOTAL, data.size.toString())
             uri.replaceQueryParameter(BACKUP_URI_DATA, s)
 
@@ -279,6 +279,11 @@ object BackupManager {
     /**
      * Imports the given string [data].
      *
+     * This is more suitable for importing a list of [Uri]s or more complex data such as a Json object. If you need to
+     * import a single [Uri] but don't know the type use [importList] pr [importUris].
+     *
+     * If you already know what kind of [Uri] you're importing then use [Account.fromUri] or [Tag.fromUri].
+     *
      * Supported formats
      * + List [Uri]s separated by a new line
      *          + `otpauth://totp/label:name?secret={SECRET}&tags=tag1,tag2`
@@ -306,23 +311,21 @@ object BackupManager {
     }
 
     /**
-     * Imports the given [list].
+     * Imports the given [list] of [Uri].
      *
-     * Supported formats
-     * + List of [Uri]s
-     *          + `otpauth://totp/label:name?secret={SECRET}&tags=tag1,tag2`
-     *          + `otpauth://tag/name`
-     *          + `otpauth://backup?part=1&total=1&data={SERIALIZED_DATA_CHUNK_1}`
-     *          + `otpauth-migration://offline?data={SERIALIZED_DATA_CHUNK_1}`
+     * Supported formats:
+     * + `otpauth://totp/label:name?secret={SECRET}&tags=tag1,tag2`
+     * + `otpauth://tag/name`
+     * + `otpauth://backup?part=1&total=1&data={SERIALIZED_DATA_CHUNK_1}`
+     * + `otpauth-migration://offline?data={SERIALIZED_DATA_CHUNK_1}`
      */
-    fun importList(list: List<String>): BackupData {
+    fun importUris(list: List<Uri>): BackupData {
         val tags = mutableListOf<Tag>()
         val accounts = mutableListOf<Account>()
         val accountsWithTags = mutableMapOf<Account, List<String>>()
-        lateinit var authenticatorBackupData: Array<String?>
-        var authenticatorBackupCount = -1
+        var authenticatorBackupData: Array<String?>? = null
 
-        for ((index, item) in list.withIndex()) {
+        for ((index, uri) in list.withIndex()) {
             try {
                 val uri = item.toUri()
 
@@ -350,7 +353,7 @@ object BackupManager {
                             "$BACKUP_URI_SCHEME://$BACKUP_URI_AUTHORITY?total=[INVALID]"
                         }
 
-                        require(part != null && part > 0) {
+                        require(part != null && part >= 0) {
                             "$BACKUP_URI_SCHEME://$BACKUP_URI_AUTHORITY?part=[INVALID]"
                         }
 
@@ -362,12 +365,11 @@ object BackupManager {
                             "$BACKUP_URI_SCHEME://$BACKUP_URI_AUTHORITY?[DATA_MISSING]"
                         }
 
-                        require(authenticatorBackupCount == -1 || authenticatorBackupCount == total) {
+                        require(authenticatorBackupData == null || authenticatorBackupData.size == total) {
                             "$BACKUP_URI_SCHEME://$BACKUP_URI_AUTHORITY?total=[VALUE_MISMATCH]"
                         }
 
-                        if (authenticatorBackupCount == -1) {
-                            authenticatorBackupCount = total
+                        if (authenticatorBackupData == null) {
                             authenticatorBackupData = arrayOfNulls(total)
                         }
 
@@ -405,27 +407,29 @@ object BackupManager {
 
                     else -> throw Exception("Unknown Uri")
                 }
-
-                if (authenticatorBackupCount > 0) {
-                    require(authenticatorBackupData.none { it == null }) {
-                        val indexes = authenticatorBackupData.withIndex()
-                            .filter { it.value == null }
-                            .map { it.index }
-                            .joinToString(" & ")
-
-                        "Missing backup parts: $indexes; Total: $authenticatorBackupCount"
-                    }
-
-                    val data = authenticatorBackupData.joinToString("")
-                    val (_accounts, _tags, _accountsWithTags) = importAuthenticatorBackup(data)
-
-                    accounts.addAll(_accounts)
-                    tags.addAll(_tags)
-                    accountsWithTags.putAll(_accountsWithTags)
-                }
             } catch (e: Exception) {
+                //TODO: Do not show the index if there's only one uri
+
                 throw Exception("Error parsing Uri #${index + 1}: ${e.message}")
             }
+        }
+
+        if (authenticatorBackupData != null) {
+            require(authenticatorBackupData.none { it == null }) {
+                val indexes = authenticatorBackupData.withIndex()
+                    .filter { it.value == null }
+                    .map { it.index }
+                    .joinToString()
+
+                "Some parts are missing: $indexes; \nTotal parts: ${authenticatorBackupData.size}"
+            }
+
+            val data = authenticatorBackupData.joinToString("")
+            val (_accounts, _tags, _accountsWithTags) = importAuthenticatorBackup(data)
+
+            accounts.addAll(_accounts)
+            tags.addAll(_tags)
+            accountsWithTags.putAll(_accountsWithTags)
         }
 
         return BackupData(accounts, tags, accountsWithTags)
