@@ -100,6 +100,13 @@ class AccountListActivity : AuthenticatorActivity() {
         override fun onItemSelectionChange(account: Account, position: Int, id: Long, adapter: AccountListAdapter) {
             actionMode?.title = adapter.selectedItemCount.toString()
         }
+
+        override fun onShareAccount(account: Account, position: Int, id: Long, adapter: AccountListAdapter) {
+            val qrCode = QRCode(Account.toUri(account))
+            val dialog = ImageDialog(qrCode.toBitmap())
+
+            dialog.show(supportFragmentManager, null)
+        }
     }
     private var actionMode: ActionMode? = null
     private val editActionModeCallback = object : ActionMode.Callback {

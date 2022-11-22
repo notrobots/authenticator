@@ -225,6 +225,10 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
             binding.edit.setOnClickListener {
                 listener.onItemEditClick(account, position, id, this)
             }
+            binding.shareQr.setOnClickListener {
+                listener.onShareAccount(account, position, account.accountId, this)
+            }
+            binding.indicators.showView(R.id.edit_container)
             binding.totpRowIndicator.hide()
             binding.totpBackgroundIndicator.hide()
         } else {
@@ -573,6 +577,11 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
          * Invoked when an item selection has changed.
          */
         fun onItemSelectionChange(account: Account, position: Int, id: Long, adapter: AccountListAdapter) = Unit
+
+        /**
+         * Invoked when an item needs to be shared.
+         */
+        fun onShareAccount(account: Account, position: Int, id: Long, adapter: AccountListAdapter) = Unit
     }
 
     open inner class AccountViewHolder(parent: ViewGroup) : AbstractDraggableItemViewHolder(

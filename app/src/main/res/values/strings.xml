@@ -130,4 +130,6 @@
             &lt;li> App Settings&lt;/li>
         &lt;/ul>
     </string>
+    <string name="label_qr">QR</string>
+    <string name="label_share_qr">Share QR</string>
 </resources>
