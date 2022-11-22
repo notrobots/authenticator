@@ -5,31 +5,31 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.androidstuff.util.loge
 import dev.notrobots.authenticator.db.AccountDao
+import dev.notrobots.authenticator.db.AccountTagCrossRefDao
 import dev.notrobots.authenticator.db.TagDao
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.SortMode
-import dev.notrobots.authenticator.models.Tag
 import dev.notrobots.authenticator.util.TextUtil
 import javax.inject.Inject
 
 @HiltViewModel
 class AccountListViewModel @Inject constructor(
     val accountDao: AccountDao,
-    val tagDao: TagDao
+    val tagDao: TagDao,
+    val accountTagCrossRefDao: AccountTagCrossRefDao
 ) : ViewModel() {
     val sortMode = MutableLiveData(SortMode.Custom)
     val tagIdFilter: MutableLiveData<Long> = MutableLiveData(-1)
     val tags = tagDao.getTagsLive()
-    val accounts = accountDao.getAccountsLive()
-    val filteredAccounts = Transformations.switchMap(AccountFilterMediator(sortMode, tagIdFilter)) {
+    val accounts = Transformations.switchMap(AccountFilterMediator(sortMode, tagIdFilter)) {
         if (it?.second != -1L && it.first != null) {
-            accountDao.getAccountsWithTagsLive(
+            accountDao.getAccountsLive(
                 it.first!!.sortingDirection,
                 it.first!!.sortingBy,
                 it.second!!
             )
         } else {
-            accountDao.getAccountsWithTagsLive(
+            accountDao.getAccountsLive(
                 it.first!!.sortingDirection,
                 it.first!!.sortingBy
             )

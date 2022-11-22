@@ -222,7 +222,7 @@ class AccountListActivity : AuthenticatorActivity() {
         viewModel.sortMode.observe(this) {
             adapter.sortMode = it
         }
-        viewModel.filteredAccounts.observe(this) {
+        viewModel.accounts.observe(this) {
             tagFilterMenuItem?.icon = ContextCompat.getDrawable(
                 this, if (viewModel.tagIdFilter() != -1L) {
                     R.drawable.ic_filter_active
@@ -231,7 +231,7 @@ class AccountListActivity : AuthenticatorActivity() {
                 }
             )
 
-            adapter.setItems(it.map { it.account })
+            adapter.setItems(it)
         }
         viewModel.tags.observe(this) {
             tagCount = it.size

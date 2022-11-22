@@ -195,7 +195,7 @@ class ImportResultActivity : AuthenticatorActivity() {
                             accountId?.let {
                                 viewModel.updateAccount(account)
                                 logd("Updating account: $account (dummy)")
-                                viewModel.accountDao.removeTags(accountId)
+                                viewModel.accountTagCrossRefDao.deleteWithAccountId(accountId)
                                 addTagsToAccount(it, account)
                             }
 
@@ -249,9 +249,9 @@ class ImportResultActivity : AuthenticatorActivity() {
 
         if (tagNames != null) {
             for (tag in tagNames) {
-                val tagId = viewModel.tagDao.getTag(tag).tagId
+                val tagId = viewModel.tagDao.getTag(tag)!!.tagId
 
-                viewModel.accountDao.addTagRef(accountId, tagId)
+                viewModel.accountTagCrossRefDao.insert(accountId, tagId)
             }
             logd("Adding tags $tagNames to account $dummy (dummy)")
         }

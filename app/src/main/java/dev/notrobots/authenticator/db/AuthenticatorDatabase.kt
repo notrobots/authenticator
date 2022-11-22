@@ -17,4 +17,5 @@ import dev.notrobots.authenticator.models.Tag
 abstract class AuthenticatorDatabase : RoomDatabase() {
     abstract fun accountDao(): AccountDao
     abstract fun tagDao(): TagDao
+    abstract fun accountTagCrossRefDao(): AccountTagCrossRefDao
 }

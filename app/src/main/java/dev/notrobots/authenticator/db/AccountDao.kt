@@ -23,12 +23,15 @@ interface AccountDao {
     }
 
     @Transaction
-    @Query("SELECT * FROM Account WHERE accountId = :accountId")
-    suspend fun getAccountWithTags(accountId: Long): AccountWithTags
-
-    @Transaction
-    @Query("SELECT * FROM Account WHERE accountId = :accountId")
-    fun getAccountWithTagsLive(accountId: Long): LiveData<AccountWithTags>
+    @Query(
+        """
+        SELECT Tag.*
+        FROM Tag
+        INNER JOIN AccountTagCrossRef ON AccountTagCrossRef.tagId = Tag.tagId
+        WHERE accountId = :accountId
+        """
+    )
+    suspend fun getTags(accountId: Long): List<Tag>
 
     @Query("SELECT * FROM Account ORDER BY `order`")
     suspend fun getAccounts(): List<Account>
@@ -41,15 +44,11 @@ interface AccountDao {
     suspend fun getAccountsWithTags(): List<AccountWithTags>
 
     @Transaction
-    @Query("SELECT * FROM Account")
-    fun getAccountsWithTagsLive(): LiveData<List<AccountWithTags>>
-
-    @Transaction
     @Query(
         """
-        SELECT * FROM Account
-        LEFT JOIN AccountTagCrossRef 
-            ON AccountTagCrossRef.accountId = Account.accountId 
+        SELECT Account.*
+        FROM Account
+        LEFT JOIN AccountTagCrossRef ON AccountTagCrossRef.accountId = Account.accountId 
         WHERE tagId = :tagId 
         GROUP BY Account.accountId
         ORDER BY 
@@ -61,12 +60,13 @@ interface AccountDao {
             CASE WHEN :orderBy = $ORDER_BY_ISSUER AND :orderDir = $SORT_DESC THEN issuer END DESC
         """
     )
-    fun getAccountsWithTagsLive(orderDir: Int, orderBy: Int, tagId: Long): LiveData<List<AccountWithTags>>
+    fun getAccountsLive(orderDir: Int, orderBy: Int, tagId: Long): LiveData<List<Account>>
 
     @Transaction
     @Query(
         """
-        SELECT * FROM Account
+        SELECT Account.*
+        FROM Account
         LEFT JOIN AccountTagCrossRef ON AccountTagCrossRef.accountId = Account.accountId 
         GROUP BY Account.accountId
         ORDER BY 
@@ -78,19 +78,22 @@ interface AccountDao {
             CASE WHEN :orderBy = $ORDER_BY_ISSUER AND :orderDir = $SORT_DESC THEN issuer END DESC
         """
     )
-    fun getAccountsWithTagsLive(orderDir: Int, orderBy: Int): LiveData<List<AccountWithTags>>
+    fun getAccountsLive(orderDir: Int, orderBy: Int): LiveData<List<Account>>
 
-    @Query("SELECT COUNT(name) FROM Account WHERE name = :name AND label = :label AND issuer = :issuer")
-    suspend fun getCount(name: String, label: String, issuer: String): Int
-
-    @Transaction
-    suspend fun exists(name: String, label: String, issuer: String): Boolean {
-        return getCount(name, label, issuer) > 0
-    }
+    @Query(
+        """
+        SELECT EXISTS(
+            SELECT accountId 
+            FROM Account 
+            WHERE name = :name and label = :label and issuer = :issuer
+        )
+        """
+    )
+    suspend fun exists(name: String, label: String, issuer: String): Boolean
 
     @Transaction
     suspend fun exists(account: Account): Boolean {
-        return getCount(account.name, account.label, account.issuer) > 0
+        return exists(account.name, account.label, account.issuer)
     }
 
     @Query("SELECT COALESCE(MAX(`order`), 0) FROM Account")
@@ -102,44 +105,18 @@ interface AccountDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(accounts: List<Account>): List<Long>
 
-    @Insert
-    suspend fun insert(accountTagCrossRef: AccountTagCrossRef)
+    @Update
+    suspend fun update(account: Account): Int
 
     @Update
-    suspend fun update(account: Account)
-
-    @Update
-    suspend fun update(accounts: List<Account>)
+    suspend fun update(accounts: List<Account>): Int
 
     @Delete
-    suspend fun delete(account: Account)
+    suspend fun delete(account: Account): Int
 
     @Delete
-    suspend fun delete(accounts: List<Account>)
-
-    @Delete
-    suspend fun delete(accountTagCrossRef: AccountTagCrossRef)
-
-    @Query("DELETE FROM AccountTagCrossRef WHERE accountId = :accountId")
-    suspend fun removeTags(accountId: Long)
-
-    @Query("DELETE FROM AccountTagCrossRef WHERE accountId = :accountId and tagId = :tagId")
-    suspend fun removeTag(accountId: Long, tagId: Long)
-
-    @Query(
-        """
-        SELECT EXISTS(
-            SELECT * 
-            FROM AccountTagCrossRef
-            WHERE accountId = :accountId and tagId = :tagId
-        )
-        """
-    )
-    suspend fun hasTag(accountId: Long, tagId: Long): Boolean
-
-    @Query("INSERT INTO AccountTagCrossRef VALUES(:accountId, :tagId)")
-    suspend fun addTagRef(accountId: Long, tagId: Long)
+    suspend fun delete(accounts: List<Account>): Int
 
     @Query("DELETE FROM Account")
-    suspend fun deleteAll()
+    suspend fun deleteAll(): Int
 }

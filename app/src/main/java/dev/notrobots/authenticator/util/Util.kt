@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.annotation.LayoutRes
 import androidx.viewbinding.ViewBinding
+import com.google.gson.Gson
 import dev.notrobots.androidstuff.util.bindView
 import dev.notrobots.androidstuff.util.requireNotEmpty
 import org.apache.commons.codec.binary.Base32
@@ -189,4 +190,10 @@ fun <T> Set(size: Int, init: (index: Int) -> T): Set<T> {
     val set = HashSet<T>(size)
     repeat(size) { set.add(init(it)) }
     return set
+}
+
+inline fun <reified T> cloneObject(instance: T): T {
+    val gson = Gson()
+
+    return gson.fromJson(gson.toJson(instance), T::class.java)
 }

@@ -8,6 +8,7 @@ import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.*
+import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.androidstuff.util.viewBindings
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
@@ -29,6 +30,7 @@ class AccountActivity : AuthenticatorActivity() {
     private val binding by viewBindings<ActivityAccountBinding>(this)
     private lateinit var account: Account
     private var sourceAccount: Account? = null
+    private var sourceTags: List<Tag> = emptyList()
     private var showAdvanced = false
     private val selectedTags = mutableListOf<Tag>()
 
@@ -36,11 +38,8 @@ class AccountActivity : AuthenticatorActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbarLayout.toolbar)
-
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        binding.toolbarLayout.toolbar.setNavigationOnClickListener {
-            finish()
-        }
+        finishOnBackPressEnabled = true
 
         if (intent.hasExtra(EXTRA_ACCOUNT)) {
             account = intent.getSerializableExtra(EXTRA_ACCOUNT) as Account
@@ -122,16 +121,16 @@ class AccountActivity : AuthenticatorActivity() {
             binding.spinnerAccountType.setSelection(it.type)
         }
 
-        viewModel.tags.observe(this) {
-            if (it.isNotEmpty()) {
-                if (sourceAccount != null) {
-                    lifecycleScope.launch {
-                        val accountWithTags = viewModel.accountDao.getAccountWithTags(sourceAccount!!.accountId)
+        lifecycleScope.launch {
+            val tags = viewModel.tagDao.getTags()
 
-                        setTags(it, accountWithTags.tags)
-                    }
+            if (tags.isNotEmpty()) {
+                if (sourceAccount != null) {
+                    sourceTags = viewModel.accountDao.getTags(sourceAccount!!.accountId)
+                    selectedTags.addAll(sourceTags)
+                    setTags(tags, sourceTags)
                 } else {
-                    setTags(it, null)
+                    setTags(tags, null)
                 }
             } else {
                 binding.tagList.disable()
@@ -152,7 +151,7 @@ class AccountActivity : AuthenticatorActivity() {
             return true
         }
 
-        return false
+        return super.onOptionsItemSelected(item)
     }
 
     private fun setTags(tags: List<Tag>, selected: List<Tag>?) {
@@ -208,14 +207,18 @@ class AccountActivity : AuthenticatorActivity() {
 
                 if (sourceAccount != null) {
                     if (sameNames || !viewModel.accountDao.exists(account.name, account.label, account.issuer)) {
-                        viewModel.updateAccount(account)
-                        viewModel.accountDao.removeTags(sourceAccount!!.accountId)
+                        val addedTags = selectedTags.filter { it !in sourceTags }
+                        val removedTags = sourceTags.filter { it !in selectedTags }
 
-                        selectedTags
-                            .map { AccountTagCrossRef(sourceAccount!!.accountId, it.tagId) }
-                            .forEach {
-                                viewModel.accountDao.insert(it)
-                            }
+                        viewModel.updateAccount(account)
+
+                        addedTags.forEach {
+                            viewModel.accountTagCrossRefDao.insert(sourceAccount!!.accountId, it.tagId)
+                        }
+
+                        removedTags.forEach {
+                            viewModel.accountTagCrossRefDao.delete(sourceAccount!!.accountId, it.tagId)
+                        }
 
                         finish()
                     } else {
@@ -226,11 +229,9 @@ class AccountActivity : AuthenticatorActivity() {
                     if (!viewModel.accountDao.exists(account.name, account.label, account.issuer)) {
                         val id = viewModel.insertAccount(account)
 
-                        selectedTags
-                            .map { AccountTagCrossRef(id, it.tagId) }
-                            .forEach {
-                                viewModel.accountDao.insert(it)
-                            }
+                        selectedTags.forEach {
+                            viewModel.accountTagCrossRefDao.insert(id, it.tagId)
+                        }
                         finish()
                     } else {
                         //TODO: More precise error

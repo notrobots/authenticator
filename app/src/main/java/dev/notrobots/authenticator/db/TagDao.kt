@@ -10,35 +10,11 @@ interface TagDao {
     @Query("SELECT * FROM Tag")
     suspend fun getTags(): List<Tag>
 
-    @Query("SELECT * FROM Tag WHERE name = :name")
-    suspend fun getTag(name: String): Tag
-
     @Query("SELECT * FROM Tag")
     fun getTagsLive(): LiveData<List<Tag>>
 
-    @Transaction
-    @Query("SELECT * FROM Tag")
-    suspend fun getTagsWithAccounts(): List<TagWithAccounts>
-
-    @Transaction
-    @Query("SELECT * FROM Tag")
-    fun getTagsWithAccountsLive(): LiveData<List<TagWithAccounts>>
-
-    @Transaction
-    @Query("SELECT * FROM Tag WHERE tagId = :id")
-    suspend fun getTagWithAccounts(id: Int): TagWithAccounts
-
-    @Transaction
-    @Query("SELECT * FROM Tag WHERE tagId = :id")
-    fun getTagWithAccountsLive(id: Int): LiveData<TagWithAccounts>
-
-    @Transaction
     @Query("SELECT * FROM Tag WHERE name = :name")
-    suspend fun getTagWithAccounts(name: String): TagWithAccounts
-
-    @Transaction
-    @Query("SELECT * FROM Tag WHERE name = :name")
-    fun getTagWithAccountsLive(name: String): LiveData<TagWithAccounts>
+    suspend fun getTag(name: String): Tag?
 
     @Query("SELECT EXISTS(SELECT * FROM Tag WHERE tagId = :id)")
     suspend fun exists(id: Long): Boolean
@@ -50,14 +26,14 @@ interface TagDao {
     suspend fun insert(tag: Tag): Long
 
     @Insert
-    suspend fun insert(tags: List<Tag>)
+    suspend fun insert(tags: List<Tag>): List<Long>
 
     @Update
-    suspend fun update(tag: Tag)
+    suspend fun update(tag: Tag): Int
 
     @Delete
-    suspend fun delete(tag: Tag)
+    suspend fun delete(tag: Tag): Int
 
     @Query("DELETE FROM Tag")
-    suspend fun deleteAll()
+    suspend fun deleteAll(): Int
 }

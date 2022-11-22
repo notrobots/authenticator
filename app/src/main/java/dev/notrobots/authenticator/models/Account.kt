@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 import dev.notrobots.authenticator.extensions.contains
 import dev.notrobots.authenticator.extensions.get
 import dev.notrobots.authenticator.extensions.isOnlySpaces
-import dev.notrobots.authenticator.extensions.toList
+import dev.notrobots.authenticator.util.cloneObject
 import dev.notrobots.authenticator.util.hashCodeOf
 import dev.notrobots.authenticator.util.isValidBase32
 import dev.notrobots.preferences2.util.parseEnum
@@ -87,7 +87,7 @@ data class Account(
     constructor() : this("", "")
 
     public override fun clone(): Account {
-        return super.clone() as Account
+        return cloneObject(this)
     }
 
     override fun equals(other: Any?): Boolean {

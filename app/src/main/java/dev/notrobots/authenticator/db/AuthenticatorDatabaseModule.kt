@@ -24,6 +24,11 @@ object AuthenticatorDatabaseModule {
     }
 
     @Provides
+    fun provideAccountTagCrossRefDao(database: AuthenticatorDatabase): AccountTagCrossRefDao {
+        return database.accountTagCrossRefDao()
+    }
+
+    @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext appContext: Context): AuthenticatorDatabase {
         return Room.databaseBuilder(
