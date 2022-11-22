@@ -225,10 +225,8 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
             binding.edit.setOnClickListener {
                 listener.onItemEditClick(account, position, id, this)
             }
-            binding.indicators.showView(R.id.edit)
             binding.totpRowIndicator.hide()
             binding.totpBackgroundIndicator.hide()
-            binding.divider.show()
         } else {
             // Clear selection, accounts can only be selected in edit mode
             view.isSelected = false
@@ -242,19 +240,16 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
 
                     if (totpIndicatorType != TotpIndicatorType.Row) {
                         binding.totpRowIndicator.hide()
-                        binding.divider.show()
                     }
 
                     if (totpIndicatorType != TotpIndicatorType.Background) {
                         binding.totpBackgroundIndicator.hide()
-                        binding.divider.show()
                     }
 
                     when (totpIndicatorType) {
                         TotpIndicatorType.Background -> {
                             binding.totpBackgroundIndicator.show()
-                            binding.indicators.hideAll()
-                            binding.divider.hide()
+                            binding.indicators.hideView()
                             holder.totpCounter?.getTimeUntilNextCounter()?.let {
                                 setNewPin()
                                 val max = TimeUnit.SECONDS.toMillis(account.period).toInt()
@@ -264,8 +259,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                             }
                         }
                         TotpIndicatorType.Row -> {
-                            binding.indicators.hideAll()
-                            binding.divider.hide()
+                            binding.indicators.hideView()
                             binding.totpRowIndicator.max = TimeUnit.SECONDS.toMillis(account.period).toInt()
                             holder.totpCounter?.getTimeUntilNextCounter()?.let {
                                 setNewPin()

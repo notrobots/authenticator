@@ -139,7 +139,7 @@
                 android:id="@+id/totp_circular_indicator_solid"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
-                android:layout_gravity="center"/>
+                android:layout_gravity="center" />
 
             <FrameLayout
                 android:id="@+id/totp_circular_text_indicator"
@@ -152,9 +152,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_gravity="center"
+                    android:gravity="center"
                     android:max="10"
                     android:progress="5"
-                    android:gravity="center"
                     app:indicatorSize="28dp" />
 
                 <com.google.android.material.textview.MaterialTextView
@@ -162,8 +162,8 @@
                     style="@style/AccountTotpIndicatorText"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:textAlignment="gravity"
                     android:gravity="center"
+                    android:textAlignment="gravity"
                     tools:text="60" />
 
             </FrameLayout>
@@ -173,26 +173,17 @@
         <!-- These two views should be inside a view switcher -->
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/totp_row_indicator"
+            style="@style/Widget.Material3.LinearProgressIndicator"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:trackThickness="2dp"
+            android:layout_marginStart="@dimen/account_row_divider_margin"
+            android:layout_marginEnd="@dimen/account_row_divider_margin"
             android:max="10"
             android:progress="7"
-            style="@style/Widget.Material3.LinearProgressIndicator"
-            app:layout_constraintBottom_toTopOf="@id/divider"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginStart="@dimen/account_row_divider_margin"
-            android:layout_marginEnd="@dimen/account_row_divider_margin"/>
-
-        <View
-            android:id="@+id/divider"
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:background="@drawable/bg_list_separator"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:trackThickness="2dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

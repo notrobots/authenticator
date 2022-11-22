@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -35,7 +36,6 @@ import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.backupimport.ImportActivity
 import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
-import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity_GeneratedInjector
 import dev.notrobots.authenticator.ui.backupmanager.BackupManagerActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import dev.notrobots.authenticator.ui.settings.SettingsActivity
@@ -45,7 +45,6 @@ import dev.notrobots.authenticator.util.OTPGenerator
 import dev.notrobots.authenticator.util.adapterOf
 import dev.notrobots.authenticator.widget.BottomSheetListView
 import dev.notrobots.preferences2.*
-import dev.notrobots.preferences2.getHidePinsOnChange
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.coroutines.launch
 
@@ -484,6 +483,7 @@ class AccountListActivity : AuthenticatorActivity() {
     private fun setupListAdapter() {
         val animator = DraggableItemAnimator()
         val layoutManager = LinearLayoutManager(this)
+        val dividerItemDecoration = DividerItemDecoration(this, layoutManager.orientation)
 
         adapter = AccountListAdapter()
         adapter.setListener(listAdapterListener)
@@ -508,8 +508,8 @@ class AccountListActivity : AuthenticatorActivity() {
 
         adapterWrapper = recyclerViewDragDropManager.createWrappedAdapter(adapter)
         binding.listAccounts.layoutManager = layoutManager
-//        binding.listAccounts.adapter = adapterWrapper
         binding.listAccounts.itemAnimator = animator
+        binding.listAccounts.addItemDecoration(dividerItemDecoration)
         binding.listAccounts.setEmptyView(binding.emptyView)
 
 //        if (supportsViewElevation()) {
