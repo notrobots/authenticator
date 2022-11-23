@@ -132,4 +132,5 @@
     </string>
     <string name="label_qr">QR</string>
     <string name="label_share_qr">Share QR</string>
+    <string name="error_invalid_character">Invalid character</string>
 </resources>

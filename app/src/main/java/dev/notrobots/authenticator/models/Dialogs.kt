@@ -3,11 +3,13 @@ package dev.notrobots.authenticator.models
 import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
+import android.text.InputFilter
 import android.view.View
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.bindView
 import dev.notrobots.authenticator.R
+import dev.notrobots.authenticator.data.TAG_NAME_INVALID_CHARACTERS
+import dev.notrobots.authenticator.data.TAG_NAME_MAX_LENGTH
 import dev.notrobots.authenticator.databinding.DialogAddTagBinding
 import dev.notrobots.authenticator.db.TagDao
 import dev.notrobots.authenticator.dialogs.DialogBuilder
@@ -26,7 +28,17 @@ fun AddOrEditTagDialog(
 ): Dialog {
     val dialogBinding = bindView<DialogAddTagBinding>(context)
 
-    dialogBinding.nameLayout.setErrorWhen(R.string.error_empty_field) { s -> s.isBlank() }
+    dialogBinding.name.filters = arrayOf(InputFilter.LengthFilter(TAG_NAME_MAX_LENGTH))
+    dialogBinding.nameLayout.isCounterEnabled = true
+    dialogBinding.nameLayout.counterMaxLength = TAG_NAME_MAX_LENGTH
+    dialogBinding.nameLayout.setError { s ->
+        when  {
+            s.isBlank() -> R.string.error_empty_field
+            TAG_NAME_INVALID_CHARACTERS.find(s) != null -> R.string.error_invalid_character
+
+            else -> null
+        }
+    }
 
     tag?.let {
         dialogBinding.name.setText(it.name)
