@@ -1,6 +1,7 @@
 package dev.notrobots.authenticator.ui.account
 
 import android.os.Bundle
+import android.text.InputFilter
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
@@ -12,9 +13,13 @@ import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.androidstuff.util.viewBindings
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
+import dev.notrobots.authenticator.data.ACCOUNT_ISSUER_MAX_LENGTH
+import dev.notrobots.authenticator.data.ACCOUNT_LABEL_MAX_LENGTH
+import dev.notrobots.authenticator.data.ACCOUNT_NAME_MAX_LENGTH
 import dev.notrobots.authenticator.databinding.ActivityAccountBinding
 import dev.notrobots.authenticator.databinding.ItemAccountTagChipBinding
 import dev.notrobots.authenticator.extensions.isOnlySpaces
+import dev.notrobots.authenticator.extensions.setMaxLength
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.AccountTagCrossRef
 import dev.notrobots.authenticator.models.OTPType
@@ -51,6 +56,7 @@ class AccountActivity : AuthenticatorActivity() {
             setTitle(R.string.label_add_account)
         }
 
+        binding.layoutAccountName.setMaxLength(ACCOUNT_NAME_MAX_LENGTH)
         binding.layoutAccountName.setErrorWhen("Name cannot be empty") { s ->
             s.isEmpty()
         }
@@ -58,9 +64,11 @@ class AccountActivity : AuthenticatorActivity() {
             "Secret cannot be empty" to { it.isEmpty() },
             "Secret key must be a base32 string" to { !isValidBase32(it) }
         )
+        binding.layoutAccountLabel.setMaxLength(ACCOUNT_LABEL_MAX_LENGTH)
         binding.layoutAccountLabel.setErrorWhen("Label cannot be blank") { s ->
             s.isOnlySpaces()
         }
+        binding.layoutAccountIssuer.setMaxLength(ACCOUNT_ISSUER_MAX_LENGTH)
         binding.layoutAccountIssuer.setErrorWhen("Issuer cannot be blank") { s ->
             s.isOnlySpaces()
         }

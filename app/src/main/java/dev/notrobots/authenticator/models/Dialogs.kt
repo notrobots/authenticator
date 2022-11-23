@@ -8,11 +8,11 @@ import android.view.View
 import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.bindView
 import dev.notrobots.authenticator.R
-import dev.notrobots.authenticator.data.TAG_NAME_INVALID_CHARACTERS
 import dev.notrobots.authenticator.data.TAG_NAME_MAX_LENGTH
 import dev.notrobots.authenticator.databinding.DialogAddTagBinding
 import dev.notrobots.authenticator.db.TagDao
 import dev.notrobots.authenticator.dialogs.DialogBuilder
+import dev.notrobots.authenticator.extensions.setMaxLength
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -28,17 +28,8 @@ fun AddOrEditTagDialog(
 ): Dialog {
     val dialogBinding = bindView<DialogAddTagBinding>(context)
 
-    dialogBinding.name.filters = arrayOf(InputFilter.LengthFilter(TAG_NAME_MAX_LENGTH))
-    dialogBinding.nameLayout.isCounterEnabled = true
-    dialogBinding.nameLayout.counterMaxLength = TAG_NAME_MAX_LENGTH
-    dialogBinding.nameLayout.setError { s ->
-        when  {
-            s.isBlank() -> R.string.error_empty_field
-            TAG_NAME_INVALID_CHARACTERS.find(s) != null -> R.string.error_invalid_character
-
-            else -> null
-        }
-    }
+    dialogBinding.nameLayout.setMaxLength(TAG_NAME_MAX_LENGTH)
+    dialogBinding.nameLayout.setErrorWhen(R.string.error_empty_field) { s -> s.isBlank() }
 
     tag?.let {
         dialogBinding.name.setText(it.name)
