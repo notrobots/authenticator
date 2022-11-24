@@ -75,20 +75,6 @@
             android:key="hide_pins_on_change"
             android:summary="@string/pref_hide_pins_on_change_summary"
             android:title="@string/pref_hide_pins_on_change" />
-
-        <SwitchPreference
-            android:defaultValue="false"
-            android:dependency="hide_pins"
-            android:key="hide_pins_automatically"
-            android:summary="@string/pref_hide_pins_automatically_summary"
-            android:title="@string/pref_hide_pins_automatically" />
-
-        <EditTextPreference
-            android:defaultValue="30"
-            android:dependency="hide_pins_automatically"
-            android:dialogLayout="@layout/view_preference_edit_text_numeric"
-            android:key="hide_pins_delay"
-            android:title="@string/pref_hide_pins_delay" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_backup">

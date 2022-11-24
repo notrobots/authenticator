@@ -1,7 +1,6 @@
 package dev.notrobots.authenticator.ui.accountlist
 
 import android.annotation.SuppressLint
-import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
 import android.view.View
@@ -36,7 +35,13 @@ import kotlin.math.ceil
 class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableItemAdapter<AccountViewHolder>, Filterable {
     private var listener: Listener = object : Listener {}
     private val handler = Handler(Looper.getMainLooper())
-    private var forcedClearTextItems = mutableSetOf<Account>()
+
+    /**
+     * Items that are currently showing despite clear text being disabled.
+     *
+     * This is only used when [clearTextEnabled] is set to false.
+     */
+    private var visibleItems = mutableSetOf<Account>()
     private val pinCache = mutableMapOf<Account, String>()
     var items = mutableListOf<Account>()    //FIXME: private
         private set
@@ -63,16 +68,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         set(value) {
             if (field != value) {
                 field = value
-                forcedClearTextItems.clear()
-                notifyDataSetChanged()
-            }
-        }
-    var clearTextTimeout: Long? = null
-        set(value) {
-            if (field != value) {
-                field = value
-                //TODO: Clear all timers and reset the states
-                forcedClearTextItems.clear()
+                visibleItems.clear()
                 notifyDataSetChanged()
             }
         }
@@ -81,7 +77,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
             if (field != value) {
                 field = value
                 //TODO: Clear all timers and reset the states
-                forcedClearTextItems.clear()
+                visibleItems.clear()
                 notifyDataSetChanged()
             }
         }
@@ -181,24 +177,18 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                 view.isSelected = account in selectedItems
                 listener.onItemSelectionChange(account, position, account.accountId, this)
             } else {
-                // If the pins are not visible force this account to show
-                if (!clearTextEnabled && account !in forcedClearTextItems) {
-                    forcedClearTextItems.add(account)
-                    refreshPin(holder, account)
+                if (!clearTextEnabled) {
+                    // If clear text is not enabled (`Preferences.HIDE_PINS` set to True)
+                    // we have to white list the accounts that were forced to show.
+                    // If the account is already showing we'll remove from the list.
 
-                    // If a timeout is specified set a timer and
-                    // hide the pin again once the timer is done
-                    clearTextTimeout?.let {
-                        if (it > 0) {
-                            //XXX: What happens when the holder is recycled? Is the timer stopped?
-                            holder.setAutoHidePin(TimeUnit.SECONDS.toMillis(it)) {
-                                if (account in forcedClearTextItems) {
-                                    forcedClearTextItems.remove(account)
-                                    refreshPin(holder, account)
-                                }
-                            }
-                        }
+                    if (account in visibleItems) {
+                        visibleItems.remove(account)
+                    } else {
+                        visibleItems.add(account)
                     }
+
+                    refreshPin(holder, account)
                 }
 
                 listener.onItemClick(account, position, id, this)
@@ -401,7 +391,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
     fun setItems(items: List<Account>) {
         if (this.items.isEmpty()) {
             this.items.addAll(items)
-            forcedClearTextItems.clear()
+            visibleItems.clear()
             notifyDataSetChanged()
         } else {
             val oldList = this.items
@@ -423,7 +413,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                 }
             })
 
-            forcedClearTextItems = forcedClearTextItems.filter {
+            visibleItems = visibleItems.filter {
                 it in items
             }.toMutableSet()
 
@@ -552,16 +542,15 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         val pin = generatePin(account)
 
         if (!pinCache.containsKey(account) || pin != pinCache[account]) {
-            if (hidePinsOnChange && !clearTextEnabled && account in forcedClearTextItems) {
-//                holder.autoHidePinTimer?.cancel()
-                forcedClearTextItems.remove(account)
+            if (hidePinsOnChange && !clearTextEnabled && account in visibleItems) {
+                visibleItems.remove(account)
             }
             pinCache[account] = pin
         }
 
         holder.binding.pin.text = formatPin(
             pin,
-            clearText = clearTextEnabled || (account in forcedClearTextItems)
+            clearText = clearTextEnabled || (account in visibleItems)
         )
     }
 
@@ -627,8 +616,6 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         private val dragState = DraggableItemState()
         val binding = ItemAccountBinding.bind(itemView)
         val dragHandle = itemView.findViewById<View>(R.id.drag_handle)
-        var autoHidePinTimer: CountDownTimer? = null
-            private set
 
         override fun setDragStateFlags(flags: Int) {
             dragState.flags = flags
@@ -640,20 +627,6 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
 
         override fun getDragState(): DraggableItemState {
             return dragState
-        }
-
-        fun setAutoHidePin(time: Long, onFinish: () -> Unit) {
-            autoHidePinTimer?.cancel()
-            autoHidePinTimer = object : CountDownTimer(time, 1000) {
-                override fun onTick(p0: Long) {
-
-                }
-
-                override fun onFinish() {
-                    onFinish()
-                }
-            }
-            autoHidePinTimer?.start()
         }
     }
 

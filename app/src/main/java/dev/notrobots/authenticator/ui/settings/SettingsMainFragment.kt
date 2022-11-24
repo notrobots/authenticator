@@ -21,7 +21,6 @@ class SettingsMainFragment : PreferenceFragmentCompat() {
     private val prefs by lazy {
         PreferenceManager.getDefaultSharedPreferences(requireContext())
     }
-    private var clearTextTimeoutTimePref: EditTextPreference? = null
     private var appLockPref: SwitchPreference? = null
     private var exportLockPref: SwitchPreference? = null
     private var dynamicColorsPref: SwitchPreference? = null
@@ -29,12 +28,6 @@ class SettingsMainFragment : PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.pref_settings_main)
 
-        clearTextTimeoutTimePref = findPreference(Preferences.HIDE_PINS_DELAY)
-        clearTextTimeoutTimePref?.summary = formatClearTextTimeoutTime(prefs.getHidePinsDelay())
-        clearTextTimeoutTimePref?.setOnPreferenceChangeListener { preference, newValue ->
-            preference.summary = formatClearTextTimeoutTime(newValue)
-            true
-        }
         appLockPref = findPreference(Preferences.APP_LOCK)
         appLockPref?.setOnPreferenceChangeListener { _, newValue ->
             if ((newValue as? Boolean) == true) {
