@@ -2,9 +2,14 @@ package dev.notrobots.authenticator.db
 
 import androidx.room.*
 import dev.notrobots.authenticator.models.AccountTagCrossRef
+import dev.notrobots.authenticator.models.AccountWithTags
 
 @Dao
 interface AccountTagCrossRefDao {
+    @Transaction
+    @Query("SELECT * FROM Account")
+    suspend fun getAccountsWithTags(): List<AccountWithTags>
+
     @Insert
     suspend fun insert(accountTagCrossRef: AccountTagCrossRef): Long
 

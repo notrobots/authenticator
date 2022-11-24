@@ -1,6 +1,8 @@
 package dev.notrobots.authenticator.services
 
+import android.annotation.SuppressLint
 import android.app.job.*
+import android.content.pm.PackageManager
 import android.os.SystemClock
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
@@ -30,12 +32,19 @@ class LocalBackupJob : BackupJob() {
         if (file != null) {
             coroutineScope.launch {
                 val accounts = accountDao.getAccounts()
-                //TODO: There should be different methods for exports/imports and backups
-                // Backups should have a date, author and such, together with an encryption option
-                // Backup options should be
-                // + Plain Text
-                // + Plain JSON
-                // + Encrypted Text
+                val tags = tagDao.getTags()
+                val accountsWithTags = accountTagCrossRefDao.getAccountsWithTags()
+                val backup = BackupManager.exportJson(
+                    accounts,
+                    accountsWithTags,
+                    tags,
+                    emptyMap()  //TODO: Pass the settings, it should only be the specified ones and not all settings
+                ).toString(0)
+
+                file.write(this@LocalBackupJob) {
+                    //XXX: "inappropriate blocking method call" inspection
+                    write(backup)
+                    flush()
                 }
 
                 @SuppressLint("MissingPermission")

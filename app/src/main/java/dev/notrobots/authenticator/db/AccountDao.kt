@@ -40,10 +40,6 @@ interface AccountDao {
     fun getAccountsLive(): LiveData<List<Account>>
 
     @Transaction
-    @Query("SELECT * FROM Account")
-    suspend fun getAccountsWithTags(): List<AccountWithTags>
-
-    @Transaction
     @Query(
         """
         SELECT Account.*

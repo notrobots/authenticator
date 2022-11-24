@@ -3,7 +3,9 @@ package dev.notrobots.authenticator.ui.settings
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.preference.*
+import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
@@ -21,7 +23,7 @@ class SettingsMainFragment : PreferenceFragmentCompat() {
     private val prefs by lazy {
         PreferenceManager.getDefaultSharedPreferences(requireContext())
     }
-    private var appLockPref: SwitchPreference? = null
+    private var appLockPref: SwitchPreference? = null   //TODO lazy
     private var exportLockPref: SwitchPreference? = null
     private var dynamicColorsPref: SwitchPreference? = null
 

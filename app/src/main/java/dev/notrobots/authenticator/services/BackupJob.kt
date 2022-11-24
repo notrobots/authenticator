@@ -10,6 +10,8 @@ import androidx.core.content.getSystemService
 import androidx.preference.PreferenceManager
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.authenticator.db.AccountDao
+import dev.notrobots.authenticator.db.AccountTagCrossRefDao
+import dev.notrobots.authenticator.db.TagDao
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -22,6 +24,10 @@ abstract class BackupJob : JobService() {
     }
     @Inject
     protected lateinit var accountDao: AccountDao
+    @Inject
+    protected lateinit var tagDao: TagDao
+    @Inject
+    protected lateinit var accountTagCrossRefDao: AccountTagCrossRefDao
 
     companion object {
         const val JOB_ID = -1

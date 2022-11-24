@@ -29,7 +29,7 @@ class ExportActivity : AuthenticatorActivity() {
 
         lifecycleScope.launch {
             val accounts = viewModel.accountDao.getAccounts()
-            val accountsWithTags = viewModel.accountDao.getAccountsWithTags()
+            val accountsWithTags = viewModel.accountTagCrossRefDao.getAccountsWithTags()
             val tags = viewModel.tagDao.getTags()
 
             binding.exportOptionsQr.setOnClickListener {
@@ -56,7 +56,7 @@ class ExportActivity : AuthenticatorActivity() {
                     putExtra(ExportFileActivity.EXTRA_FILE_TYPE, ExportFileActivity.FILE_TYPE_TEXT)
                 }
             }
-            binding.exportOptionsJson.setOnClickListener {
+            binding.exportOptionsJson.setOnClickListener {                          //TODO: Pass the settings
                 val backup = BackupManager.exportJson(accounts, accountsWithTags, tags, mapOf()).toString(4)
 
                 startActivity(ExportFileActivity::class) {
