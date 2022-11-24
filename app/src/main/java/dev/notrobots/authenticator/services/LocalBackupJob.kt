@@ -38,28 +38,36 @@ class LocalBackupJob : BackupJob() {
                 // + Encrypted Text
                 }
 
-                //TODO: This notification should show when the next backup is going to be
-                val notification = NotificationCompat.Builder(this@LocalBackupJob, App.NOTIFICATION_CHANNEL_BACKUPS)
-                    .setContentTitle(getString(R.string.label_local_backup_complete))                   //XXX This is a really ugly way of showing the file name
-                    .setContentText(getString(R.string.label_local_backup_complete_body, "${TextUtil.formatFileUri(directoryPath)}/$fileName"))
-                    .setSmallIcon(R.drawable.ic_account)
-                    .build()
+                @SuppressLint("MissingPermission")
+                if (notificationManager.areNotificationsEnabled()) {
+                    //TODO: This notification should show when the next backup is going to be
+
+                    val notification = NotificationCompat.Builder(this@LocalBackupJob, App.NOTIFICATION_CHANNEL_BACKUPS)
+                        .setContentTitle(getString(R.string.label_local_backup_complete))                   //XXX This is a really ugly way of showing the file name
+                        .setContentText(getString(R.string.label_local_backup_complete_body, "${TextUtil.formatFileUri(directoryPath)}/$fileName"))
+                        .setSmallIcon(R.drawable.ic_account)
+                        .build()
+
+                    notificationManager.notify(SystemClock.elapsedRealtimeNanos().toInt(), notification)
+                }
 
                 preferences.putLastLocalBackupTime(now())
                 preferences.putLastLocalBackupPath(file.uri.toString())
-                notificationManager.notify(SystemClock.elapsedRealtimeNanos().toInt(), notification)
                 jobFinished(params, false)
             }
 
             return true
         } else {
-            val notification = NotificationCompat.Builder(this, App.NOTIFICATION_CHANNEL_BACKUPS)
-                .setContentTitle(getString(R.string.label_local_backup_failed))
-                .setSubText(getString(R.string.label_local_backup_failed_body, TextUtil.formatFileUri(directoryPath), fileName))
-                .setSmallIcon(R.drawable.ic_account)
-                .build()
+            @SuppressLint("MissingPermission")
+            if (notificationManager.areNotificationsEnabled()) {
+                val notification = NotificationCompat.Builder(this, App.NOTIFICATION_CHANNEL_BACKUPS)
+                    .setContentTitle(getString(R.string.label_local_backup_failed))
+                    .setSubText(getString(R.string.label_local_backup_failed_body, TextUtil.formatFileUri(directoryPath), fileName))
+                    .setSmallIcon(R.drawable.ic_account)
+                    .build()
 
-            notificationManager.notify(SystemClock.elapsedRealtimeNanos().toInt(), notification)
+                notificationManager.notify(SystemClock.elapsedRealtimeNanos().toInt(), notification)
+            }
 
             return false
         }

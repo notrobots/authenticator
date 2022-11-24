@@ -46,6 +46,11 @@ class BackupManagerActivity : AuthenticatorActivity() {
     }
 
     class BackupManagerFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
+        private val notificationPermissionRequest = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+            if (!it) {
+                requireContext().makeToast("Permission denied.\nYou won't get notified when a backup is performed.")
+            }
+        }
         private val pickLocalPath = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) {
             it?.let {
                 val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
@@ -69,9 +74,18 @@ class BackupManagerActivity : AuthenticatorActivity() {
         private var driveBackupFrequencyPref: EditTextPreference? = null
         private var driveBackupPathPref: Preference? = null
         private var lastLocalBackupPref: Preference? = null
+        private val localBackupPref by lazy {
+            findPreference<SwitchPreference>(Preferences.LOCAL_BACKUP_ENABLED)
+        }
+        private val driveBackupPref by lazy {
+            findPreference<SwitchPreference>(Preferences.DRIVE_BACKUP_ENABLED)
+        }
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             addPreferencesFromResource(R.xml.pref_backup_manager)
+
+            localBackupPref?.setOnPreferenceChangeListener(::requestNotificationPermission)
+            driveBackupPref?.setOnPreferenceChangeListener(::requestNotificationPermission)
 
             localBackupFrequencyPref = findPreference(Preferences.LOCAL_BACKUP_FREQUENCY)
             localBackupPathPref = findPreference(Preferences.LOCAL_BACKUP_PATH)
@@ -107,6 +121,7 @@ class BackupManagerActivity : AuthenticatorActivity() {
 
                 true
             }
+
             updateLastLocalBackup()
             checkLastLocalBackupIntegrity()
 
@@ -177,6 +192,14 @@ class BackupManagerActivity : AuthenticatorActivity() {
             } else {
                 jobScheduler.cancel(id)
             }
+        }
+
+        private fun requestNotificationPermission(preference: Preference, value: Any): Boolean {
+            if (value is Boolean && value) {
+                notificationPermissionRequest.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+
+            return true
         }
 
         private fun formatFrequency(preference: EditTextPreference): String? {
