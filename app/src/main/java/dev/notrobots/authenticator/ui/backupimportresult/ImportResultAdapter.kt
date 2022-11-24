@@ -13,7 +13,7 @@ import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.ItemImportResultBinding
 
 class ImportResultAdapter : RecyclerView.Adapter<ImportResultAdapter.ViewHolder>() {
-    private var items = listOf<ImportResult>()
+    private var items = emptyList<ImportResult>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(parent)

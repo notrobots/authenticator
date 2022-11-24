@@ -63,7 +63,7 @@ class AccountListActivity : AuthenticatorActivity() {
     }
     private val barcodeScanner = registerForActivityResult(StartActivityForResult()) {
         if (it.resultCode == Activity.RESULT_OK && it.data != null) {
-            val data = it.data!!.getStringArrayListExtra(BarcodeScannerActivity.EXTRA_QR_LIST) ?: listOf<String>()
+            val data = it.data!!.getStringArrayListExtra(BarcodeScannerActivity.EXTRA_QR_LIST) ?: emptyList<String>()
 
             try {
                 ImportResultActivity.showResults(this, BackupManager.importList(data))

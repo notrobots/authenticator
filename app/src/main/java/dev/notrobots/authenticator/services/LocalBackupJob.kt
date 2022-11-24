@@ -36,12 +36,6 @@ class LocalBackupJob : BackupJob() {
                 // + Plain Text
                 // + Plain JSON
                 // + Encrypted Text
-                val backup = BackupManager.exportPlainText(accounts)
-
-                file.write(this@LocalBackupJob) {
-                    //XXX: "inappropriate blocking method call" inspection
-                    write(backup)
-                    flush()
                 }
 
                 //TODO: This notification should show when the next backup is going to be
