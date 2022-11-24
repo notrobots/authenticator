@@ -1,7 +1,9 @@
 package dev.notrobots.authenticator.ui.account
 
 import android.os.Bundle
+import android.text.Editable
 import android.text.InputFilter
+import android.text.TextWatcher
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
@@ -16,6 +18,7 @@ import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.data.ACCOUNT_ISSUER_MAX_LENGTH
 import dev.notrobots.authenticator.data.ACCOUNT_LABEL_MAX_LENGTH
 import dev.notrobots.authenticator.data.ACCOUNT_NAME_MAX_LENGTH
+import dev.notrobots.authenticator.data.KnownIssuers
 import dev.notrobots.authenticator.databinding.ActivityAccountBinding
 import dev.notrobots.authenticator.databinding.ItemAccountTagChipBinding
 import dev.notrobots.authenticator.extensions.isOnlySpaces
@@ -72,6 +75,22 @@ class AccountActivity : AuthenticatorActivity() {
         binding.layoutAccountIssuer.setErrorWhen("Issuer cannot be blank") { s ->
             s.isOnlySpaces()
         }
+        binding.layoutAccountIssuer.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+            override fun onTextChanged(p0: CharSequence, p1: Int, p2: Int, p3: Int) {
+                val icon = KnownIssuers.lookup(p0, 0)
+
+                if (icon != 0) {
+                    binding.layoutAccountIssuer.isEndIconVisible = true
+                    binding.layoutAccountIssuer.setEndIconDrawable(icon)
+                } else {
+                    binding.layoutAccountIssuer.isEndIconVisible = false
+                }
+            }
+
+            override fun afterTextChanged(p0: Editable?) {}
+        })
         binding.layoutAccountDigits.setErrorWhen("Value must be higher than 0") { s ->
             val n = s.toIntOrNull()
 
