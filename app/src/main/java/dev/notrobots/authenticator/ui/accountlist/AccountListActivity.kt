@@ -498,9 +498,8 @@ class AccountListActivity : AuthenticatorActivity() {
         adapter.totpTimer = TotpTimer(App.TOTP_INDICATOR_UPDATE_DELAY)
         adapter.totpTimer?.setListener(object : TotpTimer.Listener {
             override fun onTick(currentTime: Long) {
-                if (!adapter.editMode) {
-                    adapter.notifyDataSetChanged()
-                    //TODO: Only update the visible ones
+                if (!adapter.editMode && !adapter.isEmpty) {
+                    refreshPinAndTimerForVisibleAccounts(layoutManager)
                 }
             }
         })
@@ -525,6 +524,24 @@ class AccountListActivity : AuthenticatorActivity() {
 //            mRecyclerView.addItemDecoration(ItemShadowDecorator((ContextCompat.getDrawable(requireContext(), R.drawable.material_shadow_z1) as NinePatchDrawable?)!!))
 //        }
 //        binding.listAccounts.addItemDecoration(SimpleListDividerDecorator(ContextCompat.getDrawable(requireContext(), R.drawable.list_divider_h), true))
+    }
+
+    /**
+     * Refreshes the pins and timers for all the visible accounts in the list without redrawing the rows.
+     */
+    private fun refreshPinAndTimerForVisibleAccounts(layoutManager: LinearLayoutManager) {
+        val first = layoutManager.findFirstVisibleItemPosition()
+        val last = layoutManager.findLastVisibleItemPosition()
+
+        for (i in first..last) {
+            val holder = binding.listAccounts.findViewHolderForAdapterPosition(i)
+            val account = adapter.getItemOrNull(i)
+
+            if (holder is AccountListAdapter.TimerAccountViewHolder && account != null) {
+                adapter.refreshPin(holder, account)
+                adapter.refreshTimer(holder, account)
+            }
+        }
     }
 
     /**

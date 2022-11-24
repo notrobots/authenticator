@@ -40,6 +40,8 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
     private val pinCache = mutableMapOf<Account, String>()
     var items = mutableListOf<Account>()    //FIXME: private
         private set
+    val isEmpty
+        get() = items.isEmpty()
     var editMode: Boolean = false
     var collapsePins: Boolean = true
         set(value) {
@@ -116,8 +118,18 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         }
     }
 
+    /**
+     * Returns the item at the given [position].
+     */
     fun getItem(position: Int): Account {
         return items[position]
+    }
+
+    /**
+     * Returns the item at the given [position] or null if the index is out of bounds of this list.
+     */
+    fun getItemOrNull(position: Int): Account? {
+        return items.getOrNull(position)
     }
 
     //region Rendering
@@ -137,22 +149,6 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         val binding = holder.binding
         val id = account.accountId
         val icon = getIssuerIcon(account.issuer)
-        val setNewPin = {
-            val pin = generatePin(account)
-
-            if (!pinCache.containsKey(account) || pin != pinCache[account]) {
-                if (hidePinsOnChange && !clearTextEnabled && account in forcedClearTextItems) {
-                    holder.autoHidePinTimer?.cancel()
-                    forcedClearTextItems.remove(account)
-                }
-                pinCache[account] = pin
-            }
-
-            binding.pin.text = formatPin(
-                pin,
-                clearText = clearTextEnabled || (account in forcedClearTextItems)
-            )
-        }
 
         binding.icon.visibility = if (collapseIcons || editMode) View.GONE else View.VISIBLE
         binding.icon.setImageResource(icon)
@@ -188,7 +184,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                 // If the pins are not visible force this account to show
                 if (!clearTextEnabled && account !in forcedClearTextItems) {
                     forcedClearTextItems.add(account)
-                    setNewPin()
+                    refreshPin(holder, account)
 
                     // If a timeout is specified set a timer and
                     // hide the pin again once the timer is done
@@ -198,7 +194,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                             holder.setAutoHidePin(TimeUnit.SECONDS.toMillis(it)) {
                                 if (account in forcedClearTextItems) {
                                     forcedClearTextItems.remove(account)
-                                    setNewPin()
+                                    refreshPin(holder, account)
                                 }
                             }
                         }
@@ -240,7 +236,8 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                 OTPType.TOTP -> {
                     holder as TimerAccountViewHolder
                     holder.setCounter(account)
-                    setNewPin()
+                    refreshPin(holder, account)
+                    refreshTimer(holder, account)
 
                     if (totpIndicatorType != TotpIndicatorType.Row) {
                         binding.totpRowIndicator.hide()
@@ -254,53 +251,25 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                         TotpIndicatorType.Background -> {
                             binding.totpBackgroundIndicator.show()
                             binding.indicators.hideView()
-                            holder.totpCounter?.getTimeUntilNextCounter()?.let {
-                                setNewPin()
-                                val max = TimeUnit.SECONDS.toMillis(account.period).toInt()
-                                val progress = it * 10000 / max
-
-                                binding.totpBackgroundIndicator.background.level = progress.toInt()
-                            }
                         }
                         TotpIndicatorType.Row -> {
                             binding.indicators.hideView()
                             binding.totpRowIndicator.max = TimeUnit.SECONDS.toMillis(account.period).toInt()
-                            holder.totpCounter?.getTimeUntilNextCounter()?.let {
-                                setNewPin()
-                                binding.totpRowIndicator.progress = it.toInt()
-                            }
                         }
                         TotpIndicatorType.CircularText -> {
                             binding.indicators.showView(R.id.totp_circular_text_indicator)
                             binding.totpCircularTextIndicatorCircular.max = TimeUnit.SECONDS.toMillis(account.period).toInt()
-                            holder.totpCounter?.getTimeUntilNextCounter()?.let {
-                                setNewPin()
-                                binding.totpCircularTextIndicatorCircular.progress = it.toInt()
-                                binding.totpCircularTextIndicatorText.text = ceil(it / 1000F).toInt().toString()
-                            }
                         }
                         TotpIndicatorType.CircularSolid -> {
                             binding.indicators.showView(R.id.totp_circular_indicator_solid)
                             binding.totpCircularIndicatorSolid.max = TimeUnit.SECONDS.toMillis(account.period).toInt()
-                            holder.totpCounter?.getTimeUntilNextCounter()?.let {
-                                setNewPin()
-                                binding.totpCircularIndicatorSolid.progress = it.toInt()
-                            }
                         }
                         TotpIndicatorType.Circular -> {
                             binding.indicators.showView(R.id.totp_circular_indicator)
                             binding.totpCircularIndicator.max = TimeUnit.SECONDS.toMillis(account.period).toInt()
-                            holder.totpCounter?.getTimeUntilNextCounter()?.let {
-                                setNewPin()
-                                binding.totpCircularIndicator.progress = it.toInt()
-                            }
                         }
                         TotpIndicatorType.Text -> {
                             binding.indicators.showView(R.id.totp_text_indicator)
-                            holder.totpCounter?.getTimeUntilNextCounter()?.let {
-                                setNewPin()
-                                binding.totpTextIndicator.text = ceil(it / 1000F).toInt().toString()
-                            }
                         }
                     }
                 }
@@ -308,7 +277,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                     val primaryColor = view.context.resolveColorAttribute(R.attr.colorPrimary)
                     val textColorSecondary = view.context.resolveColorAttribute(android.R.attr.textColorSecondary)
 
-                    setNewPin()
+                    refreshPin(holder, account)
                     binding.indicators.showView(R.id.hotp_indicator)
                     binding.totpRowIndicator.hide()
                     binding.totpBackgroundIndicator.hide()
@@ -316,7 +285,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                         it as ImageView
 
                         account.counter++   //TODO: Add a flag that disables the account generation temporary
-                        setNewPin()
+                        refreshPin(holder, account)
                         it.isEnabled = false
                         it.setTint(textColorSecondary)
 
@@ -526,6 +495,74 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         }
 
         return KnownIssuers[key]!!
+    }
+
+    /**
+     * Refreshes the timer of the given [holder] and [account] without redrawing the whole row.
+     */
+    fun refreshTimer(holder: TimerAccountViewHolder, account: Account) {
+        when (totpIndicatorType) {
+            TotpIndicatorType.Background -> {
+                holder.totpCounter?.getTimeUntilNextCounter()?.let {
+                    refreshPin(holder, account)
+                    val max = TimeUnit.SECONDS.toMillis(account.period).toInt()
+                    val progress = it * 10000 / max
+
+                    holder.binding.totpBackgroundIndicator.background.level = progress.toInt()
+                }
+            }
+            TotpIndicatorType.Row -> {
+                holder.totpCounter?.getTimeUntilNextCounter()?.let {
+                    refreshPin(holder, account)
+                    holder.binding.totpRowIndicator.progress = it.toInt()
+                }
+            }
+            TotpIndicatorType.CircularText -> {
+                holder.totpCounter?.getTimeUntilNextCounter()?.let {
+                    refreshPin(holder, account)
+                    holder.binding.totpCircularTextIndicatorCircular.progress = it.toInt()
+                    holder.binding.totpCircularTextIndicatorText.text = ceil(it / 1000F).toInt().toString()
+                }
+            }
+            TotpIndicatorType.CircularSolid -> {
+                holder.totpCounter?.getTimeUntilNextCounter()?.let {
+                    refreshPin(holder, account)
+                    holder.binding.totpCircularIndicatorSolid.progress = it.toInt()
+                }
+            }
+            TotpIndicatorType.Circular -> {
+                holder.totpCounter?.getTimeUntilNextCounter()?.let {
+                    refreshPin(holder, account)
+                    holder.binding.totpCircularIndicator.progress = it.toInt()
+                }
+            }
+            TotpIndicatorType.Text -> {
+                holder.totpCounter?.getTimeUntilNextCounter()?.let {
+                    refreshPin(holder, account)
+                    holder.binding.totpTextIndicator.text = ceil(it / 1000F).toInt().toString()
+                }
+            }
+        }
+    }
+
+    /**
+     * Refreshes the pin of the given [holder] and [account] without redrawing the whole row.
+     */
+    fun refreshPin(holder: AccountViewHolder, account: Account) {
+        val pin = generatePin(account)
+
+        if (!pinCache.containsKey(account) || pin != pinCache[account]) {
+            if (hidePinsOnChange && !clearTextEnabled && account in forcedClearTextItems) {
+//                holder.autoHidePinTimer?.cancel()
+                forcedClearTextItems.remove(account)
+            }
+            pinCache[account] = pin
+        }
+
+        holder.binding.pin.text = formatPin(
+            pin,
+            clearText = clearTextEnabled || (account in forcedClearTextItems)
+        )
     }
 
     companion object {
