@@ -144,7 +144,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         val account = items[position]
         val binding = holder.binding
         val id = account.accountId
-        val icon = getIssuerIcon(account.issuer)
+        val icon = KnownIssuers.lookup(account.issuer)
 
         binding.icon.visibility = if (collapseIcons || editMode) View.GONE else View.VISIBLE
         binding.icon.setImageResource(icon)
@@ -472,19 +472,6 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         } else {
             pin.replace(Regex("."), "-")
         }.replace(rgx, "$0$divider").trim()
-    }
-
-    /**
-     * Returns the resource used for the given [issuer]
-     */
-    private fun getIssuerIcon(issuer: String): Int {
-        val key = KnownIssuers.keys.find {
-            val rgx = Regex(it, RegexOption.IGNORE_CASE)
-
-            rgx.matches(issuer)
-        }
-
-        return KnownIssuers[key]!!
     }
 
     /**
