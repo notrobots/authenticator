@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.edit
 import androidx.documentfile.provider.DocumentFile
 import androidx.preference.*
 import dev.notrobots.androidstuff.extensions.makeToast
@@ -14,6 +15,7 @@ import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.data.Preferences
 import dev.notrobots.authenticator.databinding.ActivityBackupManagerBinding
+import dev.notrobots.authenticator.extensions.setBackupJobFirstRun
 import dev.notrobots.authenticator.extensions.setTypedSummaryProvider
 import dev.notrobots.authenticator.extensions.toUri
 import dev.notrobots.authenticator.extensions.updateSummary
@@ -137,7 +139,8 @@ class BackupManagerActivity : AuthenticatorActivity() {
                     scheduleOrCancelJob<LocalBackupJob>(
                         newValue == true,
                         LocalBackupJob.JOB_ID,
-                        TimeUnit.MINUTES.toMillis(15) ?: daysToMillis(interval)
+                        TimeUnit.MINUTES.toMillis(15) ?: daysToMillis(interval),
+                        preferences
                     ) {
                         requireContext().makeToast(R.string.error_scheduling_backup_job)
                         preferences.putLocalBackupEnabled(false)
@@ -161,7 +164,8 @@ class BackupManagerActivity : AuthenticatorActivity() {
                     scheduleOrCancelJob<DriveBackupJob>(
                         newValue == true,
                         DriveBackupJob.JOB_ID,
-                        daysToMillis(interval)
+                        daysToMillis(interval),
+                        preferences
                     ) {
                         requireContext().makeToast(R.string.error_scheduling_backup_job)
                         preferences.putDriveBackupEnabled(false)
@@ -182,12 +186,20 @@ class BackupManagerActivity : AuthenticatorActivity() {
             }
         }
 
-        private inline fun <reified T> scheduleOrCancelJob(schedule: Boolean, id: Int, interval: Long, onFailure: () -> Unit) {
+        private inline fun <reified T> scheduleOrCancelJob(
+            schedule: Boolean,
+            id: Int,
+            interval: Long,
+            sharedPreferences: SharedPreferences,
+            onFailure: () -> Unit
+        ) {
             if (schedule) {
                 val scheduleResult = BackupJob.schedule<T>(requireContext(), id, interval)
 
                 if (scheduleResult == JobScheduler.RESULT_FAILURE) {
                     onFailure()
+                } else {
+                    sharedPreferences.setBackupJobFirstRun(id, true)
                 }
             } else {
                 jobScheduler.cancel(id)

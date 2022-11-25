@@ -5,6 +5,7 @@ import android.app.job.JobScheduler
 import android.app.job.JobService
 import android.content.ComponentName
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.getSystemService
 import androidx.preference.PreferenceManager
@@ -12,6 +13,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.authenticator.db.AccountDao
 import dev.notrobots.authenticator.db.AccountTagCrossRefDao
 import dev.notrobots.authenticator.db.TagDao
+import dev.notrobots.authenticator.models.JsonSerializable
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -22,10 +24,13 @@ abstract class BackupJob : JobService() {
     protected val notificationManager by lazy {
         NotificationManagerCompat.from(this)
     }
+
     @Inject
     protected lateinit var accountDao: AccountDao
+
     @Inject
     protected lateinit var tagDao: TagDao
+
     @Inject
     protected lateinit var accountTagCrossRefDao: AccountTagCrossRefDao
 

@@ -2,14 +2,16 @@ package dev.notrobots.authenticator.services
 
 import android.annotation.SuppressLint
 import android.app.job.*
-import android.content.pm.PackageManager
 import android.os.SystemClock
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
+import dev.notrobots.androidstuff.util.logd
 import dev.notrobots.androidstuff.util.now
 import dev.notrobots.authenticator.App
 import dev.notrobots.authenticator.R
+import dev.notrobots.authenticator.extensions.isBackupJobFirstRun
+import dev.notrobots.authenticator.extensions.setBackupJobFirstRun
 import dev.notrobots.authenticator.extensions.write
 import dev.notrobots.authenticator.util.BackupManager
 import dev.notrobots.authenticator.util.TextUtil
@@ -25,9 +27,17 @@ class LocalBackupJob : BackupJob() {
     override fun onStartJob(params: JobParameters): Boolean {
         val directoryPath = preferences.getLocalBackupPath().toUri()
         val directory = DocumentFile.fromTreeUri(this, directoryPath)
-        val elapsedTime = SystemClock.elapsedRealtime()
-        val fileName = "authenticator_backup_$elapsedTime"
+        val fileName = BackupManager.localAutomaticBackupFilename
         val file = directory?.createFile("text/plain", fileName)
+
+        if (preferences.isBackupJobFirstRun(JOB_ID)) {
+            // If this is the first time the job is run we simply skip it
+            // since a job is run as soon as you schedule it
+
+            preferences.setBackupJobFirstRun(JOB_ID, false)
+            logd("${LocalBackupJob::class.simpleName} first run skipped")
+            return false
+        }
 
         if (file != null) {
             coroutineScope.launch {

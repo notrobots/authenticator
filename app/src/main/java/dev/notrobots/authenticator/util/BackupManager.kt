@@ -46,6 +46,8 @@ object BackupManager {
         get() = "authenticator_qr_${now() / 100}.png"
     val googleAuthenticatorBackupFilename
         get() = "google_authenticator_${now() / 100}.png"
+    val localAutomaticBackupFilename: String
+        get() = "authenticator_backup_${now()}.bin"
 
     /**
      * Exports the items as a single line string.
