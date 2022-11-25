@@ -84,11 +84,18 @@ class BackupManagerActivity : AuthenticatorActivity() {
         private val preferences by lazy {
             PreferenceManager.getDefaultSharedPreferences(requireContext())
         }
-        private var localBackupFrequencyPref: EditTextPreference? = null
-        private var localBackupPathPref: Preference? = null
-        private var driveBackupFrequencyPref: EditTextPreference? = null
-        private var driveBackupPathPref: Preference? = null
-        private var lastLocalBackupPref: Preference? = null
+        private val localBackupFrequencyPref by lazy {
+            findPreference<EditTextPreference>(Preferences.LOCAL_BACKUP_FREQUENCY)
+        }
+        private val localBackupPathPref by lazy {
+            findPreference<Preference>(Preferences.LOCAL_BACKUP_PATH)
+        }
+        private val driveBackupFrequencyPref by lazy {
+            findPreference<EditTextPreference>(Preferences.DRIVE_BACKUP_FREQUENCY)
+        }
+        private val driveBackupPathPref by lazy {
+            findPreference<Preference>(Preferences.DRIVE_BACKUP_PATH)
+        }
         private val localBackupPref by lazy {
             findPreference<SwitchPreference>(Preferences.LOCAL_BACKUP_ENABLED)
         }
@@ -113,13 +120,6 @@ class BackupManagerActivity : AuthenticatorActivity() {
 
             localBackupPref?.setOnPreferenceChangeListener(::requestNotificationPermission)
             driveBackupPref?.setOnPreferenceChangeListener(::requestNotificationPermission)
-
-            localBackupFrequencyPref = findPreference(Preferences.LOCAL_BACKUP_FREQUENCY)
-            localBackupPathPref = findPreference(Preferences.LOCAL_BACKUP_PATH)
-            driveBackupFrequencyPref = findPreference(Preferences.DRIVE_BACKUP_FREQUENCY)
-            driveBackupPathPref = findPreference(Preferences.DRIVE_BACKUP_PATH)
-            lastLocalBackupPref = findPreference("_last_local_backup")
-
             localBackupFrequencyPref?.setTypedSummaryProvider(::formatFrequency)
             localBackupPathPref?.setSummaryProvider(::formatLocalPath)
             localBackupPathPref?.setOnPreferenceClickListener {
@@ -129,23 +129,6 @@ class BackupManagerActivity : AuthenticatorActivity() {
             driveBackupFrequencyPref?.setTypedSummaryProvider(::formatFrequency)
             driveBackupPathPref?.setOnPreferenceClickListener {
                 //Let the user pick a path on their drive
-                true
-            }
-            lastLocalBackupPref?.setOnPreferenceClickListener {
-                if (checkLastLocalBackupIntegrity()) {
-                    val uri = preferences.getLastLocalBackupPath().toUri()
-                    val stream = requireContext().contentResolver.openInputStream(uri)
-
-                    stream?.bufferedReader()?.use {
-                        val data = BackupManager.importText(it.readText())
-
-                        ImportResultActivity.showResults(requireContext(), data)
-                    }
-                } else {
-                    requireContext().makeToast(R.string.error_backup_not_found)
-                    //TODO: Ask the user if they want to remove the entry
-                }
-
                 true
             }
 
@@ -202,7 +185,6 @@ class BackupManagerActivity : AuthenticatorActivity() {
 
                 return@setOnPreferenceChangeListener false
             }
-
             findPreference<SwitchPreference>(Preferences.DRIVE_BACKUP_ENABLED)?.setOnPreferenceChangeListener { _, newValue ->
                 val interval = preferences.getDriveBackupFrequency().toIntOrNull()
                 val path = preferences.getDriveBackupPath()
@@ -306,12 +288,12 @@ class BackupManagerActivity : AuthenticatorActivity() {
             val lastLocalBackupTime = preferences.getLastLocalBackupTime()
             val lastLocalBackupPath = preferences.getLastLocalBackupPath()
 
-            lastLocalBackupPref?.isEnabled = lastLocalBackupTime > 0 && lastLocalBackupPath.isNotBlank()
-            lastLocalBackupPref?.summary = if (lastLocalBackupTime > 0 && lastLocalBackupPath.isNotBlank()) {
+            localBackupNowPref?.summary = if (lastLocalBackupTime > 0 && lastLocalBackupPath.isNotBlank()) {
                 val date = Date(lastLocalBackupTime)
                 val dateFormat = SimpleDateFormat("dd MMMM yyyy HH:mm:ss", Locale.getDefault())
 
-                "${getString(R.string.label_last_backup)}: ${dateFormat.format(date)}"
+                "${getString(R.string.label_last_backup)}: ${dateFormat.format(date)}\n" +
+                "Path: ${TextUtil.formatFileUri(lastLocalBackupPath)}"  //xxx ugly
             } else {
                 getString(R.string.label_no_last_backup)
             }
