@@ -81,7 +81,7 @@
     <string name="label_local_backup_complete">Local backup complete</string>
     <string name="label_local_backup_complete_body">Saved to %1$s</string>
     <string name="label_local_backup_failed">Local backup failed</string>
-    <string name="label_local_backup_failed_body">Cannot create backup file at %1$s with name %2$s</string>
+    <string name="label_local_backup_failed_body">Cannot create backup file at %1$s</string>
     <string name="label_version">Version</string>
     <string name="label_restore">Restore</string>
     <string name="label_no_last_backup">No backup found</string>
@@ -133,4 +133,5 @@
     <string name="label_qr">QR</string>
     <string name="label_share_qr">Share QR</string>
     <string name="error_invalid_character">Invalid character</string>
+    <string name="label_backup_now">Backup Now</string>
 </resources>

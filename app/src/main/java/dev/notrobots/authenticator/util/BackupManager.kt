@@ -1,14 +1,20 @@
 package dev.notrobots.authenticator.util
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.net.Uri
 import androidx.core.net.toUri
+import androidx.documentfile.provider.DocumentFile
 import dev.notrobots.androidstuff.util.loge
 import dev.notrobots.androidstuff.util.now
 import dev.notrobots.authenticator.App
 import dev.notrobots.authenticator.extensions.contains
 import dev.notrobots.authenticator.extensions.getTags
 import dev.notrobots.authenticator.extensions.replaceQueryParameter
+import dev.notrobots.authenticator.extensions.write
 import dev.notrobots.authenticator.models.*
+import dev.notrobots.preferences2.putLastLocalBackupPath
+import dev.notrobots.preferences2.putLastLocalBackupTime
 import org.apache.commons.codec.binary.Base64
 import org.json.JSONArray
 import org.json.JSONObject
@@ -47,7 +53,48 @@ object BackupManager {
     val googleAuthenticatorBackupFilename
         get() = "google_authenticator_${now() / 100}.png"
     val localAutomaticBackupFilename: String
-        get() = "authenticator_backup_${now()}.bin"
+        get() = "authenticator_backup_${now()}.json"
+
+    /**
+     * Returns the DocumentFile that will be used to write a local backup.
+     */
+    fun getLocalBackupFile(context: Context, path: Uri): DocumentFile? {
+        val directory = DocumentFile.fromTreeUri(context, path)
+        val fileName = localAutomaticBackupFilename
+
+        return directory?.createFile("application/json", fileName)
+    }
+
+    /**
+     * Performs a local backup.
+     *
+     * @param file The file the back will be written in.
+     * @param preferences The preferences that will be updated with last backup time and path
+     */
+    fun performLocalBackup(
+        context: Context,
+        accounts: List<Account>,
+        tags: List<Tag>,
+        accountsWithTags: List<AccountWithTags>,
+        file: DocumentFile,
+        preferences: SharedPreferences
+    ) {
+        val backup = exportJson(
+            accounts,
+            accountsWithTags,
+            tags,
+            emptyMap()  //TODO: Pass the settings, it should only be the specified ones and not all settings
+        ).toString(0)
+
+        file.write(context) {
+            //XXX: "inappropriate blocking method call" inspection
+            write(backup)
+            flush()
+        }
+
+        preferences.putLastLocalBackupTime(now())
+        preferences.putLastLocalBackupPath(file.uri.toString())
+    }
 
     /**
      * Exports the items as a single line string.

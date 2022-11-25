@@ -9,6 +9,10 @@
             android:title="@string/label_enabled" />
 
         <Preference
+            android:key="local_backup_now"
+            android:title="@string/label_backup_now" />
+
+        <Preference
             android:dependency="local_backup_enabled"
             android:key="local_backup_path"
             android:summary="@string/label_unset"
