@@ -9,7 +9,8 @@ import android.os.SystemClock
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
-import dev.notrobots.androidstuff.util.logd
+import dev.notrobots.androidstuff.util.Logger
+import dev.notrobots.androidstuff.util.Logger.Companion.logd
 import dev.notrobots.androidstuff.util.now
 import dev.notrobots.authenticator.App
 import dev.notrobots.authenticator.R

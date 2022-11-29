@@ -28,7 +28,7 @@ class BarcodeScannerViewModel @Inject constructor(
                         try {
                             _cameraProvider!!.setValue(cameraProviderFuture.get())
                         } catch (e: Exception) {
-                            Log.e(App.LOG_TAG, "Unhandled exception", e)
+                            Log.e(App.LOG_DEFAULT_TAG, "Unhandled exception", e)
                         }
                     },
                     ContextCompat.getMainExecutor(getApplication())

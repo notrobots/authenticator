@@ -7,7 +7,6 @@ import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityExportFileBinding
-import dev.notrobots.authenticator.extensions.joinToStringIndexed
 import dev.notrobots.authenticator.extensions.setHTMLText
 import dev.notrobots.authenticator.util.BackupManager
 

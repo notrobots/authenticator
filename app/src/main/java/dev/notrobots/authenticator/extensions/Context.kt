@@ -24,10 +24,3 @@ fun Context.isDeviceSecured(authenticators: Int = -1): Boolean {
 
     return authenticator == BiometricManager.BIOMETRIC_SUCCESS
 }
-
-fun Context.resolveDrawableAttribute(id: Int): Int {
-    return TypedValue().run {
-        theme.resolveAttribute(id, this, true)
-        resourceId
-    }
-}

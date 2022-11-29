@@ -22,7 +22,7 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.extensions.viewBindings
-import dev.notrobots.androidstuff.util.loge
+import dev.notrobots.androidstuff.util.Logger.Companion.loge
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityBarcodeScannerBinding
 import dev.notrobots.authenticator.databinding.ItemBarcodeScannerResultBinding
@@ -154,7 +154,7 @@ class BarcodeScannerActivity : AuthenticatorActivity(), ImageAnalysis.Analyzer {
                 }
             }
             task.addOnFailureListener {
-                loge(it)
+                loge("Cannot process image", it)
             }
             task.addOnCompleteListener {
                 image.close()
@@ -196,7 +196,7 @@ class BarcodeScannerActivity : AuthenticatorActivity(), ImageAnalysis.Analyzer {
         try {
             cameraProvider!!.bindToLifecycle(this, cameraSelector!!, previewUseCase)
         } catch (e: Exception) {
-            loge(e)
+            loge(null, e)
         }
     }
 
@@ -225,7 +225,7 @@ class BarcodeScannerActivity : AuthenticatorActivity(), ImageAnalysis.Analyzer {
         try {
             cameraProvider!!.bindToLifecycle(this, cameraSelector!!, imageAnalysis)
         } catch (e: Exception) {
-            loge(e)
+            loge(null, e)   //TODO: loge(Throwable)
         }
     }
 

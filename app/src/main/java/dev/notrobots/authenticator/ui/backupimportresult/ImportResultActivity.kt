@@ -14,7 +14,7 @@ import dev.notrobots.androidstuff.extensions.showChoice
 import dev.notrobots.androidstuff.extensions.showInfo
 import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.extensions.viewBindings
-import dev.notrobots.androidstuff.util.logd
+import dev.notrobots.androidstuff.util.Logger.Companion.logd
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.data.Preferences

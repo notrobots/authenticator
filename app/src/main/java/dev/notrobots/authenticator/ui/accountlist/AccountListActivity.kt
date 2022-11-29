@@ -23,7 +23,8 @@ import com.h6ah4i.android.widget.advrecyclerview.animator.DraggableItemAnimator
 import com.h6ah4i.android.widget.advrecyclerview.draggable.RecyclerViewDragDropManager
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.*
-import dev.notrobots.androidstuff.util.logd
+import dev.notrobots.androidstuff.util.Logger
+import dev.notrobots.androidstuff.util.Logger.Companion.logd
 import dev.notrobots.authenticator.App
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity

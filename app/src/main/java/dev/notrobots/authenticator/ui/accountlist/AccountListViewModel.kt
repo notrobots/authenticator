@@ -2,8 +2,8 @@ package dev.notrobots.authenticator.ui.accountlist
 
 import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.notrobots.androidstuff.util.logd
-import dev.notrobots.androidstuff.util.loge
+import dev.notrobots.androidstuff.util.Logger.Companion.logd
+import dev.notrobots.androidstuff.util.Logger.Companion.loge
 import dev.notrobots.authenticator.db.AccountDao
 import dev.notrobots.authenticator.db.AccountTagCrossRefDao
 import dev.notrobots.authenticator.db.TagDao

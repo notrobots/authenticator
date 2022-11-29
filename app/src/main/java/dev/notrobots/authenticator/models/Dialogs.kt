@@ -12,7 +12,6 @@ import dev.notrobots.authenticator.data.TAG_NAME_MAX_LENGTH
 import dev.notrobots.authenticator.databinding.DialogAddTagBinding
 import dev.notrobots.authenticator.db.TagDao
 import dev.notrobots.authenticator.dialogs.DialogBuilder
-import dev.notrobots.authenticator.extensions.setMaxLength
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

@@ -5,7 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
 import dagger.hilt.android.HiltAndroidApp
-import dev.notrobots.androidstuff.util.LogUtil
+import dev.notrobots.androidstuff.util.Logger
 
 @HiltAndroidApp
 class App : Application() {
@@ -23,11 +23,12 @@ class App : Application() {
             notificationManager.createNotificationChannel(backupsNotificationChannel)
         }
 
-        LogUtil.setTag(LOG_TAG)
+        Logger.tag = LOG_DEFAULT_TAG
+        Logger.logd("App has started")
     }
 
     companion object {
-        const val LOG_TAG = "OTP"
+        const val LOG_DEFAULT_TAG = "OTP Authenticator"
         const val NOTIFICATION_CHANNEL_BACKUPS = "NOTIFICATION_CHANNELS.Backups"
         //TODO This should also change based on the selected totp indicator type
         const val TOTP_INDICATOR_UPDATE_DELAY = 25L //TODO Battery saver should increase this to something like 200-500

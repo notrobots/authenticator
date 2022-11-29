@@ -5,12 +5,12 @@ import android.content.SharedPreferences
 import android.net.Uri
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
-import dev.notrobots.androidstuff.util.loge
+import dev.notrobots.androidstuff.extensions.replaceQueryParameter
+import dev.notrobots.androidstuff.util.Logger.Companion.loge
 import dev.notrobots.androidstuff.util.now
 import dev.notrobots.authenticator.App
 import dev.notrobots.authenticator.extensions.contains
 import dev.notrobots.authenticator.extensions.getTags
-import dev.notrobots.authenticator.extensions.replaceQueryParameter
 import dev.notrobots.authenticator.extensions.write
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.preferences2.putLastLocalBackupPath

@@ -10,8 +10,8 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.*
-import dev.notrobots.androidstuff.util.logd
-import dev.notrobots.androidstuff.util.loge
+import dev.notrobots.androidstuff.util.Logger.Companion.logd
+import dev.notrobots.androidstuff.util.Logger.Companion.loge
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityImportBinding
@@ -46,10 +46,8 @@ class ImportActivity : AuthenticatorActivity() {
 
                     ImportResultActivity.showResults(this, data)
                 } catch (e: Exception) {
-                    loge("There was an error while importing a QR code")
-                    loge(e.message)
-                    loge(e.stackTraceToString())
                     loge("QR content: $uris")
+                    loge("There was an error while importing a QR code", e)
                     showInfo("Error", "Invalid data: $e")
                 }
             }
@@ -73,9 +71,8 @@ class ImportActivity : AuthenticatorActivity() {
 
                                 ImportResultActivity.showResults(this, data)
                             } catch (e: Exception) {
-                                loge("There was an error while importing a backup file")
-                                loge(e)
                                 loge("File content: $content")
+                                loge("There was an error while importing a backup file", e)
                                 showInfo("Error", "Import data is corrupt")//FIXME: Show detailed error with account index ecc
                             }
                         }
@@ -92,9 +89,8 @@ class ImportActivity : AuthenticatorActivity() {
 
                             ImportResultActivity.showResults(this, data)
                         } catch (e: Exception) {
-                            loge("There was an error while importing a backup file")
-                            loge(e)
                             loge("File content: $content")
+                            loge("There was an error while importing a backup file", e)
                             showInfo("Error", "Import data is corrupt")
                         }
                     }
@@ -142,9 +138,8 @@ class ImportActivity : AuthenticatorActivity() {
                     dialog.dismiss()
                 } catch (e: Exception) {
                     dialog.error = e.message
-                    loge("There was an error while importing a backup")
-                    loge(e)
                     loge("Imported data: $data")
+                    loge("There was an error while importing a backup", e)
                 }
             }
         }
