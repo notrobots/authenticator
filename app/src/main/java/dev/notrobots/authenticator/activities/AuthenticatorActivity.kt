@@ -87,7 +87,7 @@ open class AuthenticatorActivity : BaseActivity() {
         }
 
         if (dynamicColors && theme != AppTheme.Custom) {
-            DynamicColors.applyIfAvailable(this)
+            DynamicColors.applyToActivityIfAvailable(this)
         }
 
         if (recreate) {
