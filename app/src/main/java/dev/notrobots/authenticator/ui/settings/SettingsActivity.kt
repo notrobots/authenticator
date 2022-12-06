@@ -94,6 +94,7 @@ class SettingsActivity : AuthenticatorActivity() {
 
                 true
             }
+            customAppThemePref?.isVisible = prefs.getAppTheme<AppTheme>() == AppTheme.Custom
             dynamicColorsPref?.setOnPreferenceChangeListener { _, newValue ->
                 val theme = prefs.getAppTheme<AppTheme>()
                 val dynamicColors = newValue as Boolean
