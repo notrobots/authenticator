@@ -9,6 +9,8 @@ import dev.notrobots.androidstuff.extensions.replaceQueryParameter
 import dev.notrobots.androidstuff.util.Logger.Companion.loge
 import dev.notrobots.androidstuff.util.now
 import dev.notrobots.authenticator.App
+import dev.notrobots.authenticator.data.QR_BITMAP_SIZE
+import dev.notrobots.authenticator.data.QR_MAX_BYTES
 import dev.notrobots.authenticator.extensions.contains
 import dev.notrobots.authenticator.extensions.getTags
 import dev.notrobots.authenticator.extensions.write
@@ -192,7 +194,7 @@ object BackupManager {
             accounts,
             accountsWithTags,
             tags,
-            App.QR_MAX_BYTES - uri.build().toString().length
+            QR_MAX_BYTES - uri.build().toString().length
         )
 
         return data.mapIndexed { index, s ->
@@ -201,7 +203,7 @@ object BackupManager {
             uri.replaceQueryParameter(BACKUP_URI_TOTAL, data.size.toString())
             uri.replaceQueryParameter(BACKUP_URI_DATA, s)
 
-            QRCode(uri.build(), App.QR_BITMAP_SIZE)
+            QRCode(uri.build(), QR_BITMAP_SIZE)
         }
     }
 
@@ -293,11 +295,11 @@ object BackupManager {
             accounts,
             emptyList(),
             emptyList(),
-            App.QR_MAX_BYTES - prefix.length
+            QR_MAX_BYTES - prefix.length
         )
 
         return data.map {
-            QRCode(prefix + it, App.QR_BITMAP_SIZE)
+            QRCode(prefix + it, QR_BITMAP_SIZE)
         }
     }
 

@@ -14,6 +14,7 @@ import dev.notrobots.androidstuff.util.Logger.Companion.logd
 import dev.notrobots.androidstuff.util.now
 import dev.notrobots.authenticator.App
 import dev.notrobots.authenticator.R
+import dev.notrobots.authenticator.data.NOTIFICATION_CHANNEL_BACKUPS
 import dev.notrobots.authenticator.extensions.isBackupJobFirstRun
 import dev.notrobots.authenticator.extensions.setBackupJobFirstRun
 import dev.notrobots.authenticator.extensions.write
@@ -56,7 +57,7 @@ class LocalBackupJob : BackupJob() {
                 if (notificationManager.areNotificationsEnabled()) {
                     //TODO: This notification should show when the next backup is going to be
 
-                    val notification = NotificationCompat.Builder(this@LocalBackupJob, App.NOTIFICATION_CHANNEL_BACKUPS)
+                    val notification = NotificationCompat.Builder(this@LocalBackupJob, NOTIFICATION_CHANNEL_BACKUPS)
                         .setContentTitle(getString(R.string.label_local_backup_complete))                   //XXX This is a really ugly way of showing the file name
                         .setContentText(getString(R.string.label_local_backup_complete_body, "${TextUtil.formatFileUri(directoryPath)}"))
                         .setSmallIcon(R.drawable.ic_account)
@@ -72,7 +73,7 @@ class LocalBackupJob : BackupJob() {
         } else {
             @SuppressLint("MissingPermission")
             if (notificationManager.areNotificationsEnabled()) {
-                val notification = NotificationCompat.Builder(this, App.NOTIFICATION_CHANNEL_BACKUPS)
+                val notification = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_BACKUPS)
                     .setContentTitle(getString(R.string.label_local_backup_failed))
                     //TODO: You should check if this is actually displayed when the user removes the storage permission and a backup job is about to happen
                     // To test this: setup a backupjob and shortly after remove either the storage permission or the access to this directory specifically

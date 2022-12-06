@@ -28,6 +28,7 @@ import dev.notrobots.androidstuff.util.Logger.Companion.logd
 import dev.notrobots.authenticator.App
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
+import dev.notrobots.authenticator.data.TOTP_INDICATOR_UPDATE_DELAY
 import dev.notrobots.authenticator.databinding.ActivityAccountListBinding
 import dev.notrobots.authenticator.databinding.ItemFilterTagBinding
 import dev.notrobots.authenticator.databinding.ViewToolbarSearchBinding
@@ -496,7 +497,7 @@ class AccountListActivity : AuthenticatorActivity() {
         adapter = AccountListAdapter()
         adapter.setListener(listAdapterListener)
         updateAdapterPreferences()
-        adapter.totpTimer = TotpTimer(App.TOTP_INDICATOR_UPDATE_DELAY)
+        adapter.totpTimer = TotpTimer(TOTP_INDICATOR_UPDATE_DELAY)
         adapter.totpTimer?.setListener(object : TotpTimer.Listener {
             override fun onTick(currentTime: Long) {
                 if (!adapter.editMode && !adapter.isEmpty) {

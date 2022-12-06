@@ -9,6 +9,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.notrobots.authenticator.App
+import dev.notrobots.authenticator.data.LOG_DEFAULT_TAG
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,7 +29,7 @@ class BarcodeScannerViewModel @Inject constructor(
                         try {
                             _cameraProvider!!.setValue(cameraProviderFuture.get())
                         } catch (e: Exception) {
-                            Log.e(App.LOG_DEFAULT_TAG, "Unhandled exception", e)
+                            Log.e(LOG_DEFAULT_TAG, "Unhandled exception", e)
                         }
                     },
                     ContextCompat.getMainExecutor(getApplication())

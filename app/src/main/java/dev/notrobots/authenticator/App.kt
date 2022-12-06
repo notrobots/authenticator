@@ -6,6 +6,8 @@ import android.app.NotificationManager
 import android.os.Build
 import dagger.hilt.android.HiltAndroidApp
 import dev.notrobots.androidstuff.util.Logger
+import dev.notrobots.authenticator.data.LOG_DEFAULT_TAG
+import dev.notrobots.authenticator.data.NOTIFICATION_CHANNEL_BACKUPS
 
 @HiltAndroidApp
 class App : Application() {
@@ -25,24 +27,5 @@ class App : Application() {
 
         Logger.tag = LOG_DEFAULT_TAG
         Logger.logd("App has started")
-    }
-
-    companion object {
-        const val LOG_DEFAULT_TAG = "OTP Authenticator"
-        const val NOTIFICATION_CHANNEL_BACKUPS = "NOTIFICATION_CHANNELS.Backups"
-        //TODO This should also change based on the selected totp indicator type
-        const val TOTP_INDICATOR_UPDATE_DELAY = 25L //TODO Battery saver should increase this to something like 200-500
-
-        /**
-         * The max amount of bytes a QR code can hold.
-         */
-        //TODO: There should be a list of sizes: 64, 128, 256, 512
-        const val QR_MAX_BYTES = 512       // Max: 2953
-
-        /**
-         * Size in pixels of the generated QR codes.
-         */
-        //TODO: Let the user chose the resolution 264, 512, 1024, 2048
-        const val QR_BITMAP_SIZE = 512
     }
 }
