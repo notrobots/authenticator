@@ -78,27 +78,6 @@ class SettingsActivity : AuthenticatorActivity() {
                     true
                 }
             }
-
-            findPreference<Preference>("backup_export")?.setOnPreferenceClickListener {
-                requireActivity().requestExport(
-                    prefs.getExportLock(),
-                    requireContext().isDeviceSecured()
-                )
-                true
-            }
-            findPreference<Preference>("backup_import")?.setOnPreferenceClickListener {
-                requireContext().startActivity(ImportActivity::class)
-                true
-            }
-
-            findPreference<Preference>(Preferences.APP_THEME)?.setOnPreferenceChangeListener { _, newValue ->
-                val theme = parseEnum<AppTheme>(newValue.toString(), true)
-                val dynamicColors = prefs.getDynamicColors()
-
-                authenticatorActivity?.setTheme(theme, dynamicColors, true)
-                true
-            }
-
             customAppThemePref?.setOnPreferenceClickListener {
                 val dialog = CustomThemeDialog()
 
@@ -115,18 +94,34 @@ class SettingsActivity : AuthenticatorActivity() {
 
                 true
             }
+            dynamicColorsPref?.setOnPreferenceChangeListener { _, newValue ->
+                val theme = prefs.getAppTheme<AppTheme>()
+                val dynamicColors = newValue as Boolean
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                dynamicColorsPref?.setOnPreferenceChangeListener { _, newValue ->
-                    val theme = prefs.getAppTheme<AppTheme>()
-                    val dynamicColors = newValue as Boolean
+                (requireActivity() as? AuthenticatorActivity)?.setTheme(theme, dynamicColors, true)
+                true
+            }
+            dynamicColorsPref?.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
-                    (requireActivity() as? AuthenticatorActivity)?.setTheme(theme, dynamicColors, true)
-                    true
-                }
-            } else {
-                dynamicColorsPref?.isEnabled = false
-                dynamicColorsPref?.setSummary(R.string.label_dynamic_colors_requires_android_13)
+            findPreference<Preference>("backup_export")?.setOnPreferenceClickListener {
+                requireActivity().requestExport(
+                    prefs.getExportLock(),
+                    requireContext().isDeviceSecured()
+                )
+                true
+            }
+
+            findPreference<Preference>("backup_import")?.setOnPreferenceClickListener {
+                requireContext().startActivity(ImportActivity::class)
+                true
+            }
+
+            findPreference<Preference>(Preferences.APP_THEME)?.setOnPreferenceChangeListener { _, newValue ->
+                val theme = parseEnum<AppTheme>(newValue.toString(), true)
+                val dynamicColors = prefs.getDynamicColors()
+
+                authenticatorActivity?.setTheme(theme, dynamicColors, true)
+                true
             }
 
             findPreference<Preference>("backup_manager")?.setOnPreferenceClickListener {
@@ -165,11 +160,7 @@ class SettingsActivity : AuthenticatorActivity() {
 
             exportLockPref?.isEnabled = isDeviceSecured
             appLockPref?.isEnabled = isDeviceSecured
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                dynamicColorsPref?.isEnabled = theme != AppTheme.Custom
-            }
-
+            dynamicColorsPref?.isEnabled = theme != AppTheme.Custom
             customAppThemePref?.isEnabled = theme == AppTheme.Custom
         }
     }
