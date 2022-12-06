@@ -11,6 +11,10 @@
             app:entries="@array/themes"
             app:useSimpleSummaryProvider="true" />
 
+        <Preference
+            android:key="_custom_app_theme"
+            android:title="Customize Theme"/>
+
         <SwitchPreference
             android:key="dynamic_colors"
             android:summary="@string/pref_dynamic_colors_summary"

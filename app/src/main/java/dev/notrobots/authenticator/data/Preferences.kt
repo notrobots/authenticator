@@ -1,9 +1,7 @@
 package dev.notrobots.authenticator.data
 
-import dev.notrobots.preferences2.annotations.BooleanPreference
-import dev.notrobots.preferences2.annotations.EnumPreference
-import dev.notrobots.preferences2.annotations.LongPreference
-import dev.notrobots.preferences2.annotations.StringPreference
+import androidx.appcompat.app.AppCompatDelegate
+import dev.notrobots.preferences2.annotations.*
 
 object Preferences {
     @BooleanPreference
@@ -22,6 +20,12 @@ object Preferences {
     const val TOTP_INDICATOR = "totp_indicator"
     @EnumPreference
     const val APP_THEME = "app_theme"
+    @EnumPreference
+    const val CUSTOM_APP_THEME = "custom_app_theme"
+    @IntPreference(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+    const val CUSTOM_APP_THEME_NIGHT_MODE = "custom_app_theme_night_mode"
+    @BooleanPreference
+    const val CUSTOM_APP_THEME_TRUE_BLACK = "custom_app_theme_true_black"
     @BooleanPreference
     const val DYNAMIC_COLORS = "dynamic_colors"
     @BooleanPreference

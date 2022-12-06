@@ -3,13 +3,12 @@ package dev.notrobots.authenticator.ui.settings
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.preference.*
-import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.data.Preferences
+import dev.notrobots.authenticator.dialogs.CustomThemeDialog
 import dev.notrobots.authenticator.extensions.isDeviceSecured
 import dev.notrobots.authenticator.extensions.requestExport
 import dev.notrobots.authenticator.extensions.showBiometricPrompt
@@ -19,18 +18,30 @@ import dev.notrobots.authenticator.ui.backupmanager.BackupManagerActivity
 import dev.notrobots.preferences2.*
 import dev.notrobots.preferences2.util.parseEnum
 
+//TODO Merge with SettingsActivity
 class SettingsMainFragment : PreferenceFragmentCompat() {
     private val prefs by lazy {
         PreferenceManager.getDefaultSharedPreferences(requireContext())
     }
-    private var appLockPref: SwitchPreference? = null   //TODO lazy
-    private var exportLockPref: SwitchPreference? = null
-    private var dynamicColorsPref: SwitchPreference? = null
+    private val authenticatorActivity by lazy {
+        requireActivity() as? AuthenticatorActivity
+    }
+    private val appLockPref: SwitchPreference? by lazy {
+        findPreference(Preferences.APP_LOCK)
+    }
+    private val exportLockPref: SwitchPreference? by lazy {
+        findPreference(Preferences.EXPORT_LOCK)
+    }
+    private val dynamicColorsPref: SwitchPreference? by lazy {
+        findPreference(Preferences.DYNAMIC_COLORS)
+    }
+    private val customAppThemePref: Preference? by lazy {
+        findPreference("_custom_app_theme")
+    }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.pref_settings_main)
 
-        appLockPref = findPreference(Preferences.APP_LOCK)
         appLockPref?.setOnPreferenceChangeListener { _, newValue ->
             if ((newValue as? Boolean) == true) {
                 requireActivity().showBiometricPrompt(
@@ -46,8 +57,6 @@ class SettingsMainFragment : PreferenceFragmentCompat() {
                 true
             }
         }
-        exportLockPref = findPreference(Preferences.EXPORT_LOCK)
-        dynamicColorsPref = findPreference(Preferences.DYNAMIC_COLORS)
 
         findPreference<Preference>("backup_export")?.setOnPreferenceClickListener {
             requireActivity().requestExport(
@@ -65,7 +74,24 @@ class SettingsMainFragment : PreferenceFragmentCompat() {
             val theme = parseEnum<AppTheme>(newValue.toString(), true)
             val dynamicColors = prefs.getDynamicColors()
 
-            (requireActivity() as? AuthenticatorActivity)?.setTheme(theme, dynamicColors, true)
+            authenticatorActivity?.setTheme(theme, dynamicColors, true)
+            true
+        }
+
+        customAppThemePref?.setOnPreferenceClickListener {
+            val dialog = CustomThemeDialog()
+
+            dialog.theme = prefs.getCustomAppTheme()
+            dialog.nightMode = prefs.getCustomAppThemeNightMode()
+            dialog.trueBlack = prefs.getCustomAppThemeTrueBlack()
+            dialog.setOnCancelListener {
+                prefs.putCustomAppTheme(dialog.theme)
+                prefs.putCustomAppThemeNightMode(dialog.nightMode)
+                prefs.putCustomAppThemeTrueBlack(dialog.trueBlack)
+                authenticatorActivity?.updateTheme(true)
+            }
+            dialog.show(requireActivity().supportFragmentManager, null)
+
             true
         }
 
@@ -114,15 +140,7 @@ class SettingsMainFragment : PreferenceFragmentCompat() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             dynamicColorsPref?.isEnabled = theme != AppTheme.Custom
         }
-    }
 
-    private fun formatClearTextTimeoutTime(text: Any?): String {
-        val s = (text.toString().replace(Regex("^0+"), "") + getString(R.string.label_seconds_abbreviation))
-
-        return if (s.length > 1) {
-            s
-        } else {
-            getString(R.string.label_unset)
-        }
+        customAppThemePref?.isEnabled = theme == AppTheme.Custom
     }
 }
