@@ -15,6 +15,7 @@ import dev.notrobots.authenticator.extensions.showBiometricPrompt
 import dev.notrobots.authenticator.models.AppTheme
 import dev.notrobots.authenticator.ui.backupimport.ImportActivity
 import dev.notrobots.authenticator.ui.backupmanager.BackupManagerActivity
+import dev.notrobots.authenticator.widget.preference.MaterialListPreferenceDialog
 import dev.notrobots.preferences2.*
 import dev.notrobots.preferences2.util.parseEnum
 
@@ -125,6 +126,14 @@ class SettingsMainFragment : PreferenceFragmentCompat() {
             } catch (e: Exception) {
                 "null"
             }
+        }
+    }
+
+    override fun onDisplayPreferenceDialog(preference: Preference) {
+        if (preference is ListPreference) {
+            MaterialListPreferenceDialog.show(preference.key, this)
+        } else {
+            super.onDisplayPreferenceDialog(preference)
         }
     }
 
