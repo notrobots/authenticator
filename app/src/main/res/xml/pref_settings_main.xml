@@ -15,10 +15,11 @@
             android:key="_custom_app_theme"
             android:title="Customize Theme"/>
 
-        <SwitchPreference
+        <SwitchPreferenceCompat
             android:key="dynamic_colors"
             android:summary="@string/pref_dynamic_colors_summary"
-            android:title="@string/pref_dynamic_colors" />
+            android:title="@string/pref_dynamic_colors"
+            android:widgetLayout="@layout/view_preference_monet_switch"/>
 
         <ListPreference
             android:defaultValue="circular"
@@ -28,12 +29,13 @@
             android:title="@string/pref_totp_indicator"
             app:useSimpleSummaryProvider="true" />
 
-        <SwitchPreference
+        <SwitchPreferenceCompat
             android:defaultValue="false"
             android:disableDependentsState="true"
             android:key="collapse_pins"
             android:summary="@string/pref_collapse_pins_summary"
-            android:title="@string/pref_collapse_pins" />
+            android:title="@string/pref_collapse_pins"
+            android:widgetLayout="@layout/view_preference_monet_switch"/>
 
         <ListPreference
             android:defaultValue="medium"
@@ -43,42 +45,48 @@
             app:entries="@array/pin_text_sizes"
             app:useSimpleSummaryProvider="true" />
 
-        <SwitchPreference
+        <SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="collapse_icons"
-            android:title="@string/pref_collapse_icons" />
+            android:title="@string/pref_collapse_icons"
+            android:widgetLayout="@layout/view_preference_monet_switch"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_privacy">
-        <SwitchPreference
+        <SwitchPreferenceCompat
             android:key="app_lock"
             android:summary="@string/pref_app_lock_summary"
-            android:title="@string/pref_app_lock" />
+            android:title="@string/pref_app_lock"
+            android:widgetLayout="@layout/view_preference_monet_switch"/>
 
-        <SwitchPreference
+        <SwitchPreferenceCompat
             android:key="export_lock"
             android:summary="@string/pref_export_lock_summary"
-            android:title="@string/pref_export_lock" />
+            android:title="@string/pref_export_lock"
+            android:widgetLayout="@layout/view_preference_monet_switch"/>
 
-        <SwitchPreference
+        <SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="allow_screenshots"
             android:summary="@string/pref_allow_screenshots_summary"
-            android:title="@string/pref_allow_screenshots" />
+            android:title="@string/pref_allow_screenshots"
+            android:widgetLayout="@layout/view_preference_monet_switch"/>
 
-        <SwitchPreference
+        <SwitchPreferenceCompat
             android:defaultValue="false"
             android:dependency="collapse_pins"
             android:key="hide_pins"
             android:summary="@string/pref_hide_pins_summary"
-            android:title="@string/pref_hide_pins" />
+            android:title="@string/pref_hide_pins"
+            android:widgetLayout="@layout/view_preference_monet_switch"/>
 
-        <SwitchPreference
+        <SwitchPreferenceCompat
             android:defaultValue="false"
             android:dependency="hide_pins"
             android:key="hide_pins_on_change"
             android:summary="@string/pref_hide_pins_on_change_summary"
-            android:title="@string/pref_hide_pins_on_change" />
+            android:title="@string/pref_hide_pins_on_change"
+            android:widgetLayout="@layout/view_preference_monet_switch"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_backup">

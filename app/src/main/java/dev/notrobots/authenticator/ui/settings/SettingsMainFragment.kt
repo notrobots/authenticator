@@ -27,17 +27,17 @@ class SettingsMainFragment : PreferenceFragmentCompat() {
     private val authenticatorActivity by lazy {
         requireActivity() as? AuthenticatorActivity
     }
-    private val appLockPref: SwitchPreference? by lazy {
-        findPreference(Preferences.APP_LOCK)
+    private val appLockPref by lazy {
+        findPreference<SwitchPreferenceCompat>(Preferences.APP_LOCK)
     }
-    private val exportLockPref: SwitchPreference? by lazy {
-        findPreference(Preferences.EXPORT_LOCK)
+    private val exportLockPref by lazy {
+        findPreference<SwitchPreferenceCompat>(Preferences.EXPORT_LOCK)
     }
-    private val dynamicColorsPref: SwitchPreference? by lazy {
-        findPreference(Preferences.DYNAMIC_COLORS)
+    private val dynamicColorsPref by lazy {
+        findPreference<SwitchPreferenceCompat>(Preferences.DYNAMIC_COLORS)
     }
-    private val customAppThemePref: Preference? by lazy {
-        findPreference("_custom_app_theme")
+    private val customAppThemePref by lazy {
+        findPreference<Preference>("_custom_app_theme")
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {

@@ -3,10 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory android:title="@string/label_local">
-        <SwitchPreference
+        <SwitchPreferenceCompat
             android:disableDependentsState="true"
             android:key="local_backup_enabled"
-            android:title="@string/label_enabled" />
+            android:title="@string/label_enabled"
+            android:widgetLayout="@layout/view_preference_monet_switch"/>
 
         <Preference
             android:dependency="local_backup_enabled"
@@ -29,10 +30,11 @@
     <PreferenceCategory
         android:title="@string/label_google_drive"
         app:isPreferenceVisible="false">
-        <SwitchPreference
+        <SwitchPreferenceCompat
             android:disableDependentsState="true"
             android:key="drive_backup_enabled"
-            android:title="@string/label_enabled" />
+            android:title="@string/label_enabled"
+            android:widgetLayout="@layout/view_preference_monet_switch"/>
 
         <Preference
             android:dependency="drive_backup_enabled"

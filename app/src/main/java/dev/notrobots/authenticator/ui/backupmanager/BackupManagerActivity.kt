@@ -97,10 +97,10 @@ class BackupManagerActivity : AuthenticatorActivity() {
             findPreference<Preference>(Preferences.DRIVE_BACKUP_PATH)
         }
         private val localBackupPref by lazy {
-            findPreference<SwitchPreference>(Preferences.LOCAL_BACKUP_ENABLED)
+            findPreference<SwitchPreferenceCompat>(Preferences.LOCAL_BACKUP_ENABLED)
         }
         private val driveBackupPref by lazy {
-            findPreference<SwitchPreference>(Preferences.DRIVE_BACKUP_ENABLED)
+            findPreference<SwitchPreferenceCompat>(Preferences.DRIVE_BACKUP_ENABLED)
         }
         private val localBackupNowPref by lazy {
             findPreference<Preference>("local_backup_now")
@@ -161,7 +161,7 @@ class BackupManagerActivity : AuthenticatorActivity() {
                 true
             }
 
-            findPreference<SwitchPreference>(Preferences.LOCAL_BACKUP_ENABLED)?.setOnPreferenceChangeListener { _, newValue ->
+            findPreference<SwitchPreferenceCompat>(Preferences.LOCAL_BACKUP_ENABLED)?.setOnPreferenceChangeListener { _, newValue ->
                 val interval = preferences.getLocalBackupFrequency().toIntOrNull()
                 val path = preferences.getLocalBackupPath()
 
@@ -185,7 +185,7 @@ class BackupManagerActivity : AuthenticatorActivity() {
 
                 return@setOnPreferenceChangeListener false
             }
-            findPreference<SwitchPreference>(Preferences.DRIVE_BACKUP_ENABLED)?.setOnPreferenceChangeListener { _, newValue ->
+            findPreference<SwitchPreferenceCompat>(Preferences.DRIVE_BACKUP_ENABLED)?.setOnPreferenceChangeListener { _, newValue ->
                 val interval = preferences.getDriveBackupFrequency().toIntOrNull()
                 val path = preferences.getDriveBackupPath()
 
