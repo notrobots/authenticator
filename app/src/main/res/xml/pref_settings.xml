@@ -13,7 +13,8 @@
 
         <Preference
             android:key="_custom_app_theme"
-            android:title="Customize Theme"/>
+            android:title="Customize Theme"
+            app:isPreferenceVisible="false"/>
 
         <SwitchPreferenceCompat
             android:key="dynamic_colors"

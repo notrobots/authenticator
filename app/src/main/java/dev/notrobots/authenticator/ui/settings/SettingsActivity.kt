@@ -161,7 +161,7 @@ class SettingsActivity : AuthenticatorActivity() {
             exportLockPref?.isEnabled = isDeviceSecured
             appLockPref?.isEnabled = isDeviceSecured
             dynamicColorsPref?.isEnabled = theme != AppTheme.Custom
-            customAppThemePref?.isEnabled = theme == AppTheme.Custom
+            customAppThemePref?.isVisible = theme == AppTheme.Custom
         }
     }
 }
