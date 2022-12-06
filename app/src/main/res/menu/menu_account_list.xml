@@ -78,12 +78,6 @@
         android:icon="@drawable/ic_settings"
         android:title="Settings" />
 
-    <item
-        android:id="@+id/menu_account_list_overflow"
-        android:icon="@drawable/ic_more"
-        android:title="More options"
-        app:showAsAction="ifRoom" />
-
     <!--        <item-->
     <!--            android:id="@+id/menu_account_list_toggle_pins"-->
     <!--            android:title="Show/Hide pins"/>-->

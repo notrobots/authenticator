@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.*
-import android.widget.PopupWindow
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.activity.viewModels
 import androidx.appcompat.widget.SearchView
@@ -321,9 +320,6 @@ class AccountListActivity : AuthenticatorActivity() {
             R.id.menu_account_list_edit -> {
                 toolbar.startActionMode(editActionModeCallback)
             }
-            R.id.menu_account_list_overflow -> {
-                showOptionsMenu()
-            }
             R.id.menu_account_list_search -> {
                 toolbar.startActionMode(searchActionModeCallback)
             }
@@ -438,50 +434,6 @@ class AccountListActivity : AuthenticatorActivity() {
         }
 
         return true
-    }
-
-    /**
-     * Shows the custom options menu on the top right corner of the screen
-     */
-    private fun showOptionsMenu(): PopupWindow {
-        val popup = AccountListOptionsMenu(
-            this,
-            viewModel.sortMode() ?: SortMode.Custom,
-            adapter.collapseIcons,
-            adapter.collapsePins,
-            adapter.totpIndicatorType
-        )
-
-        popup.setListener(object : AccountListOptionsMenu.Listener {
-            override fun onExport() {
-                if (viewModel.accounts.value?.isNotEmpty() == true) {
-                    requestExport(
-                        preferences.getExportLock(),
-                        isDeviceSecured()
-                    )
-                } else {
-                    makeSnackBar("Nothing to export", binding.root)
-                }
-            }
-
-            override fun onImport() {
-                startActivity(ImportActivity::class)
-            }
-        })
-        popup.setOnDismissListener {
-            preferences.putSortMode(popup.sortMode)
-            preferences.putCollapseIcons(popup.showIcons)
-            preferences.putCollapsePins(popup.showPins)
-            preferences.putTotpIndicator(popup.totpIndicatorType)
-
-            adapter.collapseIcons = popup.showIcons
-            adapter.collapsePins = popup.showPins
-            adapter.totpIndicatorType = popup.totpIndicatorType
-            viewModel.sortMode(popup.sortMode)
-        }
-        popup.show(binding.toolbarLayout.toolbar)
-
-        return popup
     }
 
     //endregion
