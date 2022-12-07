@@ -17,8 +17,8 @@ android {
         applicationId "dev.notrobots.authenticator"
         minSdkVersion 23
         targetSdkVersion 33
-        versionCode getVersionCode()
-        versionName getVersionName()
+        versionCode project.getVersionCode()
+        versionName project.getVersionName()
         vectorDrawables.useSupportLibrary = true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

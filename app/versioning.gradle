@@ -1,3 +1,9 @@
+def excludedBranches =  ['main', 'master', 'default', 'tmp', 'temp']
+
+def printe(String error) {
+    println 'Versioning error: ' + error
+}
+
 def run(String... args) {
     def out = new ByteArrayOutputStream()
 
@@ -9,41 +15,75 @@ def run(String... args) {
     return out.toString()
 }
 
-def getVersionCode = { ->
+project.ext.getVersionCode = {
     try {
         def code = run('git', 'tag', '--list')
 
         return code.split('\n').size()
     }
-    catch (ignored) {
-        return -1
+    catch (e) {
+        printe e
+        return null
     }
 }
 
-def getVersionName = { ->
+project.ext.getVersionName = {
     try {
         def tag = run('git', 'describe', '--tags', '--abbrev=0').trim()
         def isDirty = !run('git', 'status', '-s').trim().isEmpty()
-        def exactMatch = false
+        def isTagged
 
         try {
-            run 'git', 'describe', '--exact-match'
+            run('git', 'describe', '--exact-match')
 
-            exactMatch = true
+            isTagged = true
         } catch (ignored) {
-
+            isTagged = false
         }
 
-        if (isDirty || !exactMatch) {
-            tag += '-' + run('git', 'log', '-1', '--format="%h"').trim()
+        def tagName = tag
 
-            if (isDirty) {
-                tag += '-dirty'
+        if (!isTagged) {
+            def hash
+            def sinceLast
+            def branch
+
+            try {
+                hash = run('git', 'log', '-1', '--format="%h"').trim()
+            } catch (e) {
+                printe e
+                return null
+            }
+
+            try {
+                sinceLast = run('git', 'rev-list', tag + '..', '--count').trim()
+            } catch(e) {
+                printe e
+                return null
+            }
+
+            try {
+                branch = run('git', 'branch', '--show-current').trim()
+            } catch(e) {
+                printe e
+                return null
+            }
+
+            tagName += '-' + hash + '-' + sinceLast
+
+            if (!(branch in excludedBranches)) {
+                tagName += '-' + branch
             }
         }
 
-        return tag
-    } catch (ignored) {
+        if (isDirty) {
+            tagName += '-t' + System.currentTimeMillis()
+        }
+
+        println 'Tag name: ' + tagName
+        return tagName
+    } catch (e) {
+        printe e
         return null
     }
 }
