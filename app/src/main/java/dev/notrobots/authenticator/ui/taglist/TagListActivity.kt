@@ -6,6 +6,7 @@ import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
 import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.makeToast
@@ -17,6 +18,8 @@ import dev.notrobots.authenticator.databinding.ActivityTagListBinding
 import dev.notrobots.authenticator.models.AddOrEditTagDialog
 import dev.notrobots.authenticator.models.BaseDialog
 import dev.notrobots.authenticator.models.Tag
+import dev.notrobots.preferences2.getTagIdFilter
+import dev.notrobots.preferences2.putTagIdFilter
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -27,6 +30,9 @@ class TagListActivity : AuthenticatorActivity() {
         binding.toolbarLayout.toolbar
     }
     private lateinit var adapter: TagListAdapter
+    private val preferences by lazy {
+        PreferenceManager.getDefaultSharedPreferences(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,9 +74,12 @@ class TagListActivity : AuthenticatorActivity() {
                     "Delete",
                     {
                         lifecycleScope.launch {
-                            viewModel.tagDao.delete(tag)
-                            it.dismiss()
-                            adapter.notifyItemChanged(position)
+                            if (preferences.getTagIdFilter() == tag.tagId) {
+                                preferences.putTagIdFilter(-1)
+                                viewModel.tagDao.delete(tag)
+                                adapter.notifyItemChanged(position)
+                                it.dismiss()
+                            }
                         }
                     },
                     "Cancel",

@@ -9,6 +9,7 @@ import dev.notrobots.authenticator.db.AccountTagCrossRefDao
 import dev.notrobots.authenticator.db.TagDao
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.SortMode
+import dev.notrobots.authenticator.models.Tag
 import dev.notrobots.authenticator.util.TextUtil
 import javax.inject.Inject
 
@@ -35,6 +36,7 @@ class AccountListViewModel @Inject constructor(
             )
         }
     }
+    val isFilterActive = FilterActiveMediator(tagIdFilter, tags)
 
     /**
      * Inserts the given [account] into the database and takes care of the ordering.
@@ -102,6 +104,13 @@ class AccountListViewModel @Inject constructor(
 
             name = TextUtil.getNextName(oldAccount.name)
         } while (true)
+    }
+
+    class FilterActiveMediator(tagId: LiveData<Long>, tags: LiveData<List<Tag>>) : MediatorLiveData<Boolean>() {
+        init {
+            addSource(tagId) { value = it != -1L && tags.value?.isNotEmpty() == true }
+            addSource(tags) { value = tagId.value != -1L && it.isNotEmpty() }
+        }
     }
 
     private class AccountFilterMediator(sortMode: LiveData<SortMode>, tagId: LiveData<Long?>) : MediatorLiveData<Pair<SortMode?, Long?>>() {

@@ -224,18 +224,20 @@ class AccountListActivity : AuthenticatorActivity() {
             adapter.sortMode = it
         }
         viewModel.accounts.observe(this) {
-            tagFilterMenuItem?.icon = ContextCompat.getDrawable(
-                this, if (viewModel.tagIdFilter() != -1L) {
-                    R.drawable.ic_filter_active
-                } else {
-                    R.drawable.ic_filter
-                }
-            )
-
             adapter.setItems(it)
         }
         viewModel.tags.observe(this) {
             tagCount = it.size
+
+            if (it.isEmpty()) {
+                viewModel.tagIdFilter(-1)
+                preferences.putTagIdFilter(-1)
+            }
+        }
+        viewModel.isFilterActive.observe(this) {
+            val icon = if (it) R.drawable.ic_filter_list_off else R.drawable.ic_filter
+
+            tagFilterMenuItem?.icon = ContextCompat.getDrawable(this, icon)
         }
         viewModel.tagIdFilter(preferences.getTagIdFilter())
     }
@@ -249,6 +251,7 @@ class AccountListActivity : AuthenticatorActivity() {
 
         binding.listAccounts.adapter = adapterWrapper
         adapter.totpTimer?.start()
+        viewModel.tagIdFilter(preferences.getTagIdFilter())
         updateAdapterPreferences()
     }
 
