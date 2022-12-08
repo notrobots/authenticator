@@ -199,9 +199,11 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                 selectedItems.add(account)
                 view.isSelected = true
                 listener.onItemSelectionChange(account, position, account.accountId, this)
+
+                return@setOnLongClickListener listener.onItemLongClick(account, position, id, this)
             }
 
-            listener.onItemLongClick(account, position, id, this)
+            false
         }
 
         if (editMode) {
