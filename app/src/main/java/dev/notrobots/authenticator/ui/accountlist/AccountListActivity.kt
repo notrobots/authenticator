@@ -22,9 +22,7 @@ import com.h6ah4i.android.widget.advrecyclerview.animator.DraggableItemAnimator
 import com.h6ah4i.android.widget.advrecyclerview.draggable.RecyclerViewDragDropManager
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.*
-import dev.notrobots.androidstuff.util.Logger
 import dev.notrobots.androidstuff.util.Logger.Companion.logd
-import dev.notrobots.authenticator.App
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.data.TOTP_INDICATOR_UPDATE_DELAY
@@ -104,7 +102,7 @@ class AccountListActivity : AuthenticatorActivity() {
 
         override fun onShareAccount(account: Account, position: Int, id: Long, adapter: AccountListAdapter) {
             val qrCode = QRCode(Account.toUri(account))
-            val dialog = ImageDialog(qrCode.toBitmap())
+            val dialog = QRCodeImageDialog.newInstance(qrCode, getString(R.string.accessibility_qr_code))
 
             dialog.show(supportFragmentManager, null)
         }
@@ -539,6 +537,8 @@ class AccountListActivity : AuthenticatorActivity() {
     private fun showTagFilterDialog() {
         val sheet = BottomSheetDialog(this)
         val listView = BottomSheetListView(this)
+
+        sheet.setTitle("Filter Tag")
 
         //TODO: Redesign the layout
         // "Selected" item should have a colored background
