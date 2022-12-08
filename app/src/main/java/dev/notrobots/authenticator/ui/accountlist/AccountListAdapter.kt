@@ -339,10 +339,12 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         return true
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onItemDragStarted(position: Int) {
         notifyDataSetChanged()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onItemDragFinished(fromPosition: Int, toPosition: Int, result: Boolean) {
         notifyDataSetChanged()
     }

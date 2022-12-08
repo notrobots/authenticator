@@ -8,6 +8,7 @@ import dev.notrobots.authenticator.db.AccountDao
 import dev.notrobots.authenticator.db.AccountTagCrossRefDao
 import dev.notrobots.authenticator.db.TagDao
 import dev.notrobots.authenticator.models.Account
+import dev.notrobots.authenticator.models.CombinedMediatorLiveData
 import dev.notrobots.authenticator.models.SortMode
 import dev.notrobots.authenticator.models.Tag
 import dev.notrobots.authenticator.util.TextUtil
@@ -22,22 +23,24 @@ class AccountListViewModel @Inject constructor(
     val sortMode = MutableLiveData(SortMode.Custom)
     val tagIdFilter: MutableLiveData<Long> = MutableLiveData(-1)
     val tags = tagDao.getTagsLive()
-    val accounts = Transformations.switchMap(AccountFilterMediator(sortMode, tagIdFilter)) {
+    val accounts = CombinedMediatorLiveData(sortMode, tagIdFilter) {
+        AccountFilter(it[0] as SortMode, it[1] as Long?)
+    }.switchMap {
         when {
-            it?.second != -1L -> accountDao.getAccountsLive(
-                it.first!!.sortingDirection,
-                it.first!!.sortingBy,
-                it.second!!
+            it.tagId != null && it?.tagId != -1L -> accountDao.getAccountsLive(
+                it.sortMode.sortingDirection,
+                it.sortMode.sortingBy,
+                it.tagId
             )
-            it.first == SortMode.Custom -> accountDao.getAccountsLive()
+            it.sortMode == SortMode.Custom -> accountDao.getAccountsLive()
 
             else -> accountDao.getAccountsLive(
-                it.first!!.sortingDirection,
-                it.first!!.sortingBy
+                it.sortMode.sortingDirection,
+                it.sortMode.sortingBy
             )
         }
     }
-    val isFilterActive = FilterActiveMediator(tagIdFilter, tags)
+    val isFilterActive: MediatorLiveData<Boolean> = FilterActiveMediator(tagIdFilter, tags)
 
     /**
      * Inserts the given [account] into the database and takes care of the ordering.
@@ -107,17 +110,15 @@ class AccountListViewModel @Inject constructor(
         } while (true)
     }
 
-    class FilterActiveMediator(tagId: LiveData<Long>, tags: LiveData<List<Tag>>) : MediatorLiveData<Boolean>() {
+    private class FilterActiveMediator(tagId: LiveData<Long>, tags: LiveData<List<Tag>>) : MediatorLiveData<Boolean>() {
         init {
             addSource(tagId) { value = it != -1L && tags.value?.isNotEmpty() == true }
             addSource(tags) { value = tagId.value != -1L && it.isNotEmpty() }
         }
     }
 
-    private class AccountFilterMediator(sortMode: LiveData<SortMode>, tagId: LiveData<Long?>) : MediatorLiveData<Pair<SortMode?, Long?>>() {
-        init {
-            addSource(sortMode) { value = it to tagId.value }
-            addSource(tagId) { value = sortMode.value to it }
-        }
-    }
+    private data class AccountFilter(
+        val sortMode: SortMode,
+        val tagId: Long?
+    )
 }
