@@ -23,14 +23,15 @@ class AccountListViewModel @Inject constructor(
     val tagIdFilter: MutableLiveData<Long> = MutableLiveData(-1)
     val tags = tagDao.getTagsLive()
     val accounts = Transformations.switchMap(AccountFilterMediator(sortMode, tagIdFilter)) {
-        if (it?.second != -1L && it.first != null) {
-            accountDao.getAccountsLive(
+        when {
+            it?.second != -1L -> accountDao.getAccountsLive(
                 it.first!!.sortingDirection,
                 it.first!!.sortingBy,
                 it.second!!
             )
-        } else {
-            accountDao.getAccountsLive(
+            it.first == SortMode.Custom -> accountDao.getAccountsLive()
+
+            else -> accountDao.getAccountsLive(
                 it.first!!.sortingDirection,
                 it.first!!.sortingBy
             )
