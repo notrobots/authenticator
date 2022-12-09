@@ -187,7 +187,7 @@ dependencies {
     implementation 'dev.turingcomplete:kotlin-onetimepassword:2.1.0'
     implementation 'com.github.clans:fab:1.6.4'
     implementation 'commons-codec:commons-codec:1.15'
-    implementation 'com.github.notrobots:android-stuff:0.6.4'
+    implementation 'com.github.notrobots:android-stuff:0.6.5'
     implementation 'com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:1.0.0'
 }
 

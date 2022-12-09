@@ -26,6 +26,5 @@ class App : Application() {
         }
 
         Logger.tag = LOG_DEFAULT_TAG
-        Logger.logd("App has started")
     }
 }
