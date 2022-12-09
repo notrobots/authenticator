@@ -3,6 +3,7 @@ package dev.notrobots.authenticator.ui.accountlist
 import android.app.Activity
 import android.app.SearchManager
 import android.app.job.JobScheduler
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.h6ah4i.android.widget.advrecyclerview.animator.DraggableItemAnimator
 import com.h6ah4i.android.widget.advrecyclerview.draggable.RecyclerViewDragDropManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -238,6 +240,8 @@ class AccountListActivity : AuthenticatorActivity() {
             tagFilterMenuItem?.icon = ContextCompat.getDrawable(this, icon)
         }
         viewModel.tagIdFilter(preferences.getTagIdFilter())
+
+        checkLocalBackupPermissions()
     }
 
     override fun onStart() {
@@ -575,6 +579,30 @@ class AccountListActivity : AuthenticatorActivity() {
         sheet.setTitle("Filter tags")
         sheet.setContentView(listView)
         sheet.show()
+    }
+
+    /**
+     * Checks if the write permissions for the local backup path were revoked
+     * by the user while the app was closed.
+     */
+    private fun checkLocalBackupPermissions() {
+        val path = preferences.getLocalBackupPath().toUri()
+        val enabled = preferences.getLocalBackupEnabled()
+
+        if (enabled && !contentResolver.isPersistedPermissionGranted(path)) {
+            MaterialAlertDialogBuilder(this)
+                .setTitle("Permission revoked")
+                .setMessage("Permission to write backups to $path was revoked.\n\nAuthenticator won't be able to perform backups")
+                .setPositiveButton("Launch backup manager") { _, _ ->
+                    startActivity(BackupManagerActivity::class)
+                }
+                .setNegativeButton("Disable backup") { _, _ ->
+                    preferences.putLocalBackupEnabled(false)
+                }
+                .setNeutralButton("Do nothing", null)
+                .create()
+                .show()
+        }
     }
 
     /**

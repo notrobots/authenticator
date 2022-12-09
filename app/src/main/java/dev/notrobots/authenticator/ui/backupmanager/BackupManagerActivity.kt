@@ -315,7 +315,6 @@ class BackupManagerActivity : AuthenticatorActivity() {
             }
         }
 
-        //TODO: This should be checked on startup too and show a dialog to the user
         private fun checkBackupPathWritePermissions() {
             val path = preferences.getLocalBackupPath().toUri()
 
