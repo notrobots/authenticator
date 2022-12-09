@@ -1,5 +1,7 @@
 package dev.notrobots.authenticator.services
 
+import android.annotation.SuppressLint
+import android.app.Notification
 import android.app.job.JobInfo
 import android.app.job.JobScheduler
 import android.app.job.JobService
@@ -10,6 +12,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.getSystemService
 import androidx.preference.PreferenceManager
 import dagger.hilt.android.AndroidEntryPoint
+import dev.notrobots.androidstuff.util.Logger
 import dev.notrobots.authenticator.db.AccountDao
 import dev.notrobots.authenticator.db.AccountTagCrossRefDao
 import dev.notrobots.authenticator.db.TagDao
@@ -24,6 +27,7 @@ abstract class BackupJob : JobService() {
     protected val notificationManager by lazy {
         NotificationManagerCompat.from(this)
     }
+    protected val logger = Logger(this::class.simpleName)
 
     @Inject
     protected lateinit var accountDao: AccountDao
@@ -33,6 +37,15 @@ abstract class BackupJob : JobService() {
 
     @Inject
     protected lateinit var accountTagCrossRefDao: AccountTagCrossRefDao
+
+    protected fun sendNotification(notification: Notification, id: Int) {
+        @SuppressLint("MissingPermission")
+        if (notificationManager.areNotificationsEnabled()) {
+            notificationManager.notify(id, notification)
+        } else {
+            Logger.logw("Cannot send notification from. Permission not granted.")
+        }
+    }
 
     companion object {
         const val JOB_ID = -1
