@@ -322,7 +322,7 @@ class BackupManagerActivity : AuthenticatorActivity() {
                 requireContext().makeToast("Permission to local backup path was revoked")
                 preferences.putLocalBackupPath("")
                 preferences.putLocalBackupEnabled(false)
-                this.localBackupPref?.isChecked = false
+                localBackupPref?.isChecked = false
             }
         }
     }

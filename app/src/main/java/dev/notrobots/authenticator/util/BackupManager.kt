@@ -94,8 +94,8 @@ object BackupManager {
             flush()
         }
 
-        preferences.putLastLocalBackupTime(now())
         preferences.putLastLocalBackupPath(file.uri.toString())
+        preferences.putLastLocalBackupTime(now())
     }
 
     /**
