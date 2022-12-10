@@ -88,9 +88,13 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                 notifyDataSetChanged()
             }
         }
-    val selectedItems = mutableSetOf<Account>()
+    val selectedItemsIds = mutableSetOf<Long>()
+    val selectedItems
+        get() = selectedItemsIds
+            .map { id -> items.find { it.accountId == id } }
+            .filterNotNull()
     val selectedItemCount
-        get() = selectedItems.size
+        get() = selectedItemsIds.size
     var totpTimer: TotpTimer? = null
 
     init {
@@ -168,13 +172,13 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         view.setOnClickListener {
             if (editMode) {
                 // Toggle account selection state
-                if (account in selectedItems) {
-                    selectedItems.remove(account)
+                if (account.accountId in selectedItemsIds) {
+                    selectedItemsIds.remove(account.accountId)
                 } else {
-                    selectedItems.add(account)
+                    selectedItemsIds.add(account.accountId)
                 }
 
-                view.isSelected = account in selectedItems
+                view.isSelected = account.accountId in selectedItemsIds
                 listener.onItemSelectionChange(account, position, account.accountId, this)
             } else {
                 if (!clearTextEnabled) {
@@ -196,7 +200,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         }
         view.setOnLongClickListener {
             if (!editMode) {
-                selectedItems.add(account)
+                selectedItemsIds.add(account.accountId)
                 view.isSelected = true
                 listener.onItemSelectionChange(account, position, account.accountId, this)
 
@@ -207,8 +211,8 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         }
 
         if (editMode) {
-            // Restore selection state or get it from the account instance
-            view.isSelected = account in selectedItems
+            // Restore selection state
+            view.isSelected = account.accountId in selectedItemsIds
 
             binding.edit.setOnClickListener {
                 listener.onItemEditClick(account, position, id, this)
@@ -428,13 +432,15 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         pinCache.clear()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun selectAll() {
-        selectedItems.addAll(items)
+        selectedItemsIds.addAll(items.map { it.accountId })
         notifyDataSetChanged()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun clearSelected() {
-        selectedItems.clear()
+        selectedItemsIds.clear()
         notifyDataSetChanged()
     }
 

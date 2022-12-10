@@ -3,7 +3,6 @@ package dev.notrobots.authenticator.ui.accountlist
 import android.app.Activity
 import android.app.SearchManager
 import android.app.job.JobScheduler
-import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -131,7 +130,7 @@ class AccountListActivity : AuthenticatorActivity() {
                     if (adapter.selectedItemCount > 0) {
                         DeleteAccountDialog(adapter.selectedItemCount, supportFragmentManager) {
                             lifecycleScope.launch {
-                                viewModel.accountDao.delete(adapter.selectedItems.toList())
+                                viewModel.accountDao.delete(adapter.selectedItems)
                             }
                             actionMode?.finish()
                         }

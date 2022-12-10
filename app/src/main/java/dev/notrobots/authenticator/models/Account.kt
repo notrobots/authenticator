@@ -121,6 +121,10 @@ data class Account(
         )
     }
 
+    override fun toString(): String {
+        return "${this::class.simpleName}($label, ${if (label.isNotEmpty()) "$label, $name" else name})"
+    }
+
     companion object : JsonSerializable<Account>, UriSerializable<Account> {
         const val DEFAULT_ORDER = -1L
         const val DEFAULT_ID = 0L
