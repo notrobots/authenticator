@@ -17,6 +17,7 @@ import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemState
 import com.h6ah4i.android.widget.advrecyclerview.draggable.DraggableItemViewHolder
 import com.h6ah4i.android.widget.advrecyclerview.draggable.ItemDraggableRange
 import com.h6ah4i.android.widget.advrecyclerview.utils.AbstractDraggableItemViewHolder
+import dagger.hilt.EntryPoint
 import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.swap
 import dev.notrobots.authenticator.R
@@ -30,6 +31,7 @@ import dev.notrobots.authenticator.util.OTPGenerator
 import dev.notrobots.authenticator.util.ViewUtil
 import java.util.*
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import kotlin.math.ceil
 
 class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableItemAdapter<AccountViewHolder>, Filterable {
@@ -43,6 +45,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
      */
     private var visibleItems = mutableSetOf<Account>()
     private val pinCache = mutableMapOf<Account, String>()
+    lateinit var totpClock: TotpClock
     var items = mutableListOf<Account>()    //FIXME: private
         private set
     val isEmpty
@@ -463,7 +466,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
      * Generates the current pin for the given [account]
      */
     private fun generatePin(account: Account): String {
-        return OTPGenerator.generate(account)
+        return OTPGenerator.generate(account, totpClock)
     }
 
     /**

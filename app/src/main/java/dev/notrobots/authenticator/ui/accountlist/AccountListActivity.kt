@@ -47,6 +47,7 @@ import dev.notrobots.authenticator.widget.BottomSheetListView
 import dev.notrobots.preferences2.*
 import kotlinx.android.synthetic.main.activity_account_list.*
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class AccountListActivity : AuthenticatorActivity() {
@@ -74,7 +75,7 @@ class AccountListActivity : AuthenticatorActivity() {
     }
     private val listAdapterListener = object : AccountListAdapter.Listener {
         override fun onItemClick(account: Account, position: Int, id: Long, adapter: AccountListAdapter) {
-            copyToClipboard(OTPGenerator.generate(account)) //TODO: Keep the value cached
+            copyToClipboard(OTPGenerator.generate(account, totpClock)) //TODO: Keep the value cached
             makeToast("Copied!")
         }
 
@@ -206,6 +207,9 @@ class AccountListActivity : AuthenticatorActivity() {
     }
     private var tagFilterMenuItem: MenuItem? = null
     private var tagCount = 0
+
+    @Inject
+    protected lateinit var totpClock: TotpClock
 
     //region Activity lifecycle
 
@@ -451,6 +455,7 @@ class AccountListActivity : AuthenticatorActivity() {
         val dividerItemDecoration = DividerItemDecoration(this, layoutManager.orientation)
 
         adapter = AccountListAdapter()
+        adapter.totpClock = totpClock
         adapter.setListener(listAdapterListener)
         updateAdapterPreferences()
         adapter.totpTimer = TotpTimer(TOTP_INDICATOR_UPDATE_DELAY)

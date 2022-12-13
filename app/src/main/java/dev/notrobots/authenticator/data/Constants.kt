@@ -29,3 +29,6 @@ const val QR_MAX_BYTES = 512       // Max: 2953
  */
 //TODO: Let the user chose the resolution 264, 512, 1024, 2048
 const val QR_BITMAP_SIZE = 512
+
+const val SECOND_IN_MILLIS = 1000L
+const val MINUTE_IN_MILLIS = 60L * SECOND_IN_MILLIS

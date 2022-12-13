@@ -8,6 +8,8 @@
     <!-- Used by the BackupJob service  -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Used by NetworkTimeProvider. This shouldn't be needed anymore in the future. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
         android:name=".App"

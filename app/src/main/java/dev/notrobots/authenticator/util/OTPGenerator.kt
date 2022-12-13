@@ -1,14 +1,14 @@
 package dev.notrobots.authenticator.util
 
-import dev.notrobots.androidstuff.util.now
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.OTPType
+import dev.notrobots.authenticator.models.TotpClock
 import dev.turingcomplete.kotlinonetimepassword.*
 import org.apache.commons.codec.binary.Base32
 import java.util.concurrent.TimeUnit
 
 object OTPGenerator {
-    fun generate(account: Account): String {
+    fun generate(account: Account, totpClock: TotpClock): String {
         // The "Google way" is to pass the generator a base32 string that is decoded internally.
         // Other authenticators take a decoded string.
         // Since the [GoogleAuthenticator] generator doesn't support any additional
@@ -28,7 +28,7 @@ object OTPGenerator {
                 TimeBasedOneTimePasswordGenerator(
                     secret,
                     config
-                ).generate(now())
+                ).generate(totpClock.nowMillis())
             }
             OTPType.HOTP -> {
                 val config = HmacOneTimePasswordConfig( //TODO: Keep an instance somewhere

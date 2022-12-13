@@ -4,6 +4,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.preference.*
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.extensions.viewBindings
 import dev.notrobots.authenticator.R
@@ -15,12 +17,17 @@ import dev.notrobots.authenticator.extensions.isDeviceSecured
 import dev.notrobots.authenticator.extensions.requestExport
 import dev.notrobots.authenticator.extensions.showBiometricPrompt
 import dev.notrobots.authenticator.models.AppTheme
+import dev.notrobots.authenticator.models.TotpClock
 import dev.notrobots.authenticator.ui.backupimport.ImportActivity
 import dev.notrobots.authenticator.ui.backupmanager.BackupManagerActivity
+import dev.notrobots.authenticator.util.NetworkTimeProvider
 import dev.notrobots.authenticator.widget.preference.MaterialListPreferenceDialog
 import dev.notrobots.preferences2.*
 import dev.notrobots.preferences2.util.parseEnum
+import javax.inject.Inject
+import kotlin.math.abs
 
+@AndroidEntryPoint
 class SettingsActivity : AuthenticatorActivity() {
     private val binding: ActivitySettingsBinding by viewBindings()
     private val toolbar by lazy {
@@ -40,6 +47,7 @@ class SettingsActivity : AuthenticatorActivity() {
             .commit()
     }
 
+    @AndroidEntryPoint
     class SettingsFragment : PreferenceFragmentCompat() {
         private val prefs by lazy {
             PreferenceManager.getDefaultSharedPreferences(requireContext())
@@ -59,6 +67,12 @@ class SettingsActivity : AuthenticatorActivity() {
         private val customAppThemePref by lazy {
             findPreference<Preference>("_custom_app_theme")
         }
+        private val timeSyncPref by lazy {
+            findPreference<Preference>("time_sync")
+        }
+
+        @Inject
+        protected lateinit var totpClock: TotpClock
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             addPreferencesFromResource(R.xml.pref_settings)
@@ -143,6 +157,41 @@ class SettingsActivity : AuthenticatorActivity() {
                     "null"
                 }
             }
+
+            timeSyncPref?.setOnPreferenceClickListener {
+                val timeCorrection = totpClock.getTimeCorrection()
+                val dialogBuilder = MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("Time sync")
+
+                NetworkTimeProvider.getTimeCorrection(
+                    onSuccess = {
+                        if (it == timeCorrection) {
+                            dialogBuilder.setMessage("Time already synced")
+                                .setPositiveButton("Ok", null)
+                                .create()
+                                .show()
+                        } else {
+                            totpClock.setTimeCorrection(it)
+                            updateTimeCorrectionSummary()
+
+                            dialogBuilder.setMessage("Time synced correctly")
+                                .setPositiveButton("Ok") { _, _ ->
+                                }
+                                .create()
+                                .show()
+                        }
+                    },
+                    onFailure = {
+                        dialogBuilder.setMessage("Cannot sync time. Check your internet connection and try again")
+                            .setPositiveButton("Ok", null)
+                            .create()
+                            .show()
+                    }
+                )
+
+                true
+            }
+            updateTimeCorrectionSummary()
         }
 
         override fun onDisplayPreferenceDialog(preference: Preference) {
@@ -163,6 +212,18 @@ class SettingsActivity : AuthenticatorActivity() {
             appLockPref?.isEnabled = isDeviceSecured
             dynamicColorsPref?.isEnabled = theme != AppTheme.Custom
             customAppThemePref?.isVisible = theme == AppTheme.Custom
+        }
+
+        private fun updateTimeCorrectionSummary() {
+            val timeCorrection = totpClock.getTimeCorrection()
+
+            timeSyncPref?.summary = if (timeCorrection == 0) {
+                getString(R.string.label_time_sync_never)
+            } else if (timeCorrection < 0) {
+                getString(R.string.label_time_sync_ahead, abs(timeCorrection))
+            } else if (timeCorrection > 0) {
+                getString(R.string.label_time_sync_behind, timeCorrection)
+            } else null
         }
     }
 }

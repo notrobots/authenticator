@@ -2,6 +2,12 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <Preference
+        android:key="time_sync"
+        android:persistent="false"
+        android:title="Time sync"
+        android:summary="Never synced"/>
+
     <PreferenceCategory android:title="@string/pref_appearance">
         <ListPreference
             android:defaultValue="followsystem"

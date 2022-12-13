@@ -4,6 +4,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import dev.notrobots.preferences2.annotations.*
 
 object Preferences {
+    @IntPreference
+    const val TIME_CORRECTION = "time_correction"
     @BooleanPreference
     const val COLLAPSE_PINS = "collapse_pins"
     @BooleanPreference

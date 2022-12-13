@@ -147,4 +147,7 @@
     <string name="label_copy_uri">Copy Uri</string>
     <string name="label_uri_copied">Uri copied to clipboard</string>
     <string name="error_local_backup_failed_no_permission">Cannot write to backup directory. Permission denied</string>
+    <string name="label_time_sync_never">Adjust Authenticator\'s internal clock if your phone\'s date and time is incorrect.\n\nNote: This will only sync the Authenticator app, your phone\'s date/time will remain untouched.</string>
+    <string name="label_time_sync_behind">Device is behind by %d minutes</string>
+    <string name="label_time_sync_ahead">Device is ahead by %d minutes</string>
 </resources>
