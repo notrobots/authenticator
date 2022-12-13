@@ -1,5 +1,10 @@
 def excludedBranches =  ['main', 'master', 'default', 'tmp', 'temp']
 
+def printe(Exception e) {
+    println 'Versioning error'
+    e.printStackTrace()
+}
+
 def printe(String error) {
     println 'Versioning error: ' + error
 }
