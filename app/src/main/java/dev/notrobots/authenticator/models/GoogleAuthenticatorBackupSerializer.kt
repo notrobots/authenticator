@@ -73,7 +73,11 @@ class GoogleAuthenticatorBackupSerializer : BackupMessageSerializer() {
                         else -> OTPType.TOTP
                     }
                     counter = it.counter
-                    digits = it.digits  //FIXME Google Auth only supports 8 and 6
+                    digits = when (it.digits) {
+                        GoogleAuthenticator.Digits.DIGITS_6 -> 6
+                        GoogleAuthenticator.Digits.DIGITS_8 -> 8
+                        else -> 6
+                    }
                     algorithm = when (it.algorithm) {
                         GoogleAuthenticator.Algorithm.ALGORITHM_SHA1 -> HmacAlgorithm.SHA1
 
@@ -106,7 +110,14 @@ class GoogleAuthenticatorBackupSerializer : BackupMessageSerializer() {
             .setIssuer(account.issuer)
             .setOTPType(account.type)
             .setCounter(account.counter)
-            .setDigits(account.digits)
+            .setDigits(
+                when (account.digits) {
+                    6 -> GoogleAuthenticator.Digits.DIGITS_6
+                    8 -> GoogleAuthenticator.Digits.DIGITS_8
+
+                    else -> GoogleAuthenticator.Digits.DIGITS_UNSPECIFIED
+                }
+            )
             .setAlgorithm(account.algorithm)
             .build()
     }
