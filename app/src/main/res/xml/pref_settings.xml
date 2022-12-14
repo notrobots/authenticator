@@ -108,8 +108,7 @@
 
         <Preference
             android:key="backup_manager"
-            android:summary="Automatic backup is OFF"
-            android:title="Backup manager" />
+            android:title="Automatic Backups" />
 
         <!--        <SwitchPreference android:title="Automatic backup" />-->
         <!--        <Preference android:title="Automatic Backup frequency" />-->
