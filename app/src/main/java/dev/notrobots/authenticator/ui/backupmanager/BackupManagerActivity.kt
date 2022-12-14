@@ -126,12 +126,12 @@ class BackupManagerActivity : AuthenticatorActivity() {
                     val path = preferences.getLocalBackupPath()
                     val uri = path.toUri()
 
-                    if (!requireContext().contentResolver.isPersistedPermissionGranted(uri)) {
-                        requireContext().makeToast(R.string.error_local_backup_failed_no_permission)
-                    } else if (path.isBlank()) {
+                    if (path.isBlank()) {
                         requireContext().makeToast(R.string.error_path_not_set)
                     } else if (interval == null || interval <= 0) {
                         requireContext().makeToast(R.string.error_frequency_not_set)
+                    } else if (!requireContext().contentResolver.isPersistedPermissionGranted(uri)) {
+                        requireContext().makeToast(R.string.error_local_backup_failed_no_permission)
                     } else {
                         requestNotificationPermission()
 
@@ -169,12 +169,12 @@ class BackupManagerActivity : AuthenticatorActivity() {
                 val path = preferences.getLocalBackupPath()
                 val uri = path.toUri()
 
-                if (!requireContext().contentResolver.isPersistedPermissionGranted(uri)) {
-                    requireContext().makeToast(R.string.error_local_backup_failed_no_permission)
+                if (path.isBlank()) {
+                    requireContext().makeToast(R.string.error_path_not_set)
                 } else if (interval == null || interval <= 0) {
                     requireContext().makeToast(R.string.error_frequency_not_set)
-                } else if (path.isBlank()) {
-                    requireContext().makeToast(R.string.error_path_not_set)
+                } else if (!requireContext().contentResolver.isPersistedPermissionGranted(uri)) {
+                    requireContext().makeToast(R.string.error_local_backup_failed_no_permission)
                 } else {
                     val file = BackupManager.getLocalBackupFile(requireContext(), uri)
 
