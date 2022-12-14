@@ -12,9 +12,9 @@
         <!-- The TextView showing the index of the current selected image -->
         <attr name="slider_indicatorView" format="reference" />
     </declare-styleable>
-    <declare-styleable name="BetterSpinner">
+    <declare-styleable name="MaterialSpinner">
         <!-- Spinner entries, will be used as values if no values are provided -->
-        <attr name="spinnerEntries" format="reference" />
+        <attr name="spinnerLabels" format="reference" />
         <!-- Spinner values -->
         <attr name="spinnerValues" format="reference" />
         <!-- Spinner label -->

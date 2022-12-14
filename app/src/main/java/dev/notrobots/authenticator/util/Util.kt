@@ -197,3 +197,11 @@ inline fun <reified T> cloneObject(instance: T): T {
 
     return gson.fromJson(gson.toJson(instance), T::class.java)
 }
+
+fun <T : ViewBinding> bindCustomView(type: KClass<T>, parent: ViewGroup) = bindView(type, parent, true)
+
+inline fun <reified T : ViewBinding> bindCustomView(parent: ViewGroup) = bindView<T>(parent, true)
+
+fun <T : ViewBinding> bindListItem(type: KClass<T>, parent: ViewGroup) = bindView(type, parent, false)
+
+inline fun <reified T : ViewBinding> bindListItem(parent: ViewGroup) = bindView<T>(parent, false)

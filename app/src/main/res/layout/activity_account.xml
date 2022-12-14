@@ -25,14 +25,14 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <dev.notrobots.authenticator.widget.BetterSpinner
+            <dev.notrobots.authenticator.widget.MaterialSpinner
                 android:id="@+id/spinner_account_type"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:spinnerEntries="@array/account_types"
+                app:spinnerLabels="@array/account_types"
                 app:spinnerLabel="Type"
                 app:spinnerValues="@array/account_type_values" />
 
@@ -199,7 +199,7 @@
 
             </dev.notrobots.authenticator.widget.ViewSwitcher>
 
-            <dev.notrobots.authenticator.widget.BetterSpinner
+            <dev.notrobots.authenticator.widget.MaterialSpinner
                 android:id="@+id/spinner_account_algorithm"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

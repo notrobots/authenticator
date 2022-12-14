@@ -2,7 +2,6 @@ package dev.notrobots.authenticator.ui.account
 
 import android.os.Bundle
 import android.text.Editable
-import android.text.InputFilter
 import android.text.TextWatcher
 import android.view.Menu
 import android.view.MenuItem
@@ -11,7 +10,6 @@ import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.*
-import dev.notrobots.androidstuff.util.Logger
 import dev.notrobots.androidstuff.util.viewBindings
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
@@ -23,7 +21,6 @@ import dev.notrobots.authenticator.databinding.ActivityAccountBinding
 import dev.notrobots.authenticator.databinding.ItemAccountTagChipBinding
 import dev.notrobots.authenticator.extensions.isOnlySpaces
 import dev.notrobots.authenticator.models.Account
-import dev.notrobots.authenticator.models.AccountTagCrossRef
 import dev.notrobots.authenticator.models.OTPType
 import dev.notrobots.authenticator.models.Tag
 import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
@@ -100,7 +97,7 @@ class AccountActivity : AuthenticatorActivity() {
             "Value must be higher than 0" to { (it.toIntOrNull() ?: 0) <= 0 }
         )
         binding.spinnerAccountAlgorithm.setValues<HmacAlgorithm>()
-        binding.spinnerAccountType.setOnSelectionChangeListener { value, _ ->
+        binding.spinnerAccountType.setOnItemSelectedListener { _, value, _ ->
             when (value) {
                 OTPType.HOTP -> binding.periodCounterSwitcher.showView(R.id.layout_account_counter_value)
                 OTPType.TOTP -> binding.periodCounterSwitcher.showView(R.id.layout_account_period)
@@ -163,6 +160,10 @@ class AccountActivity : AuthenticatorActivity() {
                 binding.tagListLabel.disable()
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

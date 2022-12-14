@@ -4,10 +4,10 @@
     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:id="@+id/betterspinner_layout">
+    android:id="@+id/layout">
 
     <AutoCompleteTextView
-        android:id="@+id/betterspinner_text"
+        android:id="@+id/text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="none" />
