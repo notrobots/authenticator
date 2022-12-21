@@ -151,6 +151,18 @@
     <item android:title="TEST MENU">
         <menu>
             <item
+                android:id="@+id/menu_theme_dialog"
+                android:title="Theme" />
+
+            <item
+                android:id="@+id/menu_prev_theme"
+                android:title="Prev Theme" />
+
+            <item
+                android:id="@+id/menu_next_theme"
+                android:title="Next Theme" />
+
+            <item
                 android:id="@+id/menu_clear"
                 android:title="Clear" />
 

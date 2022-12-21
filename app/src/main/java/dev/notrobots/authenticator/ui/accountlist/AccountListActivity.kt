@@ -439,6 +439,43 @@ class AccountListActivity : AuthenticatorActivity() {
                 jobScheduler?.cancelAll()
                 makeToast("All jobs cancelled")
             }
+            R.id.menu_theme_dialog -> {
+                val dialog = CustomThemeDialog()
+
+                dialog.theme = preferences.getCustomAppTheme()
+                dialog.nightMode = preferences.getCustomAppThemeNightMode()
+                dialog.trueBlack = preferences.getCustomAppThemeTrueBlack()
+                dialog.setOnCancelListener {
+                    preferences.putCustomAppTheme(dialog.theme)
+                    preferences.putCustomAppThemeNightMode(dialog.nightMode)
+                    preferences.putCustomAppThemeTrueBlack(dialog.trueBlack)
+                    updateTheme(true)
+                }
+                dialog.show(supportFragmentManager, null)
+            }
+            R.id.menu_prev_theme -> {
+                val theme = preferences.getCustomAppTheme<CustomAppTheme>()
+                var newThemeIdx = theme.ordinal - 1
+
+                if (newThemeIdx == -1) {
+                    newThemeIdx = CustomAppTheme.values().size - 1
+                }
+
+                val newTheme = CustomAppTheme.values()[newThemeIdx]
+
+                preferences.putCustomAppTheme(newTheme)
+                makeToast("Current theme: $newTheme")
+                updateTheme(true)
+            }
+            R.id.menu_next_theme -> {
+                val theme = preferences.getCustomAppTheme<CustomAppTheme>()
+                val newThemeIdx = (theme.ordinal + 1) % CustomAppTheme.values().size
+                val newTheme = CustomAppTheme.values()[newThemeIdx]
+
+                preferences.putCustomAppTheme(newTheme)
+                makeToast("Current theme: $newTheme")
+                updateTheme(true)
+            }
         }
 
         return true
