@@ -5,8 +5,8 @@ import dev.notrobots.authenticator.R
 
 enum class AppTheme(@StyleRes val id: Int) {
     FollowSystem(0),
-    Light(R.style.Theme_Light),
-    Dark(R.style.Theme_Dark),
-    PitchBlack(R.style.Theme_PitchBlack),
+    Light(R.style.AppThemeOverlay_BlueAzure),
+    Dark(R.style.AppThemeOverlay_BlueAzure),
+    PitchBlack(R.style.AppThemeOverlay_PitchBlack),
     Custom(0)
 }

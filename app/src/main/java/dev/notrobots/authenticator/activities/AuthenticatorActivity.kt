@@ -1,9 +1,9 @@
 package dev.notrobots.authenticator.activities
 
-import android.content.res.Configuration
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.WindowManager
+import androidx.annotation.StyleRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.app.AppCompatDelegate.NightMode
 import androidx.preference.PreferenceManager
@@ -24,6 +24,7 @@ open class AuthenticatorActivity : BaseActivity() {
     private var customTheme: CustomAppTheme? = null
     private var customThemeTrueBlack: Boolean = false
     private var customThemeNightMode: Int = 0
+    private val logger = Logger(this)
     protected var finishOnBackPressEnabled = false
         set(value) {
             field = value
@@ -108,19 +109,25 @@ open class AuthenticatorActivity : BaseActivity() {
      * This assumes that the current theme config differ from the one stored in the preferences.
      */
     fun setTheme(theme: AppTheme, dynamicColors: Boolean, recreate: Boolean = false) {
-        val themeId = theme.id
-
-        if (theme == AppTheme.FollowSystem) {
-            when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
-                Configuration.UI_MODE_NIGHT_YES -> setTheme(AppTheme.Dark, dynamicColors)
-                Configuration.UI_MODE_NIGHT_NO -> setTheme(AppTheme.Light, dynamicColors)
-            }
+        if (theme == AppTheme.Custom) {
+            logger.logw("Calling setTheme with AppTheme.Custom")
         } else {
-            setTheme(themeId)
+            val nightMode = when (theme) {
+                AppTheme.Light -> AppCompatDelegate.MODE_NIGHT_NO
+                AppTheme.Dark,
+                AppTheme.PitchBlack -> AppCompatDelegate.MODE_NIGHT_YES
+                AppTheme.FollowSystem -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
 
-            if (dynamicColors) {
-                DynamicColors.applyToActivityIfAvailable(this)
+                else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
             }
+
+            setTheme(
+                R.style.AppTheme,
+                theme.id,
+                nightMode,
+                false,  // TrueBlack overlay is only used for custom themes
+                dynamicColors
+            )
         }
 
         if (recreate) {
@@ -134,21 +141,46 @@ open class AuthenticatorActivity : BaseActivity() {
      * This assumes that the current theme config differ from the one stored in the preferences.
      */
     fun setCustomTheme(theme: CustomAppTheme, @NightMode nightMode: Int, trueBlack: Boolean, recreate: Boolean = false) {
-        val currentNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK)
-
-        setTheme(R.style.Theme_Custom)
-        this.theme.applyStyle(theme.id, true)
-
-        //fixme: Pitch black can be applied regardless of theme, it will be applied only in dark mode
-        // since the light version doesn't define its attributes
-        if (((nightMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM && currentNightMode == Configuration.UI_MODE_NIGHT_YES) || nightMode == AppCompatDelegate.MODE_NIGHT_YES) && trueBlack) {
-            this.theme.applyStyle(R.style.ThemeOverlay_TrueBlack, true)
-        }
-
-        AppCompatDelegate.setDefaultNightMode(nightMode)
+        setTheme(
+            R.style.AppTheme,
+            theme.id,
+            nightMode,
+            trueBlack,
+            false
+        )
 
         if (recreate) {
             recreate()
+        }
+    }
+
+    /**
+     * Sets the given [baseTheme] and then applies [overlayTheme] on top of it.
+     *
+     * @param baseTheme The base theme to use.
+     * @param overlayTheme The overlay theme to apply, this should hold the actual theme's colors.
+     * @param nightMode One of [NightMode].
+     * @param trueBlack Whether or not true black style is applied.
+     * @param dynamicColors Whether or not dynamic colors are applied, only works on android 13 and higher.
+     */
+    private fun setTheme(
+        @StyleRes baseTheme: Int,
+        @StyleRes overlayTheme: Int,
+        @NightMode nightMode: Int,
+        trueBlack: Boolean,
+        dynamicColors: Boolean
+    ) {
+        AppCompatDelegate.setDefaultNightMode(nightMode)
+
+        setTheme(baseTheme)
+        this.theme.applyStyle(overlayTheme, true)
+
+        if (trueBlack) {
+            this.theme.applyStyle(R.style.AppThemeOverlay_TrueBlack, true)
+        }
+
+        if (dynamicColors) {
+            DynamicColors.applyToActivityIfAvailable(this)
         }
     }
 }

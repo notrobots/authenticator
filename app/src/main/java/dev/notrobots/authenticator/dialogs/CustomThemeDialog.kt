@@ -12,12 +12,13 @@ import dev.notrobots.androidstuff.util.bindView
 import dev.notrobots.androidstuff.util.parseEnum
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.DialogCustomThemeBinding
+import dev.notrobots.authenticator.extensions.first
 import dev.notrobots.authenticator.models.CustomAppTheme
 
 class CustomThemeDialog : DialogFragment() {
     private var binding: DialogCustomThemeBinding? = null
     private var onCancelListener: DialogInterface.OnCancelListener? = null
-    var theme = CustomAppTheme.Amber
+    var theme = Enum.first<CustomAppTheme>()
 
     @NightMode
     var nightMode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM

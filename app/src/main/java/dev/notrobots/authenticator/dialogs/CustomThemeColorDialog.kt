@@ -8,11 +8,13 @@ import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.util.bindView
 import dev.notrobots.androidstuff.widget.BindableViewHolder
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.DialogCustomThemeColorBinding
 import dev.notrobots.authenticator.databinding.ItemCustomThemeColorBinding
+import dev.notrobots.authenticator.extensions.first
 import dev.notrobots.authenticator.models.CustomAppTheme
 import dev.notrobots.preferences2.util.parseEnum
 
@@ -20,7 +22,7 @@ class CustomThemeColorDialog : DialogFragment() {
     private lateinit var binding: DialogCustomThemeColorBinding
     private var onSelectColorListener: OnSelectColorListener? = null
     private val adapter = ColorAdapter()
-    var theme: CustomAppTheme = CustomAppTheme.Amber
+    var theme: CustomAppTheme = Enum.first()
         set(value) {
             field = value
             adapter.setChecked(value)
@@ -47,6 +49,7 @@ class CustomThemeColorDialog : DialogFragment() {
         adapter.setOnItemClickListener(object : ColorAdapter.OnItemClickListener {
             override fun onClick(item: CustomAppTheme) {
                 theme = item
+                requireContext().makeToast(theme)
             }
         })
         binding.recyclerView.layoutManager = GridLayoutManager(requireContext(), 4)
@@ -63,6 +66,7 @@ class CustomThemeColorDialog : DialogFragment() {
             .create()
     }
 
+    //TODO: Add a different listener for when the theme is selected and when the dialog is closed with positive button
     fun setOnSelectColorListener(onSelectColorListener: OnSelectColorListener?) {
         this.onSelectColorListener = onSelectColorListener
     }

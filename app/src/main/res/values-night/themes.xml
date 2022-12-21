@@ -1,5 +1,57 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="ThemeOverlay.TrueBlack" parent="ThemeOverlay.AppCompat">
+    <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Toolbar, Status bar and Navigation bar -->
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:statusBarColor">?attr/colorSurface</item>
+        <item name="android:navigationBarColor">?attr/colorSurface</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
+
+        <!-- Action Mode -->
+        <item name="windowActionModeOverlay">true</item>
+        <item name="android:windowDisablePreview">true</item>
+
+        <item name="barcodeScannerActionBackgroundColor">#809acbff</item>
+    </style>
+
+    <!-- Stock theme, variation of the dark theme. -->
+    <style name="AppThemeOverlay.PitchBlack" parent="ThemeOverlay.Material3">
+        <!-- Primary brand color -->
+        <item name="colorPrimary">#9acbff</item>
+        <item name="colorOnPrimary">#003355</item>
+        <item name="colorPrimaryContainer">#004a79</item>
+        <item name="colorOnPrimaryContainer">#cfe4ff</item>
+
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">#9bcbff</item>
+        <item name="colorOnSecondary">#003256</item>
+        <item name="colorSecondaryContainer">#004a7a</item>
+        <item name="colorOnSecondaryContainer">#d0e4ff</item>
+
+        <!-- Tertiary brand color -->
+        <item name="colorTertiary">#99cbff</item>
+        <item name="colorOnTertiary">#003355</item>
+        <item name="colorTertiaryContainer">#004a78</item>
+        <item name="colorOnTertiaryContainer">#cfe5ff</item>
+
+        <!-- Error -->
+        <item name="colorError">#ffb4ab</item>
+        <item name="colorErrorContainer">#690005</item>
+        <item name="colorOnError">#93000a</item>
+        <item name="colorOnErrorContainer">#ffdad6</item>
+
+        <!-- Surface & background -->
+        <item name="android:windowBackground">#000000</item>
+        <item name="android:colorBackground">#000000</item>
+        <item name="colorOnBackground">#FEFBFF</item>
+        <item name="colorSurface">#000000</item>
+        <item name="colorOnSurface">#FEFBFF</item>
+        <item name="colorSurfaceVariant">#46464f</item>
+        <item name="colorOnSurfaceVariant">#c7c5d0</item>
+        <item name="colorOutline">#90909a</item>
+    </style>
+
+    <style name="AppThemeOverlay.TrueBlack" parent="ThemeOverlay.Material3">
         <item name="colorSurface">@android:color/black</item>
         <item name="colorOnSurface">#FEFBFF</item>
         <item name="android:windowBackground">?colorSurface</item>
