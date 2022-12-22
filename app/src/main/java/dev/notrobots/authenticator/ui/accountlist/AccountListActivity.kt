@@ -7,9 +7,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.*
+import android.widget.ListView
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.activity.viewModels
 import androidx.appcompat.widget.SearchView
+import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.lifecycle.lifecycleScope
@@ -18,6 +20,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.h6ah4i.android.widget.advrecyclerview.animator.DraggableItemAnimator
 import com.h6ah4i.android.widget.advrecyclerview.draggable.RecyclerViewDragDropManager
@@ -583,32 +586,31 @@ class AccountListActivity : AuthenticatorActivity() {
         val sheet = BottomSheetDialog(this)
         val listView = BottomSheetListView(this)
 
+        listView.choiceMode = BottomSheetListView.CHOICE_MODE_SINGLE
         sheet.setTitle("Filter Tag")
 
         //TODO: Redesign the layout
-        // "Selected" item should have a colored background
-        // There should also be a title saying what this sheet is about
 
         viewModel.tags.value?.let {
-            val list = mutableListOf<Tag?>(null).apply {
-                addAll(it)
-            }
-            var selectedItem = list.indexOfFirst {
+            val list = mutableListOf<Tag?>(null)
+            list.addAll(it)
+
+            var selectedItem = list.indexOfFirstOrNull {
                 it?.tagId == viewModel.tagIdFilter()
-            }.takeIf(0) { it != -1 }
+            } ?: 0
             val adapter = adapterOf<Tag?, ItemFilterTagBinding>(this, list) { tag, pos, binding ->
                 binding.text.text = tag?.name ?: "No Filter"
-                binding.state.setVisible(pos == selectedItem)
             }
 
             listView.adapter = adapter
+            listView.setItemChecked(selectedItem, true)
             listView.setOnItemClickListener { _, _, pos, _ ->
                 val item = list[pos]
                 val id = item?.tagId ?: -1
 
                 if (selectedItem != pos) {
                     selectedItem = pos
-                    adapter.notifyDataSetChanged()
+                    listView.setItemChecked(selectedItem, true)
                 }
 
                 viewModel.tagIdFilter(id)

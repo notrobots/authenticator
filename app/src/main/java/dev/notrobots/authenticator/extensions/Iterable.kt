@@ -15,3 +15,9 @@ internal fun Iterable<AccountWithTags>.getTags(account: Account): List<Tag>? {
 internal fun Iterable<String>.contains(value: String, ignoreCase: Boolean): Boolean {
     return find { it.equals(value, ignoreCase) } != null
 }
+
+inline fun <T> Iterable<T>.indexOfFirstOrNull(predicate: (T) -> Boolean): Int? {
+    val index = indexOfFirst(predicate)
+
+    return if (index > -1) index else null
+}
