@@ -233,8 +233,7 @@ class ImportResultActivity : AuthenticatorActivity() {
 
                 //TODO: This should be replace by reflections
                 if (it.containsKey(Preferences.APP_THEME)) {
-                    //TODO: Preferences2 should let devs put a string or int when an enum value is used
-                    prefs.putAppTheme(parseEnum<AppTheme>(it[Preferences.APP_THEME] as String))
+                    prefs.putAppTheme(it[Preferences.APP_THEME] as String)
                 }
             }
 

@@ -12,12 +12,10 @@ import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.*
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.extensions.viewBindings
 import dev.notrobots.androidstuff.util.Logger
-import dev.notrobots.androidstuff.util.Logger.Companion.logi
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.data.Preferences
@@ -28,12 +26,11 @@ import dev.notrobots.authenticator.db.TagDao
 import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.extensions.setBackupJobFirstRun
 import dev.notrobots.authenticator.services.BackupJob
-import dev.notrobots.authenticator.services.DriveBackupJob
 import dev.notrobots.authenticator.services.LocalBackupJob
 import dev.notrobots.authenticator.util.BackupManager
 import dev.notrobots.authenticator.util.TextUtil
-import dev.notrobots.authenticator.util.daysToMillis
 import dev.notrobots.preferences2.*
+import dev.notrobots.preferences2.fragments.MaterialPreferenceFragment
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -58,7 +55,7 @@ class BackupManagerActivity : AuthenticatorActivity() {
     }
 
     @AndroidEntryPoint
-    class BackupManagerFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
+    class BackupManagerFragment : MaterialPreferenceFragment(), SharedPreferences.OnSharedPreferenceChangeListener {
         private val notificationPermissionRequest = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
             if (!it) {
                 requireContext().makeToast("Permission denied.\nYou won't get notified when a backup is performed.")

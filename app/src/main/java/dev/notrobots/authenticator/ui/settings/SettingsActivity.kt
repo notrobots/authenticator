@@ -21,8 +21,8 @@ import dev.notrobots.authenticator.models.TotpClock
 import dev.notrobots.authenticator.ui.backupimport.ImportActivity
 import dev.notrobots.authenticator.ui.backupmanager.BackupManagerActivity
 import dev.notrobots.authenticator.util.NetworkTimeProvider
-import dev.notrobots.authenticator.widget.preference.MaterialListPreferenceDialog
 import dev.notrobots.preferences2.*
+import dev.notrobots.preferences2.fragments.MaterialPreferenceFragment
 import dev.notrobots.preferences2.util.parseEnum
 import javax.inject.Inject
 import kotlin.math.abs
@@ -48,7 +48,7 @@ class SettingsActivity : AuthenticatorActivity() {
     }
 
     @AndroidEntryPoint
-    class SettingsFragment : PreferenceFragmentCompat() {
+    class SettingsFragment : MaterialPreferenceFragment() {
         private val prefs by lazy {
             PreferenceManager.getDefaultSharedPreferences(requireContext())
         }
@@ -192,14 +192,6 @@ class SettingsActivity : AuthenticatorActivity() {
                 true
             }
             updateTimeCorrectionSummary()
-        }
-
-        override fun onDisplayPreferenceDialog(preference: Preference) {
-            if (preference is ListPreference) {
-                MaterialListPreferenceDialog.show(preference.key, this)
-            } else {
-                super.onDisplayPreferenceDialog(preference)
-            }
         }
 
         override fun onResume() {

@@ -654,7 +654,7 @@ class AccountListActivity : AuthenticatorActivity() {
     private fun updateAdapterPreferences() {
         adapter.collapseIcons = preferences.getCollapseIcons()
         adapter.collapsePins = preferences.getCollapsePins()
-        adapter.totpIndicatorType = preferences.getTotpIndicator()  //FIXME: By default enums should return the first entry
+        adapter.totpIndicatorType = preferences.getTotpIndicator()
         adapter.clearTextEnabled = !preferences.getHidePins()
         adapter.hidePinsOnChange = preferences.getHidePinsOnChange()
         adapter.totpIndicatorType = preferences.getTotpIndicator()

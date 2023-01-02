@@ -3,11 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory android:title="@string/label_local">
-        <SwitchPreferenceCompat
+        <dev.notrobots.preferences2.widgets.MaterialSwitchPreference
             android:disableDependentsState="true"
             android:key="local_backup_enabled"
-            android:title="@string/label_enabled"
-            android:widgetLayout="@layout/view_preference_monet_switch"/>
+            android:title="@string/label_enabled"/>
 
         <Preference
             android:dependency="local_backup_enabled"
@@ -15,7 +14,7 @@
             android:summary="@string/label_unset"
             android:title="@string/label_path" />
 
-        <EditTextPreference
+        <dev.notrobots.preferences2.widgets.MaterialEditTextPreference
             android:dependency="local_backup_enabled"
             android:dialogLayout="@layout/view_preference_edit_text_numeric"
             android:key="local_backup_frequency"
@@ -30,11 +29,10 @@
     <PreferenceCategory
         android:title="@string/label_google_drive"
         app:isPreferenceVisible="false">
-        <SwitchPreferenceCompat
+        <dev.notrobots.preferences2.widgets.MaterialSwitchPreference
             android:disableDependentsState="true"
             android:key="drive_backup_enabled"
-            android:title="@string/label_enabled"
-            android:widgetLayout="@layout/view_preference_monet_switch"/>
+            android:title="@string/label_enabled"/>
 
         <Preference
             android:dependency="drive_backup_enabled"

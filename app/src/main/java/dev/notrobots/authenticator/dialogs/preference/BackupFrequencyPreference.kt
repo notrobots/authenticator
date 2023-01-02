@@ -1,12 +1,10 @@
-package dev.notrobots.authenticator.widget.preference
+package dev.notrobots.authenticator.dialogs.preference
 
 import android.content.Context
-import android.content.res.TypedArray
 import android.util.AttributeSet
 import androidx.preference.DialogPreference
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.ui.backupmanager.BackupFrequency
-import org.json.JSONObject
 
 class BackupFrequencyPreference(
     context: Context,

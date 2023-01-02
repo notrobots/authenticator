@@ -175,7 +175,7 @@ dependencies {
      * Preferences 2
      */
     var pref2 = 'com.github.notrobots.preferences2'
-    var pref2Version = '1.0.0'
+    var pref2Version = '1.2.0'
 
     implementation "$pref2:preferences2:$pref2Version"
     implementation "$pref2:preferences2-annotations:$pref2Version"

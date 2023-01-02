@@ -2,14 +2,26 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <MultiSelectListPreference
+        android:entryValues="@array/theme_values"
+        android:key="testaaaabbbbaaaa"
+        android:title="test"
+        app:entries="@array/themes" />
+
+    <dev.notrobots.preferences2.widgets.MaterialMultiSelectListPreference
+        android:entryValues="@array/theme_values"
+        android:key="testaaaabbbbaaaaddd"
+        android:title="test"
+        app:entries="@array/themes" />
+
     <Preference
         android:key="time_sync"
         android:persistent="false"
-        android:title="Time sync"
-        android:summary="Never synced"/>
+        android:summary="Never synced"
+        android:title="Time sync" />
 
     <PreferenceCategory android:title="@string/pref_appearance">
-        <ListPreference
+        <dev.notrobots.preferences2.widgets.MaterialListPreference
             android:defaultValue="followsystem"
             android:entryValues="@array/theme_values"
             android:key="app_theme"
@@ -20,13 +32,12 @@
         <Preference
             android:key="_custom_app_theme"
             android:title="Customize Theme"
-            app:isPreferenceVisible="false"/>
+            app:isPreferenceVisible="false" />
 
-        <SwitchPreferenceCompat
+        <dev.notrobots.preferences2.widgets.MaterialSwitchPreference
             android:key="dynamic_colors"
             android:summary="@string/pref_dynamic_colors_summary"
-            android:title="@string/pref_dynamic_colors"
-            android:widgetLayout="@layout/view_preference_monet_switch"/>
+            android:title="@string/pref_dynamic_colors"/>
 
         <ListPreference
             android:defaultValue="circular"
@@ -36,15 +47,14 @@
             android:title="@string/pref_totp_indicator"
             app:useSimpleSummaryProvider="true" />
 
-        <SwitchPreferenceCompat
+        <dev.notrobots.preferences2.widgets.MaterialSwitchPreference
             android:defaultValue="false"
             android:disableDependentsState="true"
             android:key="collapse_pins"
             android:summary="@string/pref_collapse_pins_summary"
-            android:title="@string/pref_collapse_pins"
-            android:widgetLayout="@layout/view_preference_monet_switch"/>
+            android:title="@string/pref_collapse_pins"/>
 
-        <ListPreference
+        <dev.notrobots.preferences2.widgets.MaterialListPreference
             android:defaultValue="medium"
             android:entryValues="@array/pin_text_size_values"
             android:key="pin_text_size"
@@ -52,48 +62,42 @@
             app:entries="@array/pin_text_sizes"
             app:useSimpleSummaryProvider="true" />
 
-        <SwitchPreferenceCompat
+        <dev.notrobots.preferences2.widgets.MaterialSwitchPreference
             android:defaultValue="false"
             android:key="collapse_icons"
-            android:title="@string/pref_collapse_icons"
-            android:widgetLayout="@layout/view_preference_monet_switch"/>
+            android:title="@string/pref_collapse_icons"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_privacy">
-        <SwitchPreferenceCompat
+        <dev.notrobots.preferences2.widgets.MaterialSwitchPreference
             android:key="app_lock"
             android:summary="@string/pref_app_lock_summary"
-            android:title="@string/pref_app_lock"
-            android:widgetLayout="@layout/view_preference_monet_switch"/>
+            android:title="@string/pref_app_lock" />
 
-        <SwitchPreferenceCompat
+        <dev.notrobots.preferences2.widgets.MaterialSwitchPreference
             android:key="export_lock"
             android:summary="@string/pref_export_lock_summary"
-            android:title="@string/pref_export_lock"
-            android:widgetLayout="@layout/view_preference_monet_switch"/>
+            android:title="@string/pref_export_lock" />
 
-        <SwitchPreferenceCompat
+        <dev.notrobots.preferences2.widgets.MaterialSwitchPreference
             android:defaultValue="false"
             android:key="allow_screenshots"
             android:summary="@string/pref_allow_screenshots_summary"
-            android:title="@string/pref_allow_screenshots"
-            android:widgetLayout="@layout/view_preference_monet_switch"/>
+            android:title="@string/pref_allow_screenshots" />
 
-        <SwitchPreferenceCompat
+        <dev.notrobots.preferences2.widgets.MaterialSwitchPreference
             android:defaultValue="false"
             android:dependency="collapse_pins"
             android:key="hide_pins"
             android:summary="@string/pref_hide_pins_summary"
-            android:title="@string/pref_hide_pins"
-            android:widgetLayout="@layout/view_preference_monet_switch"/>
+            android:title="@string/pref_hide_pins" />
 
-        <SwitchPreferenceCompat
+        <dev.notrobots.preferences2.widgets.MaterialSwitchPreference
             android:defaultValue="false"
             android:dependency="hide_pins"
             android:key="hide_pins_on_change"
             android:summary="@string/pref_hide_pins_on_change_summary"
-            android:title="@string/pref_hide_pins_on_change"
-            android:widgetLayout="@layout/view_preference_monet_switch"/>
+            android:title="@string/pref_hide_pins_on_change" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_backup">

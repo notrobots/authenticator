@@ -9,7 +9,7 @@ import dev.notrobots.androidstuff.util.bindView
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.PreferenceDialogBackupFrequencyBinding
 import dev.notrobots.authenticator.ui.backupmanager.BackupFrequency
-import dev.notrobots.authenticator.widget.preference.BackupFrequencyPreference
+import dev.notrobots.authenticator.dialogs.preference.BackupFrequencyPreference
 
 class BackupFrequencyPreferenceDialog : PreferenceDialogFragmentCompat() {
     private lateinit var binding: PreferenceDialogBackupFrequencyBinding
