@@ -145,7 +145,6 @@ data class Account(
         const val DIGITS = "digits"
         const val PERIOD = "period"
         const val ORDER = "order"
-        val HOTP_CODE_INTERVAL = TimeUnit.SECONDS.toMillis(10)  //TODO Move to App
         private val pathError = { throw Exception("Path malformed, must be /label:name or /name") }
         private val typeError = { throw Exception("Type must be one of [${OTPType.values().joinToString()}]") }
 

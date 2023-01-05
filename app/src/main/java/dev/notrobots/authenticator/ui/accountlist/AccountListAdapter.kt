@@ -21,6 +21,7 @@ import dagger.hilt.EntryPoint
 import dev.notrobots.androidstuff.extensions.*
 import dev.notrobots.androidstuff.util.swap
 import dev.notrobots.authenticator.R
+import dev.notrobots.authenticator.data.HOTP_CODE_INTERVAL
 import dev.notrobots.authenticator.data.KnownIssuers
 import dev.notrobots.authenticator.databinding.ItemAccountBinding
 import dev.notrobots.authenticator.extensions.toDp
@@ -291,7 +292,7 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
                         handler.postDelayed({
                             it.isEnabled = true
                             it.setTint(primaryColor)
-                        }, Account.HOTP_CODE_INTERVAL)
+                        }, HOTP_CODE_INTERVAL)
 
                         listener.onItemHOTPCounterChange(account, position, id, this)
                     }

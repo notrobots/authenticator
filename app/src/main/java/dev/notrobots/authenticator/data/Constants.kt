@@ -1,5 +1,7 @@
 package dev.notrobots.authenticator.data
 
+import java.util.concurrent.TimeUnit
+
 const val LOG_DEFAULT_TAG = "OTP Authenticator"
 
 const val EMOJI_RGX = "(\\u00a9|\\u00ae|[\\u2000-\\u3300]|\\ud83c[\\ud000-\\udfff]|\\ud83d[\\ud000-\\udfff]|\\ud83e[\\ud000-\\udfff])"
@@ -17,6 +19,7 @@ const val NOTIFICATION_CHANNEL_BACKUPS = "NOTIFICATION_CHANNELS.Backups"
 
 //TODO This should also change based on the selected totp indicator type
 const val TOTP_INDICATOR_UPDATE_DELAY = 25L //TODO Battery saver should increase this to something like 200-500
+val HOTP_CODE_INTERVAL = TimeUnit.SECONDS.toMillis(10)
 
 /**
  * The max amount of bytes a QR code can hold.
