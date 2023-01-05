@@ -19,15 +19,19 @@ import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.data.Preferences
 import dev.notrobots.authenticator.databinding.ActivityImportResultBinding
+import dev.notrobots.authenticator.extensions.isDeviceSecured
 import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.AppTheme
 import dev.notrobots.authenticator.models.Tag
 import dev.notrobots.authenticator.ui.accountlist.AccountListActivity
 import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
 import dev.notrobots.authenticator.util.BackupData
-import dev.notrobots.preferences2.putAppTheme
+import dev.notrobots.preferences2.*
 import dev.notrobots.preferences2.util.parseEnum
 import kotlinx.coroutines.launch
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.isAccessible
 
 @AndroidEntryPoint
 class ImportResultActivity : AuthenticatorActivity() {
@@ -221,20 +225,111 @@ class ImportResultActivity : AuthenticatorActivity() {
             }
 
             // Settings are always overwritten.
-            importedSettings?.let {
+            importedSettings?.let { settings ->
                 val prefs = PreferenceManager.getDefaultSharedPreferences(this@ImportResultActivity)
-//                        val prefsMap = prefs::class.memberProperties.find { it.name == "mMap" }
-//
-//                        prefsMap?.let {
-//                            for (entry in item) {
-//
-//                            }
-//                        }
 
-                //TODO: This should be replace by reflections
-                if (it.containsKey(Preferences.APP_THEME)) {
-                    prefs.putAppTheme(it[Preferences.APP_THEME] as String)
+                if (settings.containsKey(Preferences.COLLAPSE_PINS)) {
+                    (settings[Preferences.COLLAPSE_PINS] as? Boolean)?.let {
+                        prefs.putCollapsePins(it)
+                    }
                 }
+
+                if (settings.containsKey(Preferences.COLLAPSE_ICONS)) {
+                    (settings[Preferences.COLLAPSE_ICONS] as? Boolean)?.let {
+                        prefs.putCollapseIcons(it)
+                    }
+                }
+
+                if (settings.containsKey(Preferences.HIDE_PINS)) {
+                    (settings[Preferences.HIDE_PINS] as? Boolean)?.let {
+                        prefs.putHidePins(it)
+                    }
+                }
+
+                if (settings.containsKey(Preferences.ALLOW_SCREENSHOTS)) {
+                    (settings[Preferences.ALLOW_SCREENSHOTS] as? Boolean)?.let {
+                        prefs.putAllowScreenshots(it)
+                    }
+                }
+
+                if (settings.containsKey(Preferences.HIDE_PINS_ON_CHANGE)) {
+                    (settings[Preferences.HIDE_PINS_ON_CHANGE] as? Boolean)?.let {
+                        prefs.putHidePinsOnChange(it)
+                    }
+                }
+
+                if (settings.containsKey(Preferences.SORT_MODE)) {
+                    (settings[Preferences.SORT_MODE] as? String)?.let {
+                        prefs.putSortMode(it)
+                    }
+                }
+
+                if (settings.containsKey(Preferences.TOTP_INDICATOR)) {
+                    (settings[Preferences.TOTP_INDICATOR] as? String)?.let {
+                        prefs.putTotpIndicator(it)
+                    }
+                }
+
+                if (settings.containsKey(Preferences.APP_THEME)) {
+                    (settings[Preferences.APP_THEME] as? String)?.let {
+                        prefs.putAppTheme(it)
+                    }
+                }
+
+                //TODO: Check for pro version
+
+                if (settings.containsKey(Preferences.CUSTOM_APP_THEME)) {
+                    (settings[Preferences.CUSTOM_APP_THEME] as? String)?.let {
+                        prefs.putCustomAppTheme(it)
+                    }
+                }
+
+                if (settings.containsKey(Preferences.CUSTOM_APP_THEME_NIGHT_MODE)) {
+                    (settings[Preferences.CUSTOM_APP_THEME_NIGHT_MODE] as? Int)?.let {
+                        prefs.putCustomAppThemeNightMode(it)
+                    }
+                }
+
+                if (settings.containsKey(Preferences.CUSTOM_APP_THEME_TRUE_BLACK)) {
+                    (settings[Preferences.CUSTOM_APP_THEME_TRUE_BLACK] as? Boolean)?.let {
+                        prefs.putCustomAppThemeTrueBlack(it)
+                    }
+                }
+
+                //TODO: Check if custom theme is enabled or android version is lower than 13
+                if (settings.containsKey(Preferences.DYNAMIC_COLORS)) {
+                    (settings[Preferences.DYNAMIC_COLORS] as? Boolean)?.let {
+                        prefs.putDynamicColors(it)
+                    }
+                }
+
+                //TODO: Check if the device is secured (this might not be needed, since the next restart will disable this if it's not secured)
+                if (settings.containsKey(Preferences.APP_LOCK)) {
+                    (settings[Preferences.APP_LOCK] as? Boolean)?.let {
+                        prefs.putAppLock(it)
+                    }
+                }
+
+                //TODO: Check if the device is secured (this might not be needed, since the next restart will disable this if it's not secured)
+                if (settings.containsKey(Preferences.EXPORT_LOCK)) {
+                    (settings[Preferences.EXPORT_LOCK] as? Boolean)?.let {
+                        prefs.putExportLock(it)
+                    }
+                }
+
+                if (settings.containsKey(Preferences.PIN_TEXT_SIZE)) {
+                    (settings[Preferences.PIN_TEXT_SIZE] as? String)?.let {
+                        prefs.putPinTextSize(it)
+                    }
+                }
+
+                if (settings.containsKey(Preferences.TAG_ID_FILTER)) {
+                    (settings[Preferences.TAG_ID_FILTER] as? Long)?.let {
+                        prefs.putTagIdFilter(it)
+                    }
+                }
+
+                //TODO: Check for pro version
             }
 
             startActivity(AccountListActivity::class) {
