@@ -70,14 +70,6 @@ class ImportResultActivity : AuthenticatorActivity() {
                 )
             }
 
-            if (backupData!!.settings.isNotEmpty()) {
-                importResults[backupData!!.settings] = ImportResult(
-                    getString(R.string.label_settings),
-                    R.drawable.ic_settings,
-                    false   // Settings will always be duplicate
-                )
-            }
-
             noDuplicates = importResults.none { it.value.isDuplicate }
 
             if (noDuplicates) {
@@ -167,7 +159,6 @@ class ImportResultActivity : AuthenticatorActivity() {
         lifecycleScope.launch {
             val importedAccounts = importResults.filter { it.key is Account }
             val importedTags = importResults.filter { it.key is Tag }
-            val importedSettings = importResults.keys.find { it is Map<*, *> } as? Map<String, Any?>
 
             // Importing the tags first so the accounts can fetch the new added.
             for ((tag, importResult) in importedTags) {
@@ -222,114 +213,6 @@ class ImportResultActivity : AuthenticatorActivity() {
 
                     added++
                 }
-            }
-
-            // Settings are always overwritten.
-            importedSettings?.let { settings ->
-                val prefs = PreferenceManager.getDefaultSharedPreferences(this@ImportResultActivity)
-
-                if (settings.containsKey(Preferences.COLLAPSE_PINS)) {
-                    (settings[Preferences.COLLAPSE_PINS] as? Boolean)?.let {
-                        prefs.putCollapsePins(it)
-                    }
-                }
-
-                if (settings.containsKey(Preferences.COLLAPSE_ICONS)) {
-                    (settings[Preferences.COLLAPSE_ICONS] as? Boolean)?.let {
-                        prefs.putCollapseIcons(it)
-                    }
-                }
-
-                if (settings.containsKey(Preferences.HIDE_PINS)) {
-                    (settings[Preferences.HIDE_PINS] as? Boolean)?.let {
-                        prefs.putHidePins(it)
-                    }
-                }
-
-                if (settings.containsKey(Preferences.ALLOW_SCREENSHOTS)) {
-                    (settings[Preferences.ALLOW_SCREENSHOTS] as? Boolean)?.let {
-                        prefs.putAllowScreenshots(it)
-                    }
-                }
-
-                if (settings.containsKey(Preferences.HIDE_PINS_ON_CHANGE)) {
-                    (settings[Preferences.HIDE_PINS_ON_CHANGE] as? Boolean)?.let {
-                        prefs.putHidePinsOnChange(it)
-                    }
-                }
-
-                if (settings.containsKey(Preferences.SORT_MODE)) {
-                    (settings[Preferences.SORT_MODE] as? String)?.let {
-                        prefs.putSortMode(it)
-                    }
-                }
-
-                if (settings.containsKey(Preferences.TOTP_INDICATOR)) {
-                    (settings[Preferences.TOTP_INDICATOR] as? String)?.let {
-                        prefs.putTotpIndicator(it)
-                    }
-                }
-
-                if (settings.containsKey(Preferences.APP_THEME)) {
-                    (settings[Preferences.APP_THEME] as? String)?.let {
-                        prefs.putAppTheme(it)
-                    }
-                }
-
-                //TODO: Check for pro version
-
-                if (settings.containsKey(Preferences.CUSTOM_APP_THEME)) {
-                    (settings[Preferences.CUSTOM_APP_THEME] as? String)?.let {
-                        prefs.putCustomAppTheme(it)
-                    }
-                }
-
-                if (settings.containsKey(Preferences.CUSTOM_APP_THEME_NIGHT_MODE)) {
-                    (settings[Preferences.CUSTOM_APP_THEME_NIGHT_MODE] as? Int)?.let {
-                        prefs.putCustomAppThemeNightMode(it)
-                    }
-                }
-
-                if (settings.containsKey(Preferences.CUSTOM_APP_THEME_TRUE_BLACK)) {
-                    (settings[Preferences.CUSTOM_APP_THEME_TRUE_BLACK] as? Boolean)?.let {
-                        prefs.putCustomAppThemeTrueBlack(it)
-                    }
-                }
-
-                //TODO: Check if custom theme is enabled or android version is lower than 13
-                if (settings.containsKey(Preferences.DYNAMIC_COLORS)) {
-                    (settings[Preferences.DYNAMIC_COLORS] as? Boolean)?.let {
-                        prefs.putDynamicColors(it)
-                    }
-                }
-
-                //TODO: Check if the device is secured (this might not be needed, since the next restart will disable this if it's not secured)
-                if (settings.containsKey(Preferences.APP_LOCK)) {
-                    (settings[Preferences.APP_LOCK] as? Boolean)?.let {
-                        prefs.putAppLock(it)
-                    }
-                }
-
-                //TODO: Check if the device is secured (this might not be needed, since the next restart will disable this if it's not secured)
-                if (settings.containsKey(Preferences.EXPORT_LOCK)) {
-                    (settings[Preferences.EXPORT_LOCK] as? Boolean)?.let {
-                        prefs.putExportLock(it)
-                    }
-                }
-
-                if (settings.containsKey(Preferences.PIN_TEXT_SIZE)) {
-                    (settings[Preferences.PIN_TEXT_SIZE] as? String)?.let {
-                        prefs.putPinTextSize(it)
-                    }
-                }
-
-                if (settings.containsKey(Preferences.TAG_ID_FILTER)) {
-                    (settings[Preferences.TAG_ID_FILTER] as? Long)?.let {
-                        prefs.putTagIdFilter(it)
-                    }
-                }
-
-                //TODO: Check for pro version
             }
 
             startActivity(AccountListActivity::class) {

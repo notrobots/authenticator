@@ -56,8 +56,8 @@ class ExportActivity : AuthenticatorActivity() {
                     putExtra(ExportFileActivity.EXTRA_FILE_TYPE, ExportFileActivity.FILE_TYPE_TEXT)
                 }
             }
-            binding.exportOptionsJson.setOnClickListener {                          //TODO: Pass the settings
-                val backup = BackupManager.exportJson(accounts, accountsWithTags, tags, mapOf()).toString(4)
+            binding.exportOptionsJson.setOnClickListener {
+                val backup = BackupManager.exportJson(accounts, accountsWithTags, tags).toString(4)
 
                 startActivity(ExportFileActivity::class) {
                     putExtra(ExportFileActivity.EXTRA_FILE_CONTENT, backup)

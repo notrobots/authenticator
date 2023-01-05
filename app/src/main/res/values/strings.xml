@@ -127,7 +127,6 @@
         &lt;ul>
             &lt;li> Accounts&lt;/li>
             &lt;li> Tags&lt;/li>
-            &lt;li> App Settings&lt;/li>
         &lt;/ul>
     </string>
     <string name="label_qr">QR</string>

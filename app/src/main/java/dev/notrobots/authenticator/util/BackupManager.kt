@@ -44,7 +44,6 @@ object BackupManager {
     const val BACKUP_GOOGLE_URI_DATA = "data"
     const val BACKUP_JSON_ACCOUNTS = "accounts"
     const val BACKUP_JSON_TAGS = "tags"
-    const val BACKUP_JSON_SETTINGS = "settings"
 
     val textBackupFilename
         get() = "authenticator_${now() / 100}.txt"
@@ -84,8 +83,7 @@ object BackupManager {
         val backup = exportJson(
             accounts,
             accountsWithTags,
-            tags,
-            emptyMap()  //TODO: Pass the settings, it should only be the specified ones and not all settings
+            tags
         ).toString(0)
 
         file.write(context) {
@@ -242,21 +240,18 @@ object BackupManager {
      * E.g.
      * {
      *     "accounts": [],
-     *     "tags": [],
-     *     "settings": {}
+     *     "tags": []
      * }
      * ```
      *
      * Exported items:
      * + Accounts
      * + Tags
-     * + Settings
      */
     fun exportJson(
         accounts: List<Account>,
         accountsWithTags: List<AccountWithTags>,
-        tags: List<Tag>,
-        settings: Map<String, Any?>
+        tags: List<Tag>
     ): JSONObject {
         return JSONObject(
             mapOf(
@@ -267,8 +262,7 @@ object BackupManager {
                 ),
                 BACKUP_JSON_TAGS to JSONArray(
                     tags.map(Tag::name) //TODO: Most .map could be reduced to this
-                ),
-                BACKUP_JSON_SETTINGS to JSONObject(settings)
+                )
             )
         )
     }
@@ -469,7 +463,6 @@ object BackupManager {
         val accounts = mutableSetOf<Account>()
         val accountsWithTags: MutableAccountsWithTags = mutableMapOf()
         val tags = mutableSetOf<Tag>()
-        val settings = mutableMapOf<String, Any?>()
 
         if (json.has(BACKUP_JSON_ACCOUNTS)) {
             val accountsArray = json.getJSONArray(BACKUP_JSON_ACCOUNTS)
@@ -497,15 +490,7 @@ object BackupManager {
             }
         }
 
-        if (json.has(BACKUP_JSON_SETTINGS)) {
-            val settingsJson = json.getJSONObject(BACKUP_JSON_SETTINGS)
-
-            for (field in settingsJson.keys()) {
-                settings[field] = settingsJson[field]
-            }
-        }
-
-        return BackupData(accounts, tags, accountsWithTags, settings)
+        return BackupData(accounts, tags, accountsWithTags)
     }
 
     /**
