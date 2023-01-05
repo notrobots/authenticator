@@ -30,6 +30,23 @@ class CircularProgressIndicator(
     init {
         paint = Paint(Paint.ANTI_ALIAS_FLAG)
         progressColor = context.resolveColorAttribute(R.attr.colorPrimary)
+
+        if (isInEditMode) {
+            progress = 25
+            max = 100
+        }
+
+        with(context.obtainStyledAttributes(attrs, R.styleable.CircularProgressIndicator, defStyleAttr, 0)) {
+            if (hasValue(R.styleable.CircularProgressIndicator_cpi_progress)) {
+                progress = getInteger(R.styleable.CircularProgressIndicator_cpi_progress, 75)
+            }
+
+            if (hasValue(R.styleable.CircularProgressIndicator_cpi_max)) {
+                max = getInteger(R.styleable.CircularProgressIndicator_cpi_max, 100)
+            }
+
+            recycle()
+        }
     }
 
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)

@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="account_row_divider_margin">24dp</dimen>
+    <dimen name="alert_dialog_totp_row_indicator_margin_start">68dp</dimen>
+    <dimen name="alert_dialog_totp_row_indicator_margin_end">24dp</dimen>
 </resources>

@@ -3,24 +3,25 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:padding="12dp">
+    android:paddingEnd="?attr/dialogPreferredPadding">
 
-    <TextView
+    <androidx.appcompat.widget.AppCompatCheckedTextView
         android:id="@+id/title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:text="@string/label_totp_indicator_circular_solid"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/indicator"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/indicator"
         app:layout_constraintTop_toTopOf="parent"
-        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-        tools:text="Title"/>
+        style="@style/AlertDialogListItem" />
 
     <dev.notrobots.authenticator.widget.CircularProgressIndicator
         android:id="@+id/indicator"
         android:layout_width="28dp"
         android:layout_height="28dp"
+        app:cpi_max="60"
+        app:cpi_progress="40"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

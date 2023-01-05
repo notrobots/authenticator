@@ -43,6 +43,10 @@
     <declare-styleable name="ViewSwitcher">
         <attr name="visibleView" format="reference"/>
     </declare-styleable>
+    <declare-styleable name="CircularProgressIndicator">
+        <attr name="cpi_progress" format="integer"/>
+        <attr name="cpi_max" format="integer"/>
+    </declare-styleable>
 
     <attr name="barcodeScannerActionBackgroundColor" format="color" />
 </resources>

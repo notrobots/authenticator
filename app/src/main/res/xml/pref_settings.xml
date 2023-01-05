@@ -39,7 +39,7 @@
             android:summary="@string/pref_dynamic_colors_summary"
             android:title="@string/pref_dynamic_colors"/>
 
-        <ListPreference
+        <dev.notrobots.authenticator.widget.preference.CountdownIndicatorPreference
             android:defaultValue="circular"
             android:entries="@array/totp_indicators"
             android:entryValues="@array/totp_indicator_values"

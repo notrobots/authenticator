@@ -13,7 +13,8 @@ import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.data.Preferences
 import dev.notrobots.authenticator.databinding.ActivitySettingsBinding
 import dev.notrobots.authenticator.dialogs.CustomThemeDialog
-import dev.notrobots.authenticator.extensions.isDeviceSecured
+import dev.notrobots.authenticator.dialogs.preference.CountdownIndicatorPreferenceDialog
+import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.extensions.requestExport
 import dev.notrobots.authenticator.extensions.showBiometricPrompt
 import dev.notrobots.authenticator.models.AppTheme
@@ -21,6 +22,7 @@ import dev.notrobots.authenticator.models.TotpClock
 import dev.notrobots.authenticator.ui.backupimport.ImportActivity
 import dev.notrobots.authenticator.ui.backupmanager.BackupManagerActivity
 import dev.notrobots.authenticator.util.NetworkTimeProvider
+import dev.notrobots.authenticator.widget.preference.CountdownIndicatorPreference
 import dev.notrobots.preferences2.*
 import dev.notrobots.preferences2.fragments.MaterialPreferenceFragment
 import dev.notrobots.preferences2.util.parseEnum
@@ -192,6 +194,16 @@ class SettingsActivity : AuthenticatorActivity() {
                 true
             }
             updateTimeCorrectionSummary()
+        }
+
+        override fun onDisplayPreferenceDialog(preference: Preference) {
+            if (preference is CountdownIndicatorPreference) {
+                CountdownIndicatorPreferenceDialog::class
+                    .newInstance(preference.key)
+                    .show(this)
+            } else {
+                super.onDisplayPreferenceDialog(preference)
+            }
         }
 
         override fun onResume() {

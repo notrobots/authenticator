@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+<!--    TODO Rename into "account_type_labels" and do the same with all the other values -->
     <string-array name="account_types">
         <item>Time based (TOTP)</item>
         <item>Counter based (HOTP)</item>
@@ -23,12 +24,12 @@
         <item>custom</item>
     </string-array>
     <string-array name="totp_indicators">
-        <item>Circular</item>
-        <item>Circular (Solid)</item>
-        <item>Circular (Text)</item>
-        <item>Text</item>
-        <item>Row</item>
-        <item>Background</item>
+        <item>@string/label_totp_indicator_circular</item>
+        <item>@string/label_totp_indicator_circular_solid</item>
+        <item>@string/label_totp_indicator_circular_text</item>
+        <item>@string/label_totp_indicator_text</item>
+        <item>@string/label_totp_indicator_row</item>
+        <item>@string/label_totp_indicator_background</item>
     </string-array>
     <string-array name="totp_indicator_values">
         <item>circular</item>

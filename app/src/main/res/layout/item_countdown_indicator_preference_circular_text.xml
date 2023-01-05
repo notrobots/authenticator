@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingEnd="?attr/dialogPreferredPadding">
+
+    <androidx.appcompat.widget.AppCompatCheckedTextView
+        android:id="@+id/title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/label_totp_indicator_circular_text"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/indicator_layout"
+        app:layout_constraintTop_toTopOf="parent"
+        style="@style/AlertDialogListItem" />
+
+    <FrameLayout
+        android:id="@+id/indicator_layout"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_gravity="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/indicator"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:max="60"
+            android:progress="40"
+            app:indicatorInset="0dp"
+            app:indicatorSize="28dp" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/indicator_text"
+            style="@style/AccountTotpIndicatorText"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="40"
+            android:textAlignment="gravity"
+            tools:ignore="HardcodedText" />
+
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
