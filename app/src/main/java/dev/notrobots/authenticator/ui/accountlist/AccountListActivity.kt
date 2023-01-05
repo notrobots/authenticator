@@ -78,7 +78,7 @@ class AccountListActivity : AuthenticatorActivity() {
     }
     private val listAdapterListener = object : AccountListAdapter.Listener {
         override fun onItemClick(account: Account, position: Int, id: Long, adapter: AccountListAdapter) {
-            copyToClipboard(OTPGenerator.generate(account, totpClock)) //TODO: Keep the value cached
+            copyToClipboard(OTPGenerator.generate(account, totpClock))
             makeToast("Copied!")
         }
 
