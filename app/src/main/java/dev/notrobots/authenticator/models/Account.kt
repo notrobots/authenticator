@@ -280,7 +280,7 @@ data class Account(
                 DEFAULT_ALGORITHM
             }
             val digits = if (DIGITS in uri) {
-                uri[DIGITS]?.toIntOrNull() ?: throw Exception("Digits number must be an integer")   //TODO: It should say "number"
+                uri[DIGITS]?.toIntOrNull() ?: throw Exception("Digits count must be a number")
             }    //TODO: Between x and y
             else {
                 DEFAULT_DIGITS
