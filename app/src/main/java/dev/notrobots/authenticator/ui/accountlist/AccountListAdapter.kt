@@ -80,7 +80,6 @@ class AccountListAdapter : RecyclerView.Adapter<AccountViewHolder>(), DraggableI
         set(value) {
             if (field != value) {
                 field = value
-                //TODO: Clear all timers and reset the states
                 visibleItems.clear()
                 notifyDataSetChanged()
             }
