@@ -34,7 +34,7 @@ object Preferences {
     const val APP_LOCK = "app_lock"
     @BooleanPreference
     const val EXPORT_LOCK = "export_lock"
-    @EnumPreference //FIXME: Default value should be set in all EnumPreferences
+    @EnumPreference
     const val PIN_TEXT_SIZE = "pin_text_size"
     @LongPreference(-1L)
     const val TAG_ID_FILTER = "tag_id_filter"
