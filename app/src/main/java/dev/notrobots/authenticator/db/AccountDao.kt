@@ -76,6 +76,9 @@ interface AccountDao {
     )
     fun getAccountsLive(orderDir: Int, orderBy: Int): LiveData<List<Account>>
 
+    @Query("SELECT name FROM Account WHERE name LIKE :query")
+    suspend fun getSimilarNames(query: String): List<String>
+
     @Query(
         """
         SELECT EXISTS(

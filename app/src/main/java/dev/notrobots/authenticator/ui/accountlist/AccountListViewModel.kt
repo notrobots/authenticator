@@ -92,22 +92,21 @@ class AccountListViewModel @Inject constructor(
      * @return The id of the inserted account.
      */
     suspend fun insertAccountWithSameName(account: Account): Long {
-        var name = TextUtil.getNextName(account.name)
+        val lastSimilarName = accountDao.getSimilarNames("${account.name}%").maxOf { it }
+        val match = SIMILAR_NAME_RGX.find(lastSimilarName)
+        val name = if (match == null) {
+            "$lastSimilarName 1"
+        } else {
+            val value = match.groupValues[1].toInt()
 
-        //FIXME: This is not optimized
-        //TODO: Handle max value too
-        do {
-            val oldAccount = accountDao.getAccount(name, account.label, account.issuer)
+            lastSimilarName.replace(SIMILAR_NAME_RGX, " ${value + 1}")
+        }
 
-            if (oldAccount == null) {
-                val newAccount = account.clone().apply {  //FIXME: If the account is imported it doesn't need to be copied
-                    this.name = name
-                }
-                return insertAccount(newAccount)
-            }
+        val newAccount = account.clone().apply {
+            this.name = name
+        }
 
-            name = TextUtil.getNextName(oldAccount.name)
-        } while (true)
+        return insertAccount(newAccount)
     }
 
     private class FilterActiveMediator(tagId: LiveData<Long>, tags: LiveData<List<Tag>>) : MediatorLiveData<Boolean>() {
@@ -121,4 +120,8 @@ class AccountListViewModel @Inject constructor(
         val sortMode: SortMode,
         val tagId: Long?
     )
+
+    companion object {
+        private val SIMILAR_NAME_RGX = Regex("\\s(\\d+)$")
+    }
 }
