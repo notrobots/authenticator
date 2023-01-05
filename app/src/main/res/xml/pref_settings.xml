@@ -2,18 +2,6 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <MultiSelectListPreference
-        android:entryValues="@array/theme_values"
-        android:key="testaaaabbbbaaaa"
-        android:title="test"
-        app:entries="@array/themes" />
-
-    <dev.notrobots.preferences2.widgets.MaterialMultiSelectListPreference
-        android:entryValues="@array/theme_values"
-        android:key="testaaaabbbbaaaaddd"
-        android:title="test"
-        app:entries="@array/themes" />
-
     <Preference
         android:key="time_sync"
         android:persistent="false"
