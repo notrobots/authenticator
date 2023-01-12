@@ -1,7 +1,7 @@
 package dev.notrobots.authenticator.models
 
 import androidx.room.*
-import androidx.room.ForeignKey.CASCADE
+import androidx.room.ForeignKey.Companion.CASCADE
 
 @Entity(
     primaryKeys = ["accountId", "tagId"],
