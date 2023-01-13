@@ -82,7 +82,7 @@ project.ext.getVersionName = {
         }
 
         if (isDirty) {
-            tagName += '-t' + System.currentTimeMillis()
+            tagName += '-' + System.currentTimeMillis()
         }
 
         println 'Tag name: ' + tagName
