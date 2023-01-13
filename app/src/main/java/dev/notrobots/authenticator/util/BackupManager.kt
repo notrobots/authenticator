@@ -5,16 +5,23 @@ import android.content.SharedPreferences
 import android.net.Uri
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
+import androidx.fragment.app.FragmentActivity
 import dev.notrobots.androidstuff.extensions.replaceQueryParameter
+import dev.notrobots.androidstuff.util.Logger
 import dev.notrobots.androidstuff.util.Logger.Companion.loge
 import dev.notrobots.androidstuff.util.now
 import dev.notrobots.authenticator.App
+import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.data.QR_BITMAP_SIZE
 import dev.notrobots.authenticator.data.QR_MAX_BYTES
+import dev.notrobots.authenticator.db.AccountDao
+import dev.notrobots.authenticator.dialogs.ReplaceAccountDialog
 import dev.notrobots.authenticator.extensions.contains
 import dev.notrobots.authenticator.extensions.getTags
 import dev.notrobots.authenticator.extensions.write
 import dev.notrobots.authenticator.models.*
+import dev.notrobots.authenticator.ui.backupimportresult.ImportResult
+import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
 import dev.notrobots.preferences2.putLastLocalBackupPath
 import dev.notrobots.preferences2.putLastLocalBackupTime
 import org.apache.commons.codec.binary.Base64
@@ -64,7 +71,7 @@ object BackupManager {
         val fileName = localAutomaticBackupFilename
 
         return directory?.createFile("application/json", fileName)
-    }
+    } //TODO: Backuputil
 
     /**
      * Performs a local backup.
@@ -72,7 +79,7 @@ object BackupManager {
      * @param file The file the back will be written in.
      * @param preferences The preferences that will be updated with last backup time and path
      */
-    fun performLocalBackup(
+    fun performLocalBackup( //TODO: Backuputil
         context: Context,
         accounts: List<Account>,
         tags: List<Tag>,
@@ -316,6 +323,8 @@ object BackupManager {
      *          + `otpauth://backup?part=1&total=1&data={SERIALIZED_DATA_CHUNK_1}`
      *          + `otpauth-migration://offline?data={SERIALIZED_DATA_CHUNK_1}`
      * + JSON string
+     *
+     * @throws Exception if the data cannot be parsed.
      */
     fun importText(data: String): BackupData {
         try {
@@ -343,6 +352,8 @@ object BackupManager {
      * + `otpauth://tag/name`
      * + `otpauth://backup?part=1&total=1&data={SERIALIZED_DATA_CHUNK_1}`
      * + `otpauth-migration://offline?data={SERIALIZED_DATA_CHUNK_1}`
+     *
+     * @throws Exception if the data cannot be parsed.
      */
     fun importUris(list: List<Uri>): BackupData {
         val tags = mutableSetOf<Tag>()
@@ -451,6 +462,8 @@ object BackupManager {
      * + `otpauth://tag/name`
      * + `otpauth://backup?part=1&total=1&data={SERIALIZED_DATA_CHUNK_1}`
      * + `otpauth-migration://offline?data={SERIALIZED_DATA_CHUNK_1}`
+     *
+     * @throws Exception if the data cannot be parsed.
      */
     fun importList(list: List<String>): BackupData {
         return importUris(list.map { it.trim().toUri() })
@@ -458,6 +471,8 @@ object BackupManager {
 
     /**
      * Imports the given [json] object.
+     *
+     * @throws Exception if the data cannot be parsed.
      */
     fun importJson(json: JSONObject): BackupData {
         val accounts = mutableSetOf<Account>()
@@ -497,6 +512,8 @@ object BackupManager {
      * Imports a backup that was serialized using [AuthenticatorBackupSerializer].
      *
      * [data] must be a base64 string.
+     *
+     * @throws Exception if the data cannot be parsed.
      */
     fun importAuthenticatorBackup(data: String): BackupData {
         require(isBase64(data)) {

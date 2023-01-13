@@ -7,11 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.*
-import android.widget.ListView
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.activity.viewModels
 import androidx.appcompat.widget.SearchView
-import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.lifecycle.lifecycleScope
@@ -20,13 +18,11 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.h6ah4i.android.widget.advrecyclerview.animator.DraggableItemAnimator
 import com.h6ah4i.android.widget.advrecyclerview.draggable.RecyclerViewDragDropManager
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.*
-import dev.notrobots.androidstuff.util.Logger.Companion.logd
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.data.TOTP_INDICATOR_UPDATE_DELAY
@@ -38,12 +34,12 @@ import dev.notrobots.authenticator.extensions.*
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.account.AccountActivity
 import dev.notrobots.authenticator.ui.backupimport.ImportActivity
-import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
 import dev.notrobots.authenticator.ui.backupmanager.BackupManagerActivity
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import dev.notrobots.authenticator.ui.settings.SettingsActivity
 import dev.notrobots.authenticator.ui.taglist.TagListActivity
 import dev.notrobots.authenticator.util.BackupManager
+import dev.notrobots.authenticator.util.BackupUtil
 import dev.notrobots.authenticator.util.OTPGenerator
 import dev.notrobots.authenticator.util.adapterOf
 import dev.notrobots.authenticator.widget.BottomSheetListView
@@ -70,7 +66,11 @@ class AccountListActivity : AuthenticatorActivity() {
             val data = it.data!!.getStringArrayListExtra(BarcodeScannerActivity.EXTRA_QR_LIST) ?: emptyList<String>()
 
             try {
-                ImportResultActivity.showResults(this, BackupManager.importList(data))
+                val backupData = BackupManager.importList(data)
+
+                lifecycleScope.launch {
+                    BackupUtil.importBackupData(this@AccountListActivity, backupData, viewModel.accountDao)
+                }
             } catch (e: Exception) {
                 showInfo(R.string.label_error, e.message)
             }
@@ -107,7 +107,7 @@ class AccountListActivity : AuthenticatorActivity() {
 
         override fun onShareAccount(account: Account, position: Int, id: Long, adapter: AccountListAdapter) {
             val qrCode = QRCode(Account.toUri(account))
-            val dialog = QRCodeImageDialog.newInstance(qrCode, getString(R.string.accessibility_qr_code))
+            val dialog = QRCodeImageDialog(qrCode, getString(R.string.accessibility_qr_code))
 
             dialog.show(supportFragmentManager, null)
         }
@@ -132,12 +132,8 @@ class AccountListActivity : AuthenticatorActivity() {
             when (item.itemId) {
                 R.id.menu_account_remove -> {
                     if (adapter.selectedItemCount > 0) {
-                        DeleteAccountDialog(adapter.selectedItemCount, supportFragmentManager) {
-                            lifecycleScope.launch {
-                                viewModel.accountDao.delete(adapter.selectedItems)
-                            }
-                            actionMode?.finish()
-                        }
+                        DeleteAccountDialog(adapter.selectedItems)
+                            .show(supportFragmentManager, null)
                     } else {
                         makeToast("No items selected")
                     }
@@ -248,6 +244,14 @@ class AccountListActivity : AuthenticatorActivity() {
         viewModel.tagIdFilter(preferences.getTagIdFilter())
 
         checkLocalBackupPermissions()
+
+        supportFragmentManager.setFragmentResultListener<DeleteAccountDialog>(this) { _, _ ->
+            actionMode?.finish()
+        }
+
+        supportFragmentManager.setFragmentResultListener(AddOrEditTagDialog.REQUEST_ADD_TAG, this) { _, _ ->
+            makeToast("Tag added")
+        }
     }
 
     override fun onStart() {
@@ -443,18 +447,11 @@ class AccountListActivity : AuthenticatorActivity() {
                 makeToast("All jobs cancelled")
             }
             R.id.menu_theme_dialog -> {
-                val dialog = CustomThemeDialog()
-
-                dialog.theme = preferences.getCustomAppTheme()
-                dialog.nightMode = preferences.getCustomAppThemeNightMode()
-                dialog.trueBlack = preferences.getCustomAppThemeTrueBlack()
-                dialog.setOnCancelListener {
-                    preferences.putCustomAppTheme(dialog.theme)
-                    preferences.putCustomAppThemeNightMode(dialog.nightMode)
-                    preferences.putCustomAppThemeTrueBlack(dialog.trueBlack)
-                    updateTheme(true)
-                }
-                dialog.show(supportFragmentManager, null)
+                CustomThemeDialog(
+                    preferences.getCustomAppTheme(),
+                    preferences.getCustomAppThemeNightMode(),
+                    preferences.getCustomAppThemeTrueBlack()
+                ).show(supportFragmentManager, null)
             }
             R.id.menu_prev_theme -> {
                 val theme = preferences.getCustomAppTheme<CustomAppTheme>()
@@ -558,14 +555,9 @@ class AccountListActivity : AuthenticatorActivity() {
             btn_add_account.close(true)
         }
         binding.btnAddAccountUrl.setOnClickListener {
-            AccountUriDialog(supportFragmentManager, R.string.label_add_account) { data, dialog ->
-                try {
-                    ImportResultActivity.showResults(this, BackupManager.importText(data))
-                    dialog.dismiss()
-                } catch (e: Exception) {
-                    dialog.error = e.message
-                }
-            }
+            AccountUriDialog(R.string.label_add_account)
+                .show(supportFragmentManager, null)
+
             btn_add_account.close(true)
         }
         binding.btnAddAccountCustom.setOnClickListener {
@@ -573,9 +565,8 @@ class AccountListActivity : AuthenticatorActivity() {
             btn_add_account.close(true)
         }
         binding.btnAddAccountTag.setOnClickListener {
-            AddOrEditTagDialog(this, lifecycleScope, viewModel.tagDao) {
-                makeToast("Tag added")
-            }
+            AddOrEditTagDialog()
+                .show(supportFragmentManager, null)
         }
     }
 
@@ -659,32 +650,5 @@ class AccountListActivity : AuthenticatorActivity() {
         adapter.hidePinsOnChange = preferences.getHidePinsOnChange()
         adapter.totpIndicatorType = preferences.getTotpIndicator()
         adapter.pinTextSize = preferences.getPinTextSize()
-    }
-
-    /**
-     * Adds or replace the given [account].
-     */
-    private fun addOrReplaceAccount(account: Account) {
-        lifecycleScope.launch {
-            if (viewModel.accountDao.exists(account)) {
-                ReplaceAccountDialog(supportFragmentManager, object : ReplaceAccountDialog.Listener {
-                    override fun onReplace() {
-                        lifecycleScope.launch {
-                            viewModel.updateAccount(account)
-                        }
-                        logd("Replacing existing account: $account")
-                    }
-
-                    override fun onKeepBoth() {
-                        lifecycleScope.launch {
-                            viewModel.insertAccountWithSameName(account)
-                        }
-                        logd("Keeping both accounts: $account")
-                    }
-                })
-            } else {
-                viewModel.insertAccount(account)
-            }
-        }
     }
 }

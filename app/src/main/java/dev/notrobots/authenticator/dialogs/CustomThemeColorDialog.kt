@@ -4,7 +4,10 @@ import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.setFragmentResult
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -15,23 +18,22 @@ import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.DialogCustomThemeColorBinding
 import dev.notrobots.authenticator.databinding.ItemCustomThemeColorBinding
 import dev.notrobots.authenticator.extensions.first
+import dev.notrobots.authenticator.extensions.setFragmentResult
 import dev.notrobots.authenticator.models.CustomAppTheme
+import dev.notrobots.authenticator.models.MaterialDialogBuilder
+import dev.notrobots.authenticator.util.viewModel
 import dev.notrobots.preferences2.util.parseEnum
 
-class CustomThemeColorDialog : DialogFragment() {
+class CustomThemeColorDialog(
+    private var theme: CustomAppTheme = Enum.first()
+) : DialogFragment() {
     private lateinit var binding: DialogCustomThemeColorBinding
-    private var onSelectColorListener: OnSelectColorListener? = null
     private val adapter = ColorAdapter()
-    var theme: CustomAppTheme = Enum.first()
-        set(value) {
-            field = value
-            adapter.setChecked(value)
-        }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
-        outState.putString("theme", theme.name)
+        outState.putString(SAVED_STATE_THEME, theme.name)
     }
 
     override fun onAttach(context: Context) {
@@ -41,34 +43,36 @@ class CustomThemeColorDialog : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         if (savedInstanceState != null) {
-            if (savedInstanceState.containsKey("theme")) {
-                theme = parseEnum(savedInstanceState.getString("theme"))
+            if (savedInstanceState.containsKey(SAVED_STATE_THEME)) {
+                theme = parseEnum(savedInstanceState.getString(SAVED_STATE_THEME))
             }
         }
 
         adapter.setOnItemClickListener(object : ColorAdapter.OnItemClickListener {
             override fun onClick(item: CustomAppTheme) {
                 theme = item
+                adapter.setChecked(theme)
                 requireContext().makeToast(theme)
             }
         })
+        adapter.setChecked(theme)
         binding.recyclerView.layoutManager = GridLayoutManager(requireContext(), 4)
         binding.recyclerView.adapter = adapter
 
-        return MaterialAlertDialogBuilder(requireContext())
+        return MaterialDialogBuilder(requireContext())
             .setTitle(R.string.label_theme_color)
             .setIcon(R.drawable.ic_brush)
             .setView(binding.root)
-            .setPositiveButton(R.string.label_ok) { _, _ ->
-                onSelectColorListener?.onSelect(theme)
+            .setPositiveButton(R.string.label_ok) { d, _ ->
+                d.dismiss()
+                setFragmentResult<CustomThemeColorDialog>(
+                    bundleOf(
+                        EXTRA_THEME to theme
+                    )
+                )
             }
             .setNegativeButton(R.string.label_cancel, null)
             .create()
-    }
-
-    //TODO: Add a different listener for when the theme is selected and when the dialog is closed with positive button
-    fun setOnSelectColorListener(onSelectColorListener: OnSelectColorListener?) {
-        this.onSelectColorListener = onSelectColorListener
     }
 
     class ColorAdapter : RecyclerView.Adapter<ColorAdapter.ViewHolder>() {
@@ -122,7 +126,8 @@ class CustomThemeColorDialog : DialogFragment() {
         }
     }
 
-    interface OnSelectColorListener {
-        fun onSelect(theme: CustomAppTheme)
+    companion object {
+        private const val SAVED_STATE_THEME = "CustomThemeColorDialog.theme"
+        const val EXTRA_THEME = "CustomThemeColorDialog.theme"
     }
 }

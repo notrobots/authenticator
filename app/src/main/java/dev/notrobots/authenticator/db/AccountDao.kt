@@ -2,12 +2,14 @@ package dev.notrobots.authenticator.db
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import dev.notrobots.androidstuff.util.Logger
 import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.models.SortMode.Companion.ORDER_BY_ISSUER
 import dev.notrobots.authenticator.models.SortMode.Companion.ORDER_BY_LABEL
 import dev.notrobots.authenticator.models.SortMode.Companion.ORDER_BY_NAME
 import dev.notrobots.authenticator.models.SortMode.Companion.SORT_ASC
 import dev.notrobots.authenticator.models.SortMode.Companion.SORT_DESC
+import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
 
 @Dao
 interface AccountDao {
@@ -82,7 +84,7 @@ interface AccountDao {
     @Query(
         """
         SELECT EXISTS(
-            SELECT accountId 
+            SELECT * 
             FROM Account 
             WHERE name = :name and label = :label and issuer = :issuer
         )
@@ -98,17 +100,97 @@ interface AccountDao {
     @Query("SELECT COALESCE(MAX(`order`), 0) FROM Account")
     suspend fun getLargestOrder(): Long
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)    //XXX Is this needed?
+    @Insert
     suspend fun insert(account: Account): Long
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert
     suspend fun insert(accounts: List<Account>): List<Long>
+
+    /**
+     * Inserts the given [account] into the database and takes care of the ordering.
+     */
+    @Transaction
+    suspend fun insert(account: Account, incrementOrder: Boolean): Long {
+        if (incrementOrder) {
+            val last = getLargestOrder()
+
+            account.order = last + 1
+        }
+
+        Logger.logd("Adding new account")
+        return insert(account)
+    }
+
+    /**
+     * Inserts the given [account] and changes its name so that it doesn't collide with
+     * another existing account.
+     *
+     * @return The id of the inserted account.
+     */
+    @Transaction
+    suspend fun insertAccountWithSameName(account: Account): Long {
+        try {
+            val rgx = Regex("\\s(\\d+)$")
+            val lastSimilarName = getSimilarNames("${account.name}%").maxOf { it }
+            val match = rgx.find(lastSimilarName)
+            val name = if (match == null) {
+                "$lastSimilarName 1"
+            } else {
+                val value = match.groupValues[1].toInt()
+
+                lastSimilarName.replace(rgx, " ${value + 1}")
+            }
+
+            val newAccount = account.clone().apply {
+                this.name = name
+            }
+
+            return insert(newAccount, true)
+        }catch (e: Exception) {
+            Logger.loge("DB error", e)
+            throw Exception(e)
+        }
+    }
 
     @Update
     suspend fun update(account: Account): Int
 
     @Update
     suspend fun update(accounts: List<Account>): Int
+
+    /**
+     * Updates the given [account].
+     */
+    suspend fun update(account: Account, isDummy: Boolean) {
+        if (isDummy) {
+            // Since we are updating the account using a dummy account with the new values
+            // We might need to fetch the corresponding account using name, label and issuer
+            // We then set the id of the account we want to update to our dummy account and pass that
+            // to the update function
+            val stored = getAccount(account.name, account.label, account.issuer)
+
+            if (account.accountId == Account.DEFAULT_ID) {
+                if (stored != null) {
+                    account.accountId = stored.accountId
+                } else {
+                    Logger.loge("Cannot update id: Account not found")
+                    return
+                }
+            }
+
+            if (account.order == Account.DEFAULT_ORDER) {
+                if (stored != null) {
+                    account.order = stored.order
+                } else {
+                    Logger.loge("Cannot update order: Account not found")
+                    return
+                }
+            }
+        }
+
+        update(account)
+        Logger.logd("Updating account")
+    }
 
     @Delete
     suspend fun delete(account: Account): Int

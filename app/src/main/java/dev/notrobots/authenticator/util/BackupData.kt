@@ -5,13 +5,16 @@ import dev.notrobots.authenticator.models.Tag
 import java.io.Serializable
 
 /**
- * Container for the imported data
+ * Container for the imported data.
  */
-data class BackupData(
+data class BackupData(  //TODO: Move to models
     val accounts: Set<Account> = emptySet(),
     val tags: Set<Tag> = emptySet(),
     val accountsWithTags: Map<Account, Set<String>> = emptyMap()
 ) : Serializable {
     val isEmpty: Boolean
         get() = accounts.isEmpty() && tags.isEmpty() && accountsWithTags.isEmpty()
+
+    val size: Int
+        get() = accounts.size + tags.size
 }

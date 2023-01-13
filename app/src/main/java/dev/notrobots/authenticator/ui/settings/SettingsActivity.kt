@@ -3,6 +3,7 @@ package dev.notrobots.authenticator.ui.settings
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import androidx.fragment.app.setFragmentResultListener
 import androidx.preference.*
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
@@ -26,6 +27,8 @@ import dev.notrobots.authenticator.widget.preference.CountdownIndicatorPreferenc
 import dev.notrobots.preferences2.*
 import dev.notrobots.preferences2.fragments.MaterialPreferenceFragment
 import dev.notrobots.preferences2.util.parseEnum
+import java.util.prefs.PreferenceChangeEvent
+import java.util.prefs.PreferenceChangeListener
 import javax.inject.Inject
 import kotlin.math.abs
 
@@ -95,18 +98,11 @@ class SettingsActivity : AuthenticatorActivity() {
                 }
             }
             customAppThemePref?.setOnPreferenceClickListener {
-                val dialog = CustomThemeDialog()
-
-                dialog.theme = prefs.getCustomAppTheme()
-                dialog.nightMode = prefs.getCustomAppThemeNightMode()
-                dialog.trueBlack = prefs.getCustomAppThemeTrueBlack()
-                dialog.setOnCancelListener {
-                    prefs.putCustomAppTheme(dialog.theme)
-                    prefs.putCustomAppThemeNightMode(dialog.nightMode)
-                    prefs.putCustomAppThemeTrueBlack(dialog.trueBlack)
-                    authenticatorActivity?.updateTheme(true)
-                }
-                dialog.show(requireActivity().supportFragmentManager, null)
+                CustomThemeDialog(
+                    prefs.getCustomAppTheme(),
+                    prefs.getCustomAppThemeNightMode(),
+                    prefs.getCustomAppThemeTrueBlack()
+                ).show(requireActivity().supportFragmentManager, null)
 
                 true
             }
@@ -194,6 +190,10 @@ class SettingsActivity : AuthenticatorActivity() {
                 true
             }
             updateTimeCorrectionSummary()
+
+            setFragmentResultListener<CustomThemeDialog> { _, _ ->
+                authenticatorActivity?.updateTheme(true)
+            }
         }
 
         override fun onDisplayPreferenceDialog(preference: Preference) {

@@ -28,6 +28,27 @@ interface TagDao {
     @Insert
     suspend fun insert(tags: List<Tag>): List<Long>
 
+    @Insert
+    suspend fun insert(tags: Set<Tag>): List<Long>
+
+    @Upsert
+    suspend fun insertOrUpdate(tag: Tag): Long  //TODO: Create a base dao with these queries already defined
+
+    @Upsert
+    suspend fun insertOrUpdate(tags: List<Tag>): List<Long>
+
+    @Upsert
+    suspend fun insertOrUpdate(tags: Set<Tag>): List<Long>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertOrIgnore(tag: Tag): Long
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertOrIgnore(tags: List<Tag>): List<Long>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertOrIgnore(tags: Set<Tag>): List<Long>
+
     @Update
     suspend fun update(tag: Tag): Int
 

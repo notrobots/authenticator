@@ -6,6 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.annotation.LayoutRes
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.viewbinding.ViewBinding
 import com.google.gson.Gson
 import dev.notrobots.androidstuff.util.bindView
@@ -205,3 +208,7 @@ inline fun <reified T : ViewBinding> bindCustomView(parent: ViewGroup) = bindVie
 fun <T : ViewBinding> bindListItem(type: KClass<T>, parent: ViewGroup) = bindView(type, parent, false)
 
 inline fun <reified T : ViewBinding> bindListItem(parent: ViewGroup) = bindView<T>(parent, false)
+
+inline fun <reified T : ViewModel> viewModel(owner: ViewModelStoreOwner): T {
+    return ViewModelProvider(owner)[T::class.java]
+}

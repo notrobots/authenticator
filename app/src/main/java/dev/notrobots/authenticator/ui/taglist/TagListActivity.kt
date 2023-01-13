@@ -1,26 +1,16 @@
 package dev.notrobots.authenticator.ui.taglist
 
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import androidx.activity.viewModels
-import androidx.appcompat.view.ActionMode
-import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
-import dev.notrobots.androidstuff.extensions.makeToast
-import dev.notrobots.androidstuff.extensions.showChoice
 import dev.notrobots.androidstuff.extensions.viewBindings
-import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityTagListBinding
-import dev.notrobots.authenticator.models.AddOrEditTagDialog
-import dev.notrobots.authenticator.models.BaseDialog
+import dev.notrobots.authenticator.dialogs.AddOrEditTagDialog
+import dev.notrobots.authenticator.dialogs.DeleteTagDialog
 import dev.notrobots.authenticator.models.Tag
-import dev.notrobots.preferences2.getTagIdFilter
-import dev.notrobots.preferences2.putTagIdFilter
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class TagListActivity : AuthenticatorActivity() {
@@ -43,11 +33,18 @@ class TagListActivity : AuthenticatorActivity() {
         setupListAdapter()
 
         binding.addTag.setOnClickListener {
-            AddOrEditTagDialog(this, lifecycleScope, viewModel.tagDao)
+            AddOrEditTagDialog()
+                .show(supportFragmentManager, null)
         }
 
         viewModel.tags.observe(this) {
             adapter.setItems(it)
+        }
+
+        supportFragmentManager.setFragmentResultListener(AddOrEditTagDialog.REQUEST_EDIT_TAG, this) { _, _ ->
+            //TODO: This way of setting a listener to a DialogFragment is bad since passing data can be hard
+
+            adapter.notifyDataSetChanged()  //FIXME: Only notify the changed item
         }
     }
 
@@ -67,32 +64,13 @@ class TagListActivity : AuthenticatorActivity() {
         adapter = TagListAdapter()
         adapter.setListener(object : TagListAdapter.Listener {
             override fun onDelete(tag: Tag, id: Long, position: Int) {
-                BaseDialog(
-                    this@TagListActivity,
-                    "Delete tag",
-                    "This will remove the tag \"${tag.name}\".\n\nThis action cannot be undo.",
-                    "Delete",
-                    {
-                        lifecycleScope.launch {
-                            if (preferences.getTagIdFilter() == tag.tagId) {
-                                preferences.putTagIdFilter(-1)
-                                viewModel.tagDao.delete(tag)
-                                adapter.notifyItemChanged(position)
-                                it.dismiss()
-                            }
-                        }
-                    },
-                    "Cancel",
-                    {
-                        it.dismiss()
-                    }
-                )
+                DeleteTagDialog(tag)
+                    .show(supportFragmentManager, null)
             }
 
             override fun onEdit(tag: Tag, id: Long, position: Int) {
-                AddOrEditTagDialog(this@TagListActivity, lifecycleScope, viewModel.tagDao, tag) {
-                    adapter.notifyItemChanged(position)
-                }
+                AddOrEditTagDialog(tag)
+                    .show(supportFragmentManager, null)
             }
         })
 

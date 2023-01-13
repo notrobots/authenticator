@@ -1,8 +1,11 @@
 package dev.notrobots.authenticator.db
 
 import androidx.room.*
+import dev.notrobots.androidstuff.util.Logger
+import dev.notrobots.authenticator.models.Account
 import dev.notrobots.authenticator.models.AccountTagCrossRef
 import dev.notrobots.authenticator.models.AccountWithTags
+import dev.notrobots.authenticator.models.Tag
 
 @Dao
 interface AccountTagCrossRefDao {
@@ -15,6 +18,18 @@ interface AccountTagCrossRefDao {
 
     @Query("INSERT INTO AccountTagCrossRef VALUES(:accountId, :tagId)")
     suspend fun insert(accountId: Long, tagId: Long): Long
+
+    @Transaction
+    suspend fun insertWithNames(accountId: Long, tagNames: Iterable<String>?) {
+        tagNames?.forEach { name ->
+            val tagId = getTag(name).tagId
+
+            insert(accountId, tagId)
+        }
+    }
+
+    @Query("SELECT * FROM Tag WHERE name = :name")
+    suspend fun getTag(name: String): Tag
 
     @Delete
     suspend fun delete(accountTagCrossRef: AccountTagCrossRef): Int

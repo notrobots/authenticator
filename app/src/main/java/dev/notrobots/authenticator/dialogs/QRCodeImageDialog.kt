@@ -10,18 +10,20 @@ import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.util.bindView
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.databinding.DialogImageBinding
+import dev.notrobots.authenticator.models.MaterialDialogBuilder
 import dev.notrobots.authenticator.models.QRCode
 
-//FIXME DialogFragment and Fragment subclasses cannot have constructor parameters or the system won't be able to instantiate them
-class QRCodeImageDialog private constructor() : DialogFragment() {
-    private lateinit var binding: DialogImageBinding
-    private var qrCode: QRCode? = null
+class QRCodeImageDialog(
+    private var qrCode: QRCode? = null,
     private var contentDescription: String? = null
+) : DialogFragment() {
+    private lateinit var binding: DialogImageBinding
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
-        saveToBundle(outState, qrCode, contentDescription)
+        outState.putSerializable(SAVED_STATE_QR_CODE, qrCode)
+        outState.putString(SAVED_STATE_CONTENT_DESCRIPTION, contentDescription)
     }
 
     override fun onAttach(context: Context) {
@@ -30,10 +32,9 @@ class QRCodeImageDialog private constructor() : DialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        if (savedInstanceState != null) {
-            loadFromBundle(savedInstanceState, this)
-        } else {
-            arguments?.let { loadFromBundle(it, this) }
+        savedInstanceState?.let {
+            qrCode = it.getSerializable(SAVED_STATE_QR_CODE) as QRCode
+            contentDescription = it.getString(SAVED_STATE_CONTENT_DESCRIPTION)
         }
 
         qrCode?.let {
@@ -42,44 +43,21 @@ class QRCodeImageDialog private constructor() : DialogFragment() {
 
         binding.image.contentDescription = contentDescription
 
-        return MaterialAlertDialogBuilder(requireContext())
+        return MaterialDialogBuilder(requireContext())
             .setTitle(R.string.label_qr_code)
             .setView(binding.root)
             .setPositiveButton(R.string.label_close, null)
-            .setNegativeButton(R.string.label_copy_uri, null)
-            .create()
-            .apply {
-                setOnShowListener {
-                    getButton(Dialog.BUTTON_NEGATIVE).setOnClickListener {
-                        qrCode?.content?.let {
-                            requireContext().copyToClipboard(it)
-                            requireContext().makeToast(R.string.label_uri_copied)
-                        }
-                    }
+            .setNegativeButton(R.string.label_copy_uri) { d, _ ->
+                qrCode?.content?.let {
+                    requireContext().copyToClipboard(it)
+                    requireContext().makeToast(R.string.label_uri_copied)
                 }
-                show()
             }
+            .create()
     }
 
     companion object {
-        fun newInstance(qrCode: QRCode?, contentDescription: String?): DialogFragment {
-            val dialog = QRCodeImageDialog()
-            val bundle = Bundle()
-
-            saveToBundle(bundle, qrCode, contentDescription)
-            dialog.arguments = bundle
-
-            return dialog
-        }
-
-        fun loadFromBundle(bundle: Bundle, dialog: QRCodeImageDialog) {
-            dialog.qrCode = bundle.getSerializable("qrCode") as QRCode
-            dialog.contentDescription = bundle.getString("contentDescription")
-        }
-
-        fun saveToBundle(bundle: Bundle, qrCode: QRCode?, contentDescription: String?) {
-            bundle.putSerializable("qrCode", qrCode)
-            bundle.putString("contentDescription", contentDescription)
-        }
+        private const val SAVED_STATE_QR_CODE = "QRCodeImageDialog.qrCode"
+        private const val SAVED_STATE_CONTENT_DESCRIPTION = "QRCodeImageDialog.contentDescription"
     }
 }

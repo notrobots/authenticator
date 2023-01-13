@@ -1,24 +1,36 @@
 package dev.notrobots.authenticator.ui.backupimport
 
 import android.app.Activity
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts.*
+import androidx.lifecycle.lifecycleScope
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.*
+import dev.notrobots.androidstuff.util.Logger
 import dev.notrobots.androidstuff.util.Logger.Companion.logd
 import dev.notrobots.androidstuff.util.Logger.Companion.loge
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
 import dev.notrobots.authenticator.databinding.ActivityImportBinding
+import dev.notrobots.authenticator.db.AccountDao
+import dev.notrobots.authenticator.db.AccountTagCrossRefDao
+import dev.notrobots.authenticator.db.TagDao
 import dev.notrobots.authenticator.dialogs.AccountUriDialog
+import dev.notrobots.authenticator.dialogs.ReplaceAccountDialog
+import dev.notrobots.authenticator.models.ImportData
 import dev.notrobots.authenticator.ui.barcode.BarcodeScannerActivity
 import dev.notrobots.authenticator.ui.backupimportresult.ImportResultActivity
 import dev.notrobots.authenticator.util.BackupManager
+import dev.notrobots.authenticator.util.BackupUtil
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ImportActivity : AuthenticatorActivity() {
@@ -38,13 +50,16 @@ class ImportActivity : AuthenticatorActivity() {
                 val uris = it.data!!.getStringArrayListExtra(BarcodeScannerActivity.EXTRA_QR_LIST) ?: emptyList<String>()
 
                 try {
-                    val data = BackupManager.importList(uris)
+                    val backupData = BackupManager.importList(uris)
 
-                    if (data.isEmpty) {
-                        showInfo("Error", "Invalid data")
+//                    if (data.isEmpty) {       XXX: Was this needed?
+//                        showInfo("Error", "Invalid data")
+//                    }
+
+
+                    lifecycleScope.launch {
+                        BackupUtil.importBackupData(this@ImportActivity, backupData, accountDao)
                     }
-
-                    ImportResultActivity.showResults(this, data)
                 } catch (e: Exception) {
                     loge("QR content: $uris")
                     loge("There was an error while importing a QR code", e)
@@ -67,9 +82,11 @@ class ImportActivity : AuthenticatorActivity() {
                             val content = it.first().rawValue
 
                             try {
-                                val data = BackupManager.importText(content!!)
+                                val backupData = BackupManager.importText(content ?: "")
 
-                                ImportResultActivity.showResults(this, data)
+                                lifecycleScope.launch {
+                                    BackupUtil.importBackupData(this@ImportActivity, backupData, accountDao)
+                                }
                             } catch (e: Exception) {
                                 loge("File content: $content")
                                 loge("There was an error while importing a backup file", e)
@@ -85,9 +102,11 @@ class ImportActivity : AuthenticatorActivity() {
                         val content = it.reader().readText()
 
                         try {
-                            val data = BackupManager.importText(content)
+                            val backupData = BackupManager.importText(content)
 
-                            ImportResultActivity.showResults(this, data)
+                            lifecycleScope.launch {
+                                BackupUtil.importBackupData(this@ImportActivity, backupData, accountDao)
+                            }
                         } catch (e: Exception) {
                             loge("File content: $content")
                             loge("There was an error while importing a backup file", e)
@@ -112,6 +131,15 @@ class ImportActivity : AuthenticatorActivity() {
     )
     private val binding by viewBindings<ActivityImportBinding>()
 
+    @Inject
+    protected lateinit var accountDao: AccountDao
+
+    @Inject
+    protected lateinit var tagDao: TagDao
+
+    @Inject
+    protected lateinit var accountTagCrossRefDao: AccountTagCrossRefDao
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -130,18 +158,8 @@ class ImportActivity : AuthenticatorActivity() {
             filePicker.launch(filePickerTypes)
         }
         binding.importOptionText.setOnClickListener {
-
-            //TODO: Improve the dialog system, all dialogs should be using the DialogFragment class
-            AccountUriDialog(supportFragmentManager, null) { data, dialog ->
-                try {
-                    ImportResultActivity.showResults(this, BackupManager.importText(data))
-                    dialog.dismiss()
-                } catch (e: Exception) {
-                    dialog.error = e.message
-                    loge("Imported data: $data")
-                    loge("There was an error while importing a backup", e)
-                }
-            }
+            AccountUriDialog(R.string.label_import_option_text)
+                .show(supportFragmentManager, null)
         }
     }
 }

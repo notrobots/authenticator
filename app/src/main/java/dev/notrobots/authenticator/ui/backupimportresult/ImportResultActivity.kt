@@ -1,5 +1,6 @@
 package dev.notrobots.authenticator.ui.backupimportresult
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -7,83 +8,56 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.showChoice
-import dev.notrobots.androidstuff.extensions.showInfo
 import dev.notrobots.androidstuff.extensions.startActivity
 import dev.notrobots.androidstuff.extensions.viewBindings
 import dev.notrobots.androidstuff.util.Logger.Companion.logd
 import dev.notrobots.authenticator.R
 import dev.notrobots.authenticator.activities.AuthenticatorActivity
-import dev.notrobots.authenticator.data.Preferences
 import dev.notrobots.authenticator.databinding.ActivityImportResultBinding
-import dev.notrobots.authenticator.extensions.isDeviceSecured
-import dev.notrobots.authenticator.models.Account
-import dev.notrobots.authenticator.models.AppTheme
-import dev.notrobots.authenticator.models.Tag
+import dev.notrobots.authenticator.models.*
 import dev.notrobots.authenticator.ui.accountlist.AccountListActivity
 import dev.notrobots.authenticator.ui.accountlist.AccountListViewModel
-import dev.notrobots.authenticator.util.BackupData
+import dev.notrobots.authenticator.util.AccountsWithTags
 import dev.notrobots.preferences2.*
-import dev.notrobots.preferences2.util.parseEnum
 import kotlinx.coroutines.launch
-import kotlin.reflect.KMutableProperty
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.isAccessible
 
 @AndroidEntryPoint
 class ImportResultActivity : AuthenticatorActivity() {
     private val binding by viewBindings<ActivityImportResultBinding>()
     private val viewModel by viewModels<AccountListViewModel>()
-    private val importResults = mutableMapOf<Any, ImportResult>()
-    private var backupData: BackupData? = null
+    private lateinit var importData: ImportData
     private val adapter = ImportResultAdapter()
-    private var noDuplicates = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setSupportActionBar(binding.toolbarLayout.toolbar)
         finishOnBackPressEnabled = true
 
-        backupData = intent.getSerializableExtra(EXTRA_DATA) as BackupData
-
-        requireNotNull(backupData) {
-            "Backup data is null"
+        require(intent.hasExtra(EXTRA_IMPORT_DATA)) {
+            "Extra $EXTRA_IMPORT_DATA must be defined"
         }
 
+        importData = intent.getSerializableExtra(EXTRA_IMPORT_DATA) as ImportData
+
         lifecycleScope.launch {
-            for (account in backupData!!.accounts) {
-                importResults[account] = ImportResult(
-                    account.displayName,
-                    R.drawable.ic_account,
-                    viewModel.accountDao.exists(account)
-                )
-            }
+            if (importData.hasDuplicates) {
+                val adapterValues = mutableListOf<ImportResult>().apply {
+                    addAll(importData.accounts.values)
+                    addAll(importData.tags.values)
+                }
 
-            for (tag in backupData!!.tags) {
-                importResults[tag] = ImportResult(
-                    tag.name,
-                    R.drawable.ic_tag,
-                    false   // Duplicate tags are ignored
-                )
-            }
-
-            noDuplicates = importResults.none { it.value.isDuplicate }
-
-            if (noDuplicates) {
-                importBackup()
-            } else {
                 setContentView(binding.root)
-                adapter.setItems(importResults.values.toList())
+                adapter.setItems(adapterValues)
                 binding.list.layoutManager = LinearLayoutManager(this@ImportResultActivity)
                 binding.done.setOnClickListener {
                     val isNotResolved = { r: ImportResult ->
                         r.isDuplicate && r.action == ImportAction.Default
                     }
 
-                    if (importResults.values.any(isNotResolved)) {
+                    if (adapterValues.any(isNotResolved)) {
                         showChoice(
                             "Import conflicts",
                             "There are still some conflicts left, are you sure you want to proceed?\n\nNOTE: By default conflicting items will be skipped",
@@ -97,6 +71,8 @@ class ImportResultActivity : AuthenticatorActivity() {
                         importBackup()
                     }
                 }
+            } else {
+                importBackup()
             }
         }
     }
@@ -118,10 +94,11 @@ class ImportResultActivity : AuthenticatorActivity() {
         return true
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_import_skip_all -> {
-                for (result in importResults.values) {
+                for ((_, result) in importData.accounts) {
                     if (result.isDuplicate) {
                         result.action = ImportAction.Skip
                     }
@@ -129,7 +106,7 @@ class ImportResultActivity : AuthenticatorActivity() {
                 adapter.notifyDataSetChanged()
             }
             R.id.menu_import_replace_all -> {
-                for (result in importResults.values) {
+                for ((_, result) in importData.accounts) {
                     if (result.isDuplicate) {
                         result.action = ImportAction.Replace
                     }
@@ -137,7 +114,7 @@ class ImportResultActivity : AuthenticatorActivity() {
                 adapter.notifyDataSetChanged()
             }
             R.id.menu_import_keep_all -> {
-                for (result in importResults.values) {
+                for ((_, result) in importData.accounts) {
                     if (result.isDuplicate) {
                         result.action = ImportAction.KeepBoth
                     }
@@ -157,13 +134,11 @@ class ImportResultActivity : AuthenticatorActivity() {
         var replaced = 0
 
         lifecycleScope.launch {
-            val importedAccounts = importResults.filter { it.key is Account }
-            val importedTags = importResults.filter { it.key is Tag }
+            // todo
+            // viewModel.tagDao.insertOrIgnore(importData.tags.map { it.key })
 
             // Importing the tags first so the accounts can fetch the new added.
-            for ((tag, importResult) in importedTags) {
-                tag as Tag
-
+            for ((tag, _) in importData.tags) {
                 // Tags are either added or not touched at all.
                 // If a new account has a tag that is already in the db that tag
                 // will be associated with the new account.
@@ -177,9 +152,7 @@ class ImportResultActivity : AuthenticatorActivity() {
                 }
             }
 
-            for ((account, importResult) in importedAccounts) {
-                account as Account
-
+            for ((account, importResult) in importData.accounts) {
                 if (importResult.isDuplicate) {
                     when (importResult.action) {
                         ImportAction.Default,
@@ -191,7 +164,7 @@ class ImportResultActivity : AuthenticatorActivity() {
                                 viewModel.updateAccount(account)
                                 logd("Updating account: $account (dummy)")
                                 viewModel.accountTagCrossRefDao.deleteWithAccountId(accountId)
-                                addTagsToAccount(it, account)
+                                viewModel.accountTagCrossRefDao.insertWithNames(accountId, importData.accountsWithTags[account])
                             }
 
                             replaced++
@@ -200,7 +173,8 @@ class ImportResultActivity : AuthenticatorActivity() {
                             val accountId = viewModel.insertAccountWithSameName(account)
 
                             logd("Adding account with same name: $account (dummy)")
-                            addTagsToAccount(accountId, account)
+
+                            viewModel.accountTagCrossRefDao.insertWithNames(accountId, importData.accountsWithTags[account])
 
                             added++
                         }
@@ -209,7 +183,8 @@ class ImportResultActivity : AuthenticatorActivity() {
                     val accountId = viewModel.insertAccount(account)
 
                     logd("Inserting account: $account")
-                    addTagsToAccount(accountId, account)
+
+                    viewModel.accountTagCrossRefDao.insertWithNames(accountId, importData.accountsWithTags[account])
 
                     added++
                 }
@@ -221,25 +196,15 @@ class ImportResultActivity : AuthenticatorActivity() {
         }
     }
 
-    private suspend fun addTagsToAccount(accountId: Long, dummy: Account) {
-        val tagNames = backupData!!.accountsWithTags[dummy]
-
-        if (tagNames != null) {
-            for (tag in tagNames) {
-                val tagId = viewModel.tagDao.getTag(tag)!!.tagId
-
-                viewModel.accountTagCrossRefDao.insert(accountId, tagId)
-            }
-            logd("Adding tags $tagNames to account $dummy (dummy)")
-        }
-    }
-
     companion object {
-        const val EXTRA_DATA = "ImportResultActivity.DATA"
+        const val EXTRA_IMPORT_DATA = "ImportResultActivity.importData"
 
-        fun showResults(context: Context, backupData: BackupData) {
-            context.startActivity(ImportResultActivity::class) {
-                putExtra(EXTRA_DATA, backupData) //FIXME: Start on top?
+        /**
+         * Starts this activity and shows the given [backupData].
+         */
+        fun showResults(context: Context, importData: ImportData) {
+            context.startActivity(ImportResultActivity::class) { //FIXME: Start on top?
+                putExtra(EXTRA_IMPORT_DATA, importData)
             }
         }
     }
