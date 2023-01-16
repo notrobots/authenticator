@@ -20,6 +20,10 @@ class CircularProgressIndicator(
         get() = progress * 360F / max
     var max: Int = 100
     var progress: Int = 75
+        set(value) {
+            field = value
+            invalidate()
+        }
     var progressColor: Int = 0
         set(value) {
             field = value
