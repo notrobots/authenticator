@@ -79,10 +79,5 @@
         <activity android:name=".ui.backupexport.ExportFileActivity"
             android:label="Backup"
             android:screenOrientation="portrait"/>
-
-        <service
-            android:name=".services.LocalBackupJob"
-            android:exported="true"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 </manifest>

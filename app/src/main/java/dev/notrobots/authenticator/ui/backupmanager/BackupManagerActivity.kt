@@ -1,6 +1,5 @@
 package dev.notrobots.authenticator.ui.backupmanager
 
-import android.app.job.JobScheduler
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
@@ -12,6 +11,7 @@ import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.*
+import androidx.work.WorkManager
 import dagger.hilt.android.AndroidEntryPoint
 import dev.notrobots.androidstuff.extensions.makeToast
 import dev.notrobots.androidstuff.extensions.viewBindings
@@ -24,17 +24,15 @@ import dev.notrobots.authenticator.db.AccountDao
 import dev.notrobots.authenticator.db.AccountTagCrossRefDao
 import dev.notrobots.authenticator.db.TagDao
 import dev.notrobots.authenticator.extensions.*
-import dev.notrobots.authenticator.extensions.setBackupJobFirstRun
-import dev.notrobots.authenticator.services.BackupJob
-import dev.notrobots.authenticator.services.LocalBackupJob
 import dev.notrobots.authenticator.util.BackupManager
 import dev.notrobots.authenticator.util.TextUtil
+import dev.notrobots.authenticator.workers.BackupWorker
+import dev.notrobots.authenticator.workers.LocalBackupWorker
 import dev.notrobots.preferences2.*
 import dev.notrobots.preferences2.fragments.MaterialPreferenceFragment
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -76,9 +74,6 @@ class BackupManagerActivity : AuthenticatorActivity() {
                 localBackupPathPref?.updateSummary()
             }
         }
-        private val jobScheduler by lazy {
-            requireContext().getSystemService(JobScheduler::class.java)
-        }
         private val preferences by lazy {
             PreferenceManager.getDefaultSharedPreferences(requireContext())
         }
@@ -104,6 +99,9 @@ class BackupManagerActivity : AuthenticatorActivity() {
             findPreference<SwitchPreferenceCompat>(Preferences.DRIVE_BACKUP_ENABLED)
         }
         private val logger = Logger(this)
+        private val workManager by lazy {
+            WorkManager.getInstance(requireContext())
+        }
 
         @Inject
         protected lateinit var accountDao: AccountDao
@@ -132,23 +130,15 @@ class BackupManagerActivity : AuthenticatorActivity() {
                     } else {
                         requestNotificationPermission()
 
-                        val scheduleResult = BackupJob.schedule<LocalBackupJob>(
+                        BackupWorker.schedule<LocalBackupWorker>(
                             requireContext(),
-                            LocalBackupJob.JOB_ID,
-                            TimeUnit.MINUTES.toMillis(15)//TODO: Use the actual value daysToMillis(interval)
+                            15  //TODO: Use the actual value daysToMillis(interval)
                         )
 
-                        if (scheduleResult == JobScheduler.RESULT_FAILURE) {
-                            requireContext().makeToast(R.string.error_scheduling_backup_job)
-                            logger.loge("Cannot schedule job")
-                        } else {
-                            preferences.setBackupJobFirstRun(LocalBackupJob.JOB_ID, true)
-                            logger.logi("Job scheduled")
-                            return@setOnPreferenceChangeListener true
-                        }
+                        return@setOnPreferenceChangeListener true
                     }
                 } else {
-                    jobScheduler.cancel(LocalBackupJob.JOB_ID)
+                    workManager.cancelAllWorkByTag(LocalBackupWorker::class.qualifiedName ?: "")
                     logger.logi("Job cancelled")
                     return@setOnPreferenceChangeListener true
                 }

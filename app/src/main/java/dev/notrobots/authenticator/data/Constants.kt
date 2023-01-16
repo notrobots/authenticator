@@ -2,6 +2,8 @@ package dev.notrobots.authenticator.data
 
 import java.util.concurrent.TimeUnit
 
+//TODO try and move constants here
+
 const val LOG_DEFAULT_TAG = "OTP Authenticator"
 
 const val EMOJI_RGX = "(\\u00a9|\\u00ae|[\\u2000-\\u3300]|\\ud83c[\\ud000-\\udfff]|\\ud83d[\\ud000-\\udfff]|\\ud83e[\\ud000-\\udfff])"
@@ -35,3 +37,10 @@ const val QR_BITMAP_SIZE = 512
 
 const val SECOND_IN_MILLIS = 1000L
 const val MINUTE_IN_MILLIS = 60L * SECOND_IN_MILLIS
+
+//region Backup Worker
+
+const val LOCAL_BACKUP_BACKOFF_POLICY_INITIAL_DELAY = 2L
+val LOCAL_BACKUP_BACKOFF_POLICY_INITIAL_DELAY_UNIT = TimeUnit.MINUTES
+
+//endregion

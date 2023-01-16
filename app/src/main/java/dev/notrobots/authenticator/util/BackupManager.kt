@@ -61,7 +61,7 @@ object BackupManager {
     val googleAuthenticatorBackupFilename
         get() = "google_authenticator_${now() / 100}.png"
     val localAutomaticBackupFilename: String
-        get() = "authenticator_backup_${now()}.json"
+        get() = "authenticator_backup_${now()}"
 
     /**
      * Returns the DocumentFile that will be used to write a local backup.
